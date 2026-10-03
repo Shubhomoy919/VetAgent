@@ -184,7 +184,9 @@
 .rv-stats {
   position: sticky;
   top: 0;
+  min-width: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--s3);
   padding: var(--s4);
   background: var(--surface);
@@ -203,7 +205,14 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--s2);
+}
+
+.rv-rev,
+.rv-stats p {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .rv-kappa {
@@ -219,6 +228,8 @@
 }
 
 .rv-matrix {
+  width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: var(--text-xs);
 }
@@ -241,6 +252,7 @@
 }
 
 .rv-cond {
+  display: inline-block;
   margin-right: var(--s2);
   white-space: nowrap;
 }

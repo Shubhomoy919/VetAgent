@@ -1,5 +1,15 @@
 import type { ComponentType, SVGProps } from "react";
-import { BenchIcon, CasesIcon, DrugIcon, ScorecardIcon } from "../components/icons";
+import {
+  BenchIcon,
+  CasesIcon,
+  DrugIcon,
+  OverviewIcon,
+  ReviewIcon,
+  RunsIcon,
+  ScorecardIcon,
+  SettingsIcon,
+  StudyIcon,
+} from "../components/icons";
 
 export interface NavItem {
   to: string;
@@ -21,8 +31,8 @@ export const NAV: NavGroup[] = [
     label: "WORK",
     items: [
       { to: "/", label: "Bench", icon: BenchIcon },
-      { to: "/runs", label: "Runs", icon: ScorecardIcon },
-      { to: "/review", label: "Review", icon: CasesIcon },
+      { to: "/runs", label: "Runs", icon: RunsIcon },
+      { to: "/review", label: "Review", icon: ReviewIcon },
     ],
   },
   {
@@ -33,5 +43,12 @@ export const NAV: NavGroup[] = [
     ],
   },
   { label: "RESULTS", items: [{ to: "/scorecard", label: "Scorecard", icon: ScorecardIcon }] },
-  { label: "ABOUT", items: [{ to: "/study", label: "Study Design", icon: BenchIcon }] },
+  {
+    label: "ABOUT",
+    items: [
+      { to: "/study", label: "Study Design", icon: StudyIcon },
+      { to: "/overview", label: "Overview", icon: OverviewIcon },
+      { to: "/settings", label: "Settings", icon: SettingsIcon },
+    ],
+  },
 ];

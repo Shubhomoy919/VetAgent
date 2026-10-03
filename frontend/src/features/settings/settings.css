@@ -1,0 +1,139 @@
+.set-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
+  gap: var(--s6);
+  align-items: start;
+}
+
+.set-main,
+.set-side {
+  display: grid;
+  gap: var(--s5);
+  align-content: start;
+}
+
+.st-form {
+  padding: var(--s4) var(--s5) 0;
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius);
+}
+
+.st-form .editor-actions {
+  position: static;
+  margin: 0 calc(-1 * var(--s5));
+}
+
+.set-side > .fs,
+.st-usage {
+  padding: var(--s4) var(--s5);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius);
+}
+
+.st-usage {
+  display: grid;
+  gap: var(--s3);
+}
+
+.set-key {
+  font-size: var(--text-sm);
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.set-key[data-present="true"] {
+  color: var(--leaf);
+}
+
+.set-key[data-present="false"] {
+  color: var(--turmeric-ink);
+}
+
+.set-test-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+
+.set-test-result {
+  font-size: var(--text-xs);
+  overflow-wrap: anywhere;
+}
+
+.set-test-result[data-ok="true"] {
+  color: var(--leaf);
+}
+
+.set-test-result[data-ok="false"] {
+  color: var(--vermilion);
+}
+
+.set-pdf[data-ok="true"] {
+  color: var(--leaf);
+  font-size: var(--text-sm);
+}
+
+.set-pdf[data-ok="false"] {
+  color: var(--vermilion);
+  font-size: var(--text-sm);
+}
+
+.st-usage .dp-table th,
+.st-usage .dp-table td {
+  padding: 6px 7px;
+  font-size: var(--text-xs);
+}
+
+.set-total th,
+.set-total td {
+  font-weight: 500;
+  background: var(--surface-sunk);
+}
+
+.dp-table tbody tr.nohover {
+  cursor: default;
+}
+
+.dp-table tbody tr.nohover:hover {
+  background: none;
+}
+
+.settings .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 var(--s2);
+  border: 1px solid var(--pill-color, var(--rule-strong));
+  border-radius: var(--radius-sm);
+  color: var(--pill-color, var(--ink-2));
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.settings .pill[data-tone="live"] {
+  --pill-color: var(--leaf);
+}
+
+.settings .pill[data-tone="demo"] {
+  --pill-color: var(--turmeric-ink);
+}
+
+.settings .pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+@media (max-width: 1200px) {
+  .set-layout {
+    grid-template-columns: 1fr;
+  }
+}

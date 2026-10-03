@@ -19,6 +19,13 @@
           theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
         document.documentElement.dataset.theme = theme;
+        var density = null;
+        try {
+          density = localStorage.getItem("vab.density");
+        } catch (e) {
+          density = null;
+        }
+        document.documentElement.dataset.density = density === "compact" ? "compact" : "comfortable";
       })();
     </script>
   </head>

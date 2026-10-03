@@ -172,9 +172,14 @@ export function ReviewPage() {
   const { data: runs } = useRuns();
   const { data, error, isPending } = useReviewQueue(runId, reviewer.trim());
 
-  const items = useMemo(() => (data?.items ?? []).filter((i) => !onlyUnrated || !i.review), [data, onlyUnrated]);
+  // Ratings applied locally before the server confirms, so fast key presses never hit the same answer twice.
+  const [optimistic, setOptimistic] = useState<Record<number, Rating>>({});
+  const items = useMemo(
+    () => (data?.items ?? []).filter((i) => !onlyUnrated || (!i.review && !optimistic[i.result_id])),
+    [data, onlyUnrated, optimistic],
+  );
   const item = items[Math.min(index, Math.max(0, items.length - 1))];
-  const ratedCount = (data?.items ?? []).filter((i) => i.review).length;
+  const ratedCount = (data?.items ?? []).filter((i) => i.review || optimistic[i.result_id]).length;
 
   // Reset per-item UI when the item (or its saved note) changes — adjust state during render, not in an effect.
   const itemKey = `${item?.result_id ?? ""}|${item?.review?.note ?? ""}`;
@@ -202,15 +207,22 @@ export function ReviewPage() {
         toast.error("Enter your name as reviewer first.");
         return;
       }
+      const target = item;
+      setOptimistic((o) => ({ ...o, [target.result_id]: rating }));
+      if (!onlyUnrated) setIndex((i) => Math.min(i + 1, items.length - 1));
       try {
-        await saveReview(item.result_id, reviewer.trim(), rating, note);
+        await saveReview(target.result_id, reviewer.trim(), rating, note);
         await Promise.all([
           qc.invalidateQueries({ queryKey: ["review-queue"] }),
           qc.invalidateQueries({ queryKey: ["review-stats"] }),
         ]);
-        if (!onlyUnrated) setIndex((i) => Math.min(i + 1, items.length - 1));
       } catch (e) {
-        toast.error(e instanceof Error ? e.message : String(e));
+        setOptimistic((o) => {
+          const next = { ...o };
+          delete next[target.result_id];
+          return next;
+        });
+        toast.error(`Rating not saved: ${e instanceof Error ? e.message : String(e)}`);
       }
     },
     [item, reviewer, note, qc, onlyUnrated, items.length],

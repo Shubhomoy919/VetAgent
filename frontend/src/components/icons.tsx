@@ -64,6 +64,56 @@ export function DrugIcon(props: IconProps) {
   );
 }
 
+/** Runs: stacked log entries. */
+export function RunsIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M2.5 3.5h11M2.5 8h11M2.5 12.5h7" />
+      <circle cx="12.5" cy="12.5" r="1.3" />
+    </Svg>
+  );
+}
+
+/** Review: a clipboard with a check. */
+export function ReviewIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="2.5" width="10" height="11.5" rx="1.2" />
+      <path d="M6 2.5v1.5h4V2.5M5.8 9l1.7 1.7 3-3.4" />
+    </Svg>
+  );
+}
+
+/** Study design: the ablation ladder. */
+export function StudyIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M4 2v12M12 2v12M4 5h8M4 8h8M4 11h8" />
+    </Svg>
+  );
+}
+
+/** Overview: a one-page document. */
+export function OverviewIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M4 1.8h5.5L12.5 5v9.2H4z" />
+      <path d="M9.5 1.8V5h3M6 8h4.5M6 10.5h4.5" />
+    </Svg>
+  );
+}
+
+/** Settings: two sliders. */
+export function SettingsIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M2.5 5h11M2.5 11h11" />
+      <circle cx="6" cy="5" r="1.7" fill="var(--surface)" />
+      <circle cx="10.5" cy="11" r="1.7" fill="var(--surface)" />
+    </Svg>
+  );
+}
+
 export function SunIcon(props: IconProps) {
   return (
     <Svg {...props}>

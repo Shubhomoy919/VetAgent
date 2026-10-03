@@ -1,5 +1,5 @@
 /* API client for Runs, Review, Settings and metric metadata. */
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { Case, GoldAnswer, QuestionType } from "./cases";
 import { ApiError, type FieldError } from "./data";
 import type { Answer, ConditionId, RuleFiring, Stamp } from "./runs";
@@ -114,6 +114,7 @@ export function useReviewQueue(runId: string | null, reviewer: string) {
         `/api/review/queue?reviewer=${encodeURIComponent(reviewer)}${runId ? `&run_id=${encodeURIComponent(runId)}` : ""}`,
       ),
     retry: false,
+    placeholderData: keepPreviousData, // keep the answer on screen while the reviewer name changes
   });
 }
 

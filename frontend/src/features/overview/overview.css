@@ -1,0 +1,137 @@
+.ov-lede {
+  max-width: 78ch;
+  font-size: var(--text-md);
+}
+
+.ov-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  border: var(--hairline);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.ov-stat {
+  display: grid;
+  gap: 2px;
+  padding: var(--s3) var(--s4);
+  border-right: var(--hairline);
+}
+
+.ov-stat:last-child {
+  border-right: 0;
+}
+
+.ov-val {
+  font-size: var(--text-sm);
+}
+
+.ov-val.serif {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.ov-val[data-mode="demo"] {
+  color: var(--turmeric-ink);
+}
+
+.ov-val[data-mode="live"] {
+  color: var(--leaf);
+}
+
+.ov-section {
+  display: grid;
+  gap: var(--s3);
+  align-content: start;
+}
+
+.ov-conds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--s3);
+}
+
+.ov-cond {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s3);
+  background: var(--surface);
+  border: var(--hairline);
+  border-top: 3px solid var(--cond);
+  border-radius: var(--radius);
+}
+
+.ov-results {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 1fr);
+  gap: var(--s4);
+  align-items: start;
+}
+
+.ov-headline {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s4);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius);
+}
+
+.ov-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  flex-wrap: wrap;
+}
+
+.ov-line .eyebrow {
+  min-width: 18ch;
+}
+
+.ov-big {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.ov-arrow {
+  color: var(--ink-2);
+}
+
+.ov-runs {
+  margin: 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: 4px;
+  font-size: var(--text-xs);
+}
+
+.st-two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: var(--s5);
+}
+
+.st-list {
+  margin: 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: var(--s2);
+  font-size: var(--text-sm);
+}
+
+.rv-small {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+@media (max-width: 1100px) {
+  .ov-results {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .overview .btn {
+    display: none;
+  }
+}

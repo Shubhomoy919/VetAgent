@@ -48,6 +48,12 @@ Score a run (latest multi-case run by default) and write the CSV to `data/export
 Results are stored in `data/runs.db`. Without an API key the demo provider answers: sample responses built from
 the case text and tool results (never the gold answer), labelled `[Demo]`, not live model output.
 
+## Settings
+
+The Settings page edits non-secret settings (provider, models, temperature, max steps, prices, PDF path). Changes
+are saved to `data/settings.json` (gitignored) and override `.env`; "Reset to .env" removes them. API keys are
+never shown or stored there — put them in `.env`.
+
 ## Checks
 
 ```powershell
