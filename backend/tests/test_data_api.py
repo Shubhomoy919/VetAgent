@@ -1,0 +1,58 @@
+import pytest
+from fastapi.testclient import TestClient
+
+from app.config import Settings
+from app.main import app
+
+client = TestClient(app)
+PDF_PRESENT = Settings(_env_file=None).pdf_path.is_file()
+
+
+def test_list_cases():
+    res = client.get("/api/cases")
+    assert res.status_code == 200
+    cases = res.json()
+    assert len(cases) >= 25
+    first = cases[0]
+    for field in ("case_id", "species", "signalment", "question_type", "gold_answer", "vet_verified"):
+        assert field in first
+
+
+def test_get_case_and_404():
+    res = client.get("/api/cases/BOV-WD-007")
+    assert res.status_code == 200
+    assert res.json()["species"] == "cattle"
+    missing = client.get("/api/cases/BOV-999")
+    assert missing.status_code == 404
+    assert "BOV-999" in missing.json()["detail"]
+
+
+def test_list_drugs_marks_unverified():
+    rows = client.get("/api/drugs").json()
+    assert len(rows) >= 25
+    assert all(r["verified"] is False for r in rows)
+    banned = {r["drug"] for r in rows if r["status"] == "banned_in_india"}
+    assert {"diclofenac", "ketoprofen", "aceclofenac"} <= banned
+
+
+@pytest.mark.skipif(not PDF_PRESENT, reason="SVTG PDF not present")
+def test_search_returns_pages():
+    res = client.get("/api/search", params={"q": "buparvaquone milk withdrawal", "k": 3})
+    assert res.status_code == 200
+    body = res.json()
+    assert body["total_chunks"] > 1000
+    assert body["passages"][0]["page"] == 175
+    assert body["passages"][0]["printed_page"] == 157
+
+
+def test_search_validates_query():
+    assert client.get("/api/search", params={"q": ""}).status_code == 422
+
+
+@pytest.mark.skipif(not PDF_PRESENT, reason="SVTG PDF not present")
+def test_health_counts_real_data():
+    body = client.get("/api/health").json()
+    assert body["counts"]["cases"] >= 25
+    assert body["counts"]["drugs"] >= 25
+    assert body["chunks"] > 1000
+    assert body["data_errors"] == []

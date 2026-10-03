@@ -1,0 +1,91 @@
+/* ---------- Specimen tag ---------- */
+
+.specimen-tag {
+  --sp: var(--ink-2);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px 0 10px;
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-left: 4px solid var(--sp);
+  border-radius: 2px var(--radius-sm) var(--radius-sm) 2px;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.specimen-tag[data-size="lg"] {
+  height: 30px;
+  padding: 0 12px 0 13px;
+  font-size: var(--text-lg);
+  border-left-width: 6px;
+}
+
+.specimen-hole {
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 50%;
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
+.specimen-tag[data-species="CAN"] { --sp: var(--sp-can); }
+.specimen-tag[data-species="FEL"] { --sp: var(--sp-fel); }
+.specimen-tag[data-species="BOV"] { --sp: var(--sp-bov); }
+.specimen-tag[data-species="CAP"] { --sp: var(--sp-cap); }
+.specimen-tag[data-species="AVI"] { --sp: var(--sp-avi); }
+
+/* ---------- Question-type pill ---------- */
+
+.type-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.type-pill[data-type="drug_safety"],
+.type-pill[data-type="withdrawal_legal"] {
+  color: var(--terracotta);
+  border-color: currentColor;
+}
+
+.type-pill[data-type="escalation"],
+.type-pill[data-type="triage"] {
+  color: var(--indigo);
+  border-color: currentColor;
+}
+
+/* ---------- Unverified ---------- */
+
+.unverified-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 4px;
+  border: 1px dashed var(--turmeric);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--turmeric-ink);
+  white-space: nowrap;
+}

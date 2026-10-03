@@ -47,6 +47,19 @@ Tokens live in `frontend/src/app/tokens.css`; this file is the reference.
 
 The light condition colours are specified; the dark ones are lifted so they stay legible on `#161A21`.
 
+### Species stripes (specimen tags, filter chips — derived from the palette)
+| Code | Light | Dark |
+|---|---|---|
+| BOV | `#23306B` indigo | `#8E9BEA` |
+| CAP | `#2F6B3B` leaf | `#6FBF7F` |
+| AVI | `#D99A1E` turmeric | `#E6B04A` |
+| CAN | `#B4532A` terracotta | `#D9774C` |
+| FEL | `#7A5C99` plum (added) | `#B39DD1` |
+
+### Text-contrast token
+`--turmeric-ink` (`#8A5F0B` light, `#E6B04A` dark) is used wherever turmeric is *text* (DEMO pill, UNVERIFIED
+tag); raw turmeric `#D99A1E` on paper is about 2.3:1 and fails WCAG AA, so it is kept for borders and fills.
+
 ## Type
 - **Instrument Serif** — page titles, wordmark, big numbers, empty-state headlines.
 - **IBM Plex Sans** — all UI text (400/500/600).
@@ -70,7 +83,8 @@ Scale: 11 / 12.5 / 14 (base) / 16 / 22 / 34 px.
 - No parallax, blobs or looping animations.
 
 ## Signature elements
-1. **Specimen tags** — luggage-tag case IDs in mono, species code, colour stripe. (Empty outline in M1; filled in M2.)
+1. **Specimen tags** — luggage-tag case IDs in mono with a punched hole and species colour stripe. Built:
+   `components/Tags.tsx` (with the question-type pill and the UNVERIFIED tag).
 2. **Ablation ladder** — Retrieval / Tools / Verify / Guardrail as filled or hollow dots per condition, joined by a hairline. Built: `components/AblationLadder.tsx`.
 3. **Verdict stamps** — CORRECT (leaf), FALSE-SAFE / UNDER-TRIAGE (vermilion), ESCALATED (indigo); uppercase mono, 2px border, rotated about -3°, stamp-down animation. (M4.)
 4. **Lab-log traces** — numbered vertical timeline; tool calls as mono readouts with latency and tokens. (M4.)

@@ -1,10 +1,8 @@
-﻿"""GET /api/health — readiness of the PDF, data files and LLM provider.
+"""GET /api/health — readiness of the PDF, data files and LLM provider.
 
 Never exposes keys: only `key_present: true/false`.
 """
 
-import csv
-import json
 import sqlite3
 from functools import lru_cache
 from pathlib import Path
@@ -15,6 +13,8 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.config import DATA_DIR, REPO_ROOT, Settings, get_settings
+from app.data.loaders import DataError, load_cases, load_drugs
+from app.retrieval.service import svtg_index
 
 router = APIRouter()
 
@@ -37,6 +37,7 @@ class Health(BaseModel):
     pages: int
     chunks: int
     counts: Counts
+    data_errors: list[str]
 
 
 @lru_cache(maxsize=4)
@@ -52,26 +53,6 @@ def pdf_status(path: Path) -> tuple[bool, int]:
         return True, _pdf_pages(str(path), path.stat().st_mtime)
     except Exception:
         return False, 0
-
-
-def count_cases(path: Path) -> int:
-    if not path.is_file():
-        return 0
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return 0
-    return len(data) if isinstance(data, list) else 0
-
-
-def count_drugs(path: Path) -> int:
-    if not path.is_file():
-        return 0
-    try:
-        with path.open(encoding="utf-8", newline="") as f:
-            return sum(1 for _ in csv.DictReader(f))
-    except (OSError, csv.Error):
-        return 0
 
 
 def count_runs(path: Path) -> int:
@@ -95,6 +76,24 @@ def _display_path(path: Path) -> str:
 def health(settings: Settings = Depends(get_settings)) -> Health:
     pdf_loaded, pages = pdf_status(settings.pdf_path)
     provider = settings.effective_provider
+
+    errors: list[str] = []
+    try:
+        n_cases = len(load_cases())
+    except DataError as e:
+        n_cases = 0
+        errors.append(str(e))
+    try:
+        n_drugs = len(load_drugs())
+    except DataError as e:
+        n_drugs = 0
+        errors.append(str(e))
+    try:
+        chunks = len(svtg_index(settings)) if pdf_loaded else 0
+    except Exception as e:  # a corrupt PDF must not take health down
+        chunks = 0
+        errors.append(f"SVTG index could not be built: {e}")
+
     return Health(
         status="ok",
         provider=provider,
@@ -105,11 +104,7 @@ def health(settings: Settings = Depends(get_settings)) -> Health:
         pdf_path=_display_path(settings.pdf_path),
         pdf_loaded=pdf_loaded,
         pages=pages,
-        # The chunk index is built in M2 (SVTG ingestion); until then there are none.
-        chunks=0,
-        counts=Counts(
-            cases=count_cases(DATA_DIR / "cases.json"),
-            drugs=count_drugs(DATA_DIR / "drug_table.csv"),
-            runs=count_runs(DATA_DIR / "runs.db"),
-        ),
+        chunks=chunks,
+        counts=Counts(cases=n_cases, drugs=n_drugs, runs=count_runs(DATA_DIR / "runs.db")),
+        data_errors=errors,
     )

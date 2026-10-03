@@ -39,7 +39,7 @@ def test_health_without_key_runs_in_demo_mode(client_with):
 
 def test_health_reports_required_fields(client_with):
     body = client_with().get("/api/health").json()
-    for field in ("pdf_loaded", "pages", "chunks", "key_present", "model", "counts"):
+    for field in ("pdf_loaded", "pages", "chunks", "key_present", "model", "counts", "data_errors"):
         assert field in body
     assert set(body["counts"]) == {"cases", "drugs", "runs"}
 

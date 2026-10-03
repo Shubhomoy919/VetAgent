@@ -220,7 +220,7 @@
 }
 
 .pill[data-tone="demo"] {
-  --pill-color: var(--turmeric);
+  --pill-color: var(--turmeric-ink);
 }
 
 .pill[data-tone="danger"] {

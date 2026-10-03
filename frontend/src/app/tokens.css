@@ -18,6 +18,14 @@
   --vermilion: #b3261e;
   --leaf: #2f6b3b;
   --on-accent: #fbf9f4;
+  --turmeric-ink: #8a5f0b; /* turmeric for text: AA contrast on paper */
+
+  /* Species stripes */
+  --sp-can: #b4532a;
+  --sp-fel: #7a5c99;
+  --sp-bov: #23306b;
+  --sp-cap: #2f6b3b;
+  --sp-avi: #d99a1e;
 
   /* Conditions */
   --c0: #6b6f76;
@@ -50,6 +58,13 @@
   --vermilion: #f07167;
   --leaf: #6fbf7f;
   --on-accent: #0f1115;
+  --turmeric-ink: #e6b04a;
+
+  --sp-can: #d9774c;
+  --sp-fel: #b39dd1;
+  --sp-bov: #8e9bea;
+  --sp-cap: #6fbf7f;
+  --sp-avi: #e6b04a;
 
   /* Conditions, lifted for contrast on dark (derived; see DESIGN.md) */
   --c0: #9aa0a8;
