@@ -14,6 +14,7 @@ from app.llm.base import LLMError, LLMRequest, LLMResponse, QuotaExhausted, esti
 MAX_RATE_RETRIES = 3
 MAX_SERVER_RETRIES = 2
 MAX_WAIT_S = 65.0
+MAX_MALFORMED_RETRIES = 2
 
 
 def quota_info(details: Any) -> tuple[list[str], float | None]:
@@ -63,12 +64,26 @@ class GeminiProvider:
             temperature=request.temperature,
             response_mime_type="application/json" if request.json_mode else "text/plain",
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+            # Our tools are a JSON text protocol. Without this, some models (e.g. gemini-3.5-flash-lite) try a
+            # native function call after an "Observation:" turn and return nothing (MALFORMED_FUNCTION_CALL).
+            tool_config=types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode="NONE")),
         )
         start = time.perf_counter()
-        rate_tries = server_tries = 0
+        rate_tries = server_tries = malformed_tries = 0
         while True:
             try:
                 resp = self._call(contents, config)
+                # Some models occasionally end with MALFORMED_FUNCTION_CALL / MALFORMED_RESPONSE and no text.
+                # It is not deterministic, so a fresh attempt usually succeeds.
+                reason = str(resp.candidates[0].finish_reason) if resp.candidates else ""
+                if not (resp.text or "").strip() and "MALFORMED" in reason:
+                    if malformed_tries < MAX_MALFORMED_RETRIES:
+                        malformed_tries += 1
+                        continue
+                    if config.response_mime_type == "application/json":
+                        # Last resort: drop strict JSON mode; our parser extracts JSON from plain text.
+                        config = config.model_copy(update={"response_mime_type": "text/plain"})
+                        continue
                 break
             except self._errors.APIError as e:
                 if e.code == 429:

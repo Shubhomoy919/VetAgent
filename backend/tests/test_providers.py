@@ -148,3 +148,33 @@ def test_server_error_retried_then_raised():
     assert _provider([err, _Resp()], sleeps).complete(req()).text == '{"ok": true}'
     with pytest.raises(LLMError, match="503"):
         _provider([err, err, err], []).complete(req())
+
+
+class _Malformed:
+    text = ""
+
+    class _Cand:
+        finish_reason = "FinishReason.MALFORMED_FUNCTION_CALL"
+
+    candidates = [_Cand()]
+    usage_metadata = None
+
+
+def test_malformed_empty_response_is_retried():
+    assert _provider([_Malformed(), _Resp()], []).complete(req()).text == '{"ok": true}'
+
+
+def test_malformed_falls_back_to_plain_text_then_gives_up():
+    seen = []
+    p = _provider([_Malformed()] * 3 + [_Resp()], [])
+    original = p._call
+
+    def spy(contents, config):
+        seen.append(config.response_mime_type)
+        return original(contents, config)
+
+    p._call = spy  # type: ignore[method-assign]
+    assert p.complete(req()).text == '{"ok": true}'
+    assert seen == ["application/json"] * 3 + ["text/plain"]
+    with pytest.raises(LLMError, match="MALFORMED_FUNCTION_CALL"):
+        _provider([_Malformed()] * 4, []).complete(req())
