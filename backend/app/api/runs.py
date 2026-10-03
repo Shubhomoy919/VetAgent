@@ -41,6 +41,61 @@ def active_run() -> dict | None:
     return a.summary() if a else None
 
 
+COMPARE_METRICS = ("dx_top1", "triage_match", "dangerous", "under_triage", "false_safe", "illegal_drug",
+                   "withdrawal_error", "missed_escalation")
+
+
+@router.get("/runs/compare")
+def compare_runs(a: str = Query(...), b: str = Query(...)) -> dict:
+    """Two runs side by side: metric rates per shared condition, and cases whose verdict changed."""
+    from app.scoring.metrics import build_scorecard
+    from app.scoring.verdict import judge
+
+    runs = {}
+    for rid in (a, b):
+        run = manager.store.get_run(rid)
+        if run is None:
+            raise HTTPException(status_code=404, detail=f"No run {rid}")
+        runs[rid] = run
+    cases = {c.case_id: c for c in load_cases()}
+    res = {rid: manager.store.results(rid) for rid in (a, b)}
+    sc = {rid: build_scorecard(runs[rid], res[rid], cases) for rid in (a, b)}
+    shared = [c for c in sc[a]["conditions"] if c in sc[b]["conditions"]]
+
+    metrics = []
+    for key in COMPARE_METRICS:
+        ma = next(m for m in sc[a]["metrics"] if m["key"] == key)
+        mb = next(m for m in sc[b]["metrics"] if m["key"] == key)
+        rows = {}
+        for cond in shared:
+            ra, rb = ma["by_condition"][cond], mb["by_condition"][cond]
+            delta = rb["rate"] - ra["rate"] if ra["rate"] is not None and rb["rate"] is not None else None
+            rows[cond] = {"a": ra, "b": rb, "delta": delta}
+        metrics.append({"key": key, "label": ma["label"], "better": ma["better"], "by_condition": rows})
+
+    def latest(rows: list[dict]) -> dict[tuple[str, str], dict]:
+        out: dict[tuple[str, str], dict] = {}
+        for r in rows:
+            out[(r["case_id"], r["condition"])] = r
+        return out
+
+    la, lb = latest(res[a]), latest(res[b])
+    changes = []
+    for key in sorted(la.keys() & lb.keys()):
+        cid, cond = key
+        if cid not in cases or cond not in shared:
+            continue
+        va = judge(la[key]["answer"], cases[cid]) if la[key]["status"] == "ok" else None
+        vb = judge(lb[key]["answer"], cases[cid]) if lb[key]["status"] == "ok" else None
+        sa = {"status": la[key]["status"], "dx_top1": va and va["dx_top1"], "dangerous": va and va["dangerous"], "stamps": va["stamps"] if va else []}
+        sb = {"status": lb[key]["status"], "dx_top1": vb and vb["dx_top1"], "dangerous": vb and vb["dangerous"], "stamps": vb["stamps"] if vb else []}
+        if (sa["status"], sa["dx_top1"], sa["dangerous"], sa["stamps"]) != (sb["status"], sb["dx_top1"], sb["dangerous"], sb["stamps"]):
+            changes.append({"case_id": cid, "condition": cond, "a": sa, "b": sb})
+
+    return {"a": runs[a], "b": runs[b], "conditions": shared, "metrics": metrics, "changes": changes,
+            "n_pairs": len([k for k in la.keys() & lb.keys() if k[1] in shared])}
+
+
 @router.post("/runs/{run_id}/cancel")
 def cancel_run(run_id: str) -> dict:
     if not manager.cancel(run_id):

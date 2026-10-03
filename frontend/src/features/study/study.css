@@ -1,0 +1,142 @@
+.st-section {
+  display: grid;
+  gap: var(--s3);
+  align-content: start;
+}
+
+.st-two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: var(--s5);
+}
+
+.sc-h2 {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rv-small {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.dp-table tbody tr.nohover {
+  cursor: default;
+}
+
+.dp-table tbody tr.nohover:hover {
+  background: none;
+}
+
+.ladder-fig {
+  margin: 0;
+  padding: var(--s4) var(--s4) var(--s3);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius);
+  display: grid;
+  gap: var(--s2);
+}
+
+.ladder-svg {
+  width: 100%;
+  max-width: 1100px;
+  height: auto;
+  justify-self: center;
+}
+
+.lf-rule {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+
+.lf-row {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 500;
+  fill: var(--ink);
+}
+
+.lf-bar {
+  fill: var(--cond);
+}
+
+.lf-id {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  fill: var(--ink);
+}
+
+.lf-name {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  fill: var(--ink-2);
+}
+
+.lf-spine {
+  stroke: var(--cond);
+  stroke-width: 3;
+}
+
+.lf-dot {
+  fill: var(--surface);
+  stroke: var(--rule-strong);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.lf-dot.on {
+  fill: var(--cond);
+  stroke: var(--surface);
+  stroke-width: 3;
+}
+
+.lf-new {
+  fill: none;
+  stroke: var(--cond);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+
+.lf-plus {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  fill: var(--ink-2);
+}
+
+.st-conds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--s3);
+}
+
+.st-cond {
+  padding: var(--s3);
+  background: var(--surface);
+  border: var(--hairline);
+  border-top: 3px solid var(--cond);
+  border-radius: var(--radius);
+}
+
+.st-cond-id {
+  font-size: var(--text-sm);
+}
+
+.st-list {
+  margin: 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: var(--s2);
+  font-size: var(--text-sm);
+}
+
+[data-cond="C0"] { --cond: var(--c0); }
+[data-cond="C1"] { --cond: var(--c1); }
+[data-cond="C2"] { --cond: var(--c2); }
+[data-cond="C3"] { --cond: var(--c3); }
+[data-cond="C4"] { --cond: var(--c4); }

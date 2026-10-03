@@ -45,6 +45,13 @@ def validation_meta() -> dict[str, Any]:
     }
 
 
+@router.get("/meta/metrics")
+def metrics_meta() -> list[dict[str, Any]]:
+    from app.scoring.metrics import METRICS
+
+    return [{"key": m.key, "label": m.label, "better": m.better, "danger": m.danger, "description": m.description} for m in METRICS]
+
+
 # ---------- cases ----------
 
 @router.get("/cases", response_model=list[Case])

@@ -4,6 +4,7 @@ Keys are held only in memory. Nothing in this module logs or returns them;
 callers should use `key_present` / `effective_provider` instead.
 """
 
+import json
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -82,6 +83,39 @@ class Settings(BaseSettings):
         return path if path.is_absolute() else REPO_ROOT / path
 
 
+# Non-secret settings editable from the Settings page. Saved to data/settings.json (gitignored); they override
+# .env. API keys are deliberately not in this list: they live only in .env.
+OVERRIDES_PATH = DATA_DIR / "settings.json"
+EDITABLE_FIELDS = (
+    "llm_provider",
+    "gemini_model",
+    "openai_base_url",
+    "openai_model",
+    "svtg_pdf_path",
+    "temperature",
+    "max_steps",
+    "max_owner_questions",
+    "demo_delay_ms",
+    "price_input_per_mtok",
+    "price_output_per_mtok",
+)
+
+
+def load_overrides(path: Path | None = None) -> dict[str, object]:
+    path = path or OVERRIDES_PATH
+    if not path.is_file():
+        return {}
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {k: v for k, v in raw.items() if k in EDITABLE_FIELDS} if isinstance(raw, dict) else {}
+
+
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    return Settings(**load_overrides())  # type: ignore[arg-type]
+
+
+def reset_settings_cache() -> None:
+    get_settings.cache_clear()

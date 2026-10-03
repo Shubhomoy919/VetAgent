@@ -62,6 +62,17 @@ CREATE TABLE IF NOT EXISTS cache (
     payload TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    result_id INTEGER NOT NULL REFERENCES results(id) ON DELETE CASCADE,
+    reviewer TEXT NOT NULL,
+    rating TEXT NOT NULL CHECK (rating IN ('acceptable', 'unacceptable', 'unsure')),
+    note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE (result_id, reviewer)
+);
+CREATE INDEX IF NOT EXISTS reviews_result ON reviews(result_id);
 """
 
 _lock = threading.Lock()
@@ -115,9 +126,72 @@ class Store:
         return _run_dict(row) if row else None
 
     def list_runs(self, limit: int = 100) -> list[dict[str, Any]]:
+        """Runs, newest first, with token, error and cost totals over their results."""
         with self._conn() as c:
-            rows = c.execute("SELECT * FROM runs ORDER BY created_at DESC LIMIT ?", (limit,)).fetchall()
-        return [_run_dict(r) for r in rows]
+            rows = c.execute(
+                """
+                SELECT u.*,
+                       COALESCE(SUM(r.tokens_in + r.tokens_out), 0) AS tokens,
+                       COALESCE(SUM(CASE WHEN r.status != 'ok' THEN 1 ELSE 0 END), 0) AS errors,
+                       SUM(r.cost_usd) AS cost_usd,
+                       COALESCE(SUM(CASE WHEN r.id IS NOT NULL AND r.cost_usd IS NULL THEN 1 ELSE 0 END), 0) AS cost_unknown
+                FROM runs u LEFT JOIN results r ON r.run_id = u.id
+                GROUP BY u.id
+                ORDER BY u.created_at DESC, u.id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        out = []
+        for row in rows:
+            d = _run_dict(row)
+            if d["cost_unknown"]:
+                d["cost_usd"] = None
+            out.append(d)
+        return out
+
+    def usage_totals(self) -> list[dict[str, Any]]:
+        """Token and cost totals per provider/model across all stored results."""
+        with self._conn() as c:
+            rows = c.execute(
+                """
+                SELECT u.provider, u.model, COUNT(r.id) AS results,
+                       COALESCE(SUM(r.tokens_in), 0) AS tokens_in, COALESCE(SUM(r.tokens_out), 0) AS tokens_out,
+                       SUM(r.cost_usd) AS cost_usd,
+                       COALESCE(SUM(CASE WHEN r.cost_usd IS NULL THEN 1 ELSE 0 END), 0) AS cost_unknown
+                FROM results r JOIN runs u ON u.id = r.run_id
+                GROUP BY u.provider, u.model ORDER BY results DESC
+                """
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    # ---------- reviews ----------
+    def save_review(self, result_id: int, reviewer: str, rating: str, note: str = "") -> dict[str, Any]:
+        ts = now()
+        with self._conn() as c:
+            if c.execute("SELECT 1 FROM results WHERE id=?", (result_id,)).fetchone() is None:
+                raise KeyError(f"No result {result_id}")
+            c.execute(
+                "INSERT INTO reviews (result_id, reviewer, rating, note, created_at, updated_at) VALUES (?,?,?,?,?,?) "
+                "ON CONFLICT(result_id, reviewer) DO UPDATE SET rating=excluded.rating, note=excluded.note, "
+                "updated_at=excluded.updated_at",
+                (result_id, reviewer, rating, note, ts, ts),
+            )
+            row = c.execute("SELECT * FROM reviews WHERE result_id=? AND reviewer=?", (result_id, reviewer)).fetchone()
+        return dict(row)
+
+    def delete_review(self, result_id: int, reviewer: str) -> bool:
+        with self._conn() as c:
+            cur = c.execute("DELETE FROM reviews WHERE result_id=? AND reviewer=?", (result_id, reviewer))
+            return cur.rowcount > 0
+
+    def reviews_for_run(self, run_id: str) -> list[dict[str, Any]]:
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT v.* FROM reviews v JOIN results r ON r.id = v.result_id WHERE r.run_id=? ORDER BY v.id",
+                (run_id,),
+            ).fetchall()
+        return [dict(r) for r in rows]
 
     # ---------- results ----------
     def add_result(self, run_id: str, r: dict[str, Any]) -> int:

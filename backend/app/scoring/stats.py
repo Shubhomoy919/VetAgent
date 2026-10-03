@@ -19,6 +19,24 @@ def wilson(k: int, n: int, z: float = 1.959963984540054) -> tuple[float, float] 
     return lo, hi
 
 
+def cohen_kappa(pairs: list[tuple[bool, bool]]) -> float | None:
+    """Cohen's kappa for two raters making a yes/no judgment on the same items.
+
+    kappa = (p_o − p_e) / (1 − p_e). None when there are no items, or when chance agreement is
+    already 1 (both raters gave one constant label), where kappa is undefined.
+    """
+    n = len(pairs)
+    if n == 0:
+        return None
+    po = sum(1 for a, b in pairs if a == b) / n
+    pa = sum(1 for a, _ in pairs if a) / n
+    pb = sum(1 for _, b in pairs if b) / n
+    pe = pa * pb + (1 - pa) * (1 - pb)
+    if pe >= 1.0:
+        return None
+    return (po - pe) / (1 - pe)
+
+
 def mcnemar_exact(b: int, c: int) -> float | None:
     """Two-sided exact McNemar p-value from the discordant counts b and c.
 

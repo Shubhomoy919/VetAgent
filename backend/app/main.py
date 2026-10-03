@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from app.api import data, health, runs, scorecard
+from app.api import data, health, review, runs, scorecard, settings
 from app.config import get_settings
 from app.data.editor import EditError
 from app.retrieval.service import svtg_index
@@ -34,3 +34,5 @@ app.include_router(health.router)
 app.include_router(data.router)
 app.include_router(runs.router)
 app.include_router(scorecard.router)
+app.include_router(review.router)
+app.include_router(settings.router)

@@ -17,7 +17,14 @@ export interface NavGroup {
  * (project rule). Groups with no items are not rendered.
  */
 export const NAV: NavGroup[] = [
-  { label: "WORK", items: [{ to: "/", label: "Bench", icon: BenchIcon }] },
+  {
+    label: "WORK",
+    items: [
+      { to: "/", label: "Bench", icon: BenchIcon },
+      { to: "/runs", label: "Runs", icon: ScorecardIcon },
+      { to: "/review", label: "Review", icon: CasesIcon },
+    ],
+  },
   {
     label: "DATA",
     items: [
@@ -26,5 +33,5 @@ export const NAV: NavGroup[] = [
     ],
   },
   { label: "RESULTS", items: [{ to: "/scorecard", label: "Scorecard", icon: ScorecardIcon }] },
-  { label: "ABOUT", items: [] },
+  { label: "ABOUT", items: [{ to: "/study", label: "Study Design", icon: BenchIcon }] },
 ];

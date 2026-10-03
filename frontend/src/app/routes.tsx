@@ -2,7 +2,10 @@ import { createBrowserRouter } from "react-router";
 import { BenchPage } from "../features/bench/BenchPage";
 import { CasesPage } from "../features/cases/CasesPage";
 import { DrugsPage } from "../features/drugs/DrugsPage";
+import { ReviewPage } from "../features/review/ReviewPage";
+import { RunsPage } from "../features/runs/RunsPage";
 import { ScorecardPage } from "../features/scorecard/ScorecardPage";
+import { StudyPage } from "../features/study/StudyPage";
 import { Shell } from "./Shell";
 
 export const router = createBrowserRouter([
@@ -14,6 +17,9 @@ export const router = createBrowserRouter([
       { path: "cases", element: <CasesPage /> },
       { path: "drugs", element: <DrugsPage /> },
       { path: "scorecard", element: <ScorecardPage /> },
+      { path: "runs", element: <RunsPage /> },
+      { path: "review", element: <ReviewPage /> },
+      { path: "study", element: <StudyPage /> },
     ],
   },
 ]);

@@ -1,0 +1,286 @@
+.rv-name {
+  width: 180px;
+}
+
+.rv-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--s5);
+  align-items: start;
+}
+
+.rv-main {
+  display: grid;
+  gap: var(--s3);
+}
+
+.rv-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.rv-bar {
+  width: 140px;
+}
+
+.rv-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s3);
+}
+
+.rv-case,
+.rv-answer,
+.rv-gold {
+  display: grid;
+  gap: var(--s2);
+  align-content: start;
+  padding: var(--s4);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius);
+}
+
+.rv-gold {
+  grid-column: 1 / -1;
+  border-color: var(--leaf);
+}
+
+.rv-case-head,
+.rv-answer-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.rv-answer-head {
+  justify-content: space-between;
+}
+
+.rv-sig {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.rv-question {
+  font-weight: 500;
+}
+
+.narrative {
+  margin: 0;
+  padding: var(--s1) 0 var(--s1) var(--s3);
+  border-left: 2px solid var(--rule-strong);
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.rv-small {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.rv-dx {
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.rv-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1) var(--s4);
+  margin: 0;
+}
+
+.rv-fields div {
+  display: grid;
+}
+
+.rv-fields dt {
+  font-size: 10px;
+  color: var(--ink-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rv-fields dd {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+.rv-advice {
+  font-size: var(--text-sm);
+}
+
+.rv-meta {
+  font-size: var(--text-xs);
+  color: var(--indigo);
+}
+
+.rv-stamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.rv-points {
+  margin: 0;
+  padding-left: 1.1em;
+  font-size: var(--text-sm);
+}
+
+.rv-reveal {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.rv-current {
+  font-size: var(--text-xs);
+}
+
+.rv-current[data-rating="acceptable"] {
+  color: var(--leaf);
+}
+
+.rv-current[data-rating="unacceptable"] {
+  color: var(--vermilion);
+}
+
+.rv-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.rv-btn {
+  height: 36px;
+  padding: 0 var(--s4);
+}
+
+.rv-btn[data-rating="acceptable"] {
+  border-color: var(--leaf);
+  color: var(--leaf);
+}
+
+.rv-btn[data-rating="unacceptable"] {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+}
+
+.rv-nav {
+  display: inline-flex;
+  gap: var(--s2);
+  margin-left: auto;
+}
+
+.rv-stats {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s4);
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius);
+}
+
+.rv-rev {
+  display: grid;
+  gap: var(--s2);
+  padding-top: var(--s3);
+  border-top: var(--hairline);
+}
+
+.rv-rev-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+.rv-kappa {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.rv-kappa-num {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.rv-matrix {
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+}
+
+.rv-matrix th,
+.rv-matrix td {
+  padding: 4px 8px;
+  border: var(--hairline);
+  text-align: center;
+  font-weight: 400;
+}
+
+.rv-matrix tbody th {
+  text-align: left;
+  color: var(--ink-2);
+}
+
+.rv-matrix td[data-off] {
+  color: var(--vermilion);
+}
+
+.rv-cond {
+  margin-right: var(--s2);
+  white-space: nowrap;
+}
+
+.ff-label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.ff-input {
+  width: 100%;
+  padding: 5px var(--s2);
+  background: var(--bg);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.progress {
+  position: relative;
+  display: inline-block;
+  height: 4px;
+  background: var(--surface-sunk);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--turmeric);
+}
+
+@media (max-width: 1200px) {
+  .rv-layout,
+  .rv-item {
+    grid-template-columns: 1fr;
+  }
+}
