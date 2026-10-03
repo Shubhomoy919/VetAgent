@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     max_steps: int = Field(default=6, ge=1, le=12)
     max_owner_questions: int = Field(default=5, ge=1, le=10)
+    # Demo provider only: pause per call so streamed steps are visible in demos.
+    demo_delay_ms: int = Field(default=0, ge=0, le=5000)
 
     # Optional pricing (USD per million tokens). Left empty, cost is reported as unknown.
     price_input_per_mtok: float | None = None

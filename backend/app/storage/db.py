@@ -143,6 +143,39 @@ class Store:
             rows = c.execute("SELECT * FROM results WHERE run_id=? ORDER BY id", (run_id,)).fetchall()
         return [_result_dict(r) for r in rows]
 
+    def get_result(self, result_id: int) -> dict[str, Any] | None:
+        with self._conn() as c:
+            row = c.execute(
+                "SELECT r.*, u.provider, u.model FROM results r JOIN runs u ON u.id = r.run_id WHERE r.id=?",
+                (result_id,),
+            ).fetchone()
+        return _result_dict(row) if row else None
+
+    def latest_results(self, interview: bool) -> list[dict[str, Any]]:
+        """Most recent result per (case, condition) for the given mode, without traces."""
+        with self._conn() as c:
+            rows = c.execute(
+                """
+                SELECT r.id, r.run_id, r.case_id, r.condition, r.interview, r.status, r.answer, r.error,
+                       r.rules_fired, r.owner_questions, r.steps, r.tokens_in, r.tokens_out, r.cost_usd,
+                       r.latency_ms, r.cached, r.created_at, u.provider, u.model
+                FROM results r
+                JOIN (SELECT case_id, condition, MAX(id) AS mid FROM results WHERE interview=?
+                      GROUP BY case_id, condition) m ON m.mid = r.id
+                JOIN runs u ON u.id = r.run_id
+                """,
+                (int(interview),),
+            ).fetchall()
+        out = []
+        for row in rows:
+            d = dict(row)
+            for k in ("answer", "rules_fired", "owner_questions"):
+                d[k] = json.loads(d[k]) if d[k] is not None else None
+            d["interview"] = bool(d["interview"])
+            d["cached"] = bool(d["cached"])
+            out.append(d)
+        return out
+
     # ---------- cache ----------
     def cache_get(self, key: str) -> dict[str, Any] | None:
         with self._conn() as c:
@@ -174,7 +207,8 @@ def _run_dict(row: sqlite3.Row) -> dict[str, Any]:
 def _result_dict(row: sqlite3.Row) -> dict[str, Any]:
     d = dict(row)
     for k in ("answer", "trace", "rules_fired", "owner_questions"):
-        d[k] = json.loads(d[k]) if d[k] is not None else None
+        if k in d:
+            d[k] = json.loads(d[k]) if d[k] is not None else None
     d["interview"] = bool(d["interview"])
     d["cached"] = bool(d["cached"])
     return d

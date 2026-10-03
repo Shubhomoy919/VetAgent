@@ -15,4 +15,4 @@ def get_provider(settings: Settings) -> Provider:
         from app.llm.openai_compatible import OpenAICompatibleProvider
 
         return OpenAICompatibleProvider(settings.openai_base_url, settings.openai_api_key, settings.openai_model)
-    return DemoProvider()
+    return DemoProvider(delay_ms=settings.demo_delay_ms)

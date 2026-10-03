@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api import data, health
+from app.api import data, health, runs
 from app.config import get_settings
 from app.retrieval.service import svtg_index
 
@@ -24,3 +24,4 @@ app = FastAPI(
 
 app.include_router(health.router)
 app.include_router(data.router)
+app.include_router(runs.router)

@@ -1,0 +1,26 @@
+/* Toasts (sonner, unstyled): flat surface, hairline, turmeric or vermilion edge. */
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  width: 340px;
+  padding: var(--s3) var(--s4);
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-left: 3px solid var(--turmeric);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.toast-error {
+  border-left-color: var(--vermilion);
+  color: var(--vermilion);
+  overflow-wrap: anywhere;
+}
+
+.topbar-value[data-running="true"] {
+  color: var(--turmeric-ink);
+}

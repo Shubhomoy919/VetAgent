@@ -1,10 +1,13 @@
 import { AnimatePresence, motion } from "motion/react";
 import { NavLink, Outlet, useLocation } from "react-router";
+import { Toaster } from "sonner";
 import { useHealth } from "../api/health";
 import { CollapseIcon, ExpandIcon, MoonIcon, SunIcon } from "../components/icons";
 import { NAV } from "./nav";
+import { useRun } from "./runState";
 import { usePersistentFlag, useTheme } from "./theme";
 import "./Shell.css";
+import "./toast.css";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -65,10 +68,7 @@ function TopBar() {
             {data?.model ?? "—"}
           </span>
         </span>
-        <span className="topbar-field">
-          <span className="eyebrow">Run</span>
-          <span className="mono topbar-value">Idle</span>
-        </span>
+        <RunStatus />
         <button
           type="button"
           className="icon-button"
@@ -81,6 +81,24 @@ function TopBar() {
         </button>
       </div>
     </header>
+  );
+}
+
+function RunStatus() {
+  const { run } = useRun();
+  const text = !run
+    ? "Idle"
+    : run.status === "running"
+      ? `Running ${run.n_done}/${run.n_total}`
+      : { done: "Done", done_with_errors: "Done (errors)", cancelled: "Cancelled", failed: "Failed" }[run.status] +
+        ` ${run.n_done}/${run.n_total}`;
+  return (
+    <span className="topbar-field">
+      <span className="eyebrow">Run</span>
+      <span className="mono topbar-value" data-testid="run-status" data-running={run?.status === "running"}>
+        {text}
+      </span>
+    </span>
   );
 }
 
@@ -175,6 +193,10 @@ export function Shell() {
             </motion.div>
           </AnimatePresence>
         </main>
+        <Toaster
+          position="bottom-right"
+          toastOptions={{ unstyled: true, classNames: { toast: "toast", error: "toast-error" } }}
+        />
         <footer className="footer">
           Research prototype — not for clinical use. Consult a registered veterinarian.
         </footer>

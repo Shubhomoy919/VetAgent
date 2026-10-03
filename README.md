@@ -20,6 +20,11 @@ copy .env.example .env # optional: add an API key; without one the app runs in d
 npm run dev            # or: run.bat
 ```
 
+`npm run dev` does not auto-reload the backend: on Windows, uvicorn's reloader sends CTRL+C to the whole console
+and takes the frontend down with it. When working on backend code, run `npm run dev:api:watch` and
+`npm run dev:web` in two terminals instead. For demos without an API key, set `DEMO_DELAY_MS=250` in `.env` so
+streamed steps are visible.
+
 - Frontend: http://localhost:5173 (proxies `/api` to the backend)
 - Backend: http://127.0.0.1:8010 — health at `/api/health`
   (8010 rather than 8000, because other local projects occupy 8000 on the dev machine)

@@ -105,8 +105,13 @@ class DemoProvider:
     name = "demo"
     model = "demo"
 
+    def __init__(self, delay_ms: int = 0):
+        self.delay_ms = delay_ms
+
     def complete(self, request: LLMRequest) -> LLMResponse:
         start = time.perf_counter()
+        if self.delay_ms:
+            time.sleep(self.delay_ms / 1000)
         handler = {
             "answer": self._answer,
             "react": self._react,

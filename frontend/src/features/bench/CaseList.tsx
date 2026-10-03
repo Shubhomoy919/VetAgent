@@ -14,10 +14,23 @@ import { SpecimenTag, TypePill, UnverifiedTag } from "../../components/Tags";
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 const TYPES = Object.keys(QUESTION_TYPE_LABEL) as QuestionType[];
 
+export type DotState = "none" | "running" | "ok" | "error" | "danger";
+
+const DOT_LABEL: Record<DotState, string> = {
+  none: "not run",
+  running: "running",
+  ok: "last run: no dangerous errors",
+  error: "last run: a condition failed",
+  danger: "last run: at least one dangerous error",
+};
+
 interface Props {
   cases: Case[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  checked: Set<string>;
+  onCheck: (ids: string[], on: boolean) => void;
+  dots: Record<string, DotState>;
 }
 
 function matches(c: Case, q: string): boolean {
@@ -35,7 +48,7 @@ function isTypingTarget(el: EventTarget | null): boolean {
   return el instanceof HTMLElement && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
 }
 
-export function CaseList({ cases, selectedId, onSelect }: Props) {
+export function CaseList({ cases, selectedId, onSelect, checked, onCheck, dots }: Props) {
   const [query, setQuery] = useState("");
   const [species, setSpecies] = useState<SpeciesCode | "ALL">("ALL");
   const [type, setType] = useState<QuestionType | "ALL">("ALL");
@@ -52,22 +65,37 @@ export function CaseList({ cases, selectedId, onSelect }: Props) {
     [cases, species, type, query],
   );
 
-  // J / K move through the visible list.
+  // The latest selection, readable before React re-renders (fast repeated J/K presses).
+  const selRef = useRef(selectedId);
+  useEffect(() => {
+    selRef.current = selectedId;
+  }, [selectedId]);
+
+  // J / K move through the visible list; X toggles the batch checkbox.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) return;
       const key = e.key.toLowerCase();
+      const current = selRef.current;
+      if (key === "x" && current) {
+        e.preventDefault();
+        onCheck([current], !checked.has(current));
+        return;
+      }
       if (key !== "j" && key !== "k") return;
       if (visible.length === 0) return;
       e.preventDefault();
-      const i = visible.findIndex((c) => c.case_id === selectedId);
+      const i = visible.findIndex((c) => c.case_id === current);
       const next = key === "j" ? Math.min(i + 1, visible.length - 1) : Math.max(i - 1, 0);
       const target = visible[i === -1 ? 0 : next];
-      if (target) onSelect(target.case_id);
+      if (target) {
+        selRef.current = target.case_id;
+        onSelect(target.case_id);
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [visible, selectedId, onSelect]);
+  }, [visible, onSelect, onCheck, checked]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -85,6 +113,11 @@ export function CaseList({ cases, selectedId, onSelect }: Props) {
           Cases
         </h2>
         <span className="pane-meta mono" aria-live="polite">
+          {checked.size > 0 && (
+            <button type="button" className="link-button" onClick={() => onCheck([...checked], false)}>
+              clear {checked.size}
+            </button>
+          )}{" "}
           {filtered ? `${visible.length} / ${cases.length}` : cases.length}
         </span>
       </div>
@@ -181,7 +214,25 @@ export function CaseList({ cases, selectedId, onSelect }: Props) {
                   />
                 )}
                 <span className="case-row-line">
-                  <SpecimenTag caseId={c.case_id} />
+                  <span className="case-row-left">
+                    <input
+                      type="checkbox"
+                      className="case-check"
+                      tabIndex={-1}
+                      checked={checked.has(c.case_id)}
+                      aria-label={`Select ${c.case_id} for a batch run (X)`}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => onCheck([c.case_id], e.target.checked)}
+                    />
+                    <SpecimenTag caseId={c.case_id} />
+                    <span
+                      className="result-dot"
+                      data-state={dots[c.case_id] ?? "none"}
+                      title={DOT_LABEL[dots[c.case_id] ?? "none"]}
+                      aria-label={DOT_LABEL[dots[c.case_id] ?? "none"]}
+                      role="img"
+                    />
+                  </span>
                   <TypePill type={c.question_type} />
                 </span>
                 <span className="case-row-line case-row-meta">
@@ -195,7 +246,7 @@ export function CaseList({ cases, selectedId, onSelect }: Props) {
           })}
         </ul>
       )}
-      <p className="pane-hint mono">J / K to move</p>
+      <p className="pane-hint mono">J / K move · X select · R run</p>
     </section>
   );
 }

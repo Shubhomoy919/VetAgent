@@ -1,16 +1,17 @@
-import { motion } from "motion/react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
 import { useSearchParams } from "react-router";
 import { useCases, type Case } from "../../api/cases";
-import { CONDITIONS, LADDER_STEPS } from "../../app/conditions";
-import { AblationLadder } from "../../components/AblationLadder";
+import { CONDITION_IDS, resultKey, useLatestResults } from "../../api/runs";
+import { useRun } from "../../app/runState";
 import { GraphPaper } from "../../components/GraphPaper";
 import { CaseDetail } from "./CaseDetail";
-import { CaseList } from "./CaseList";
+import { CaseList, type DotState } from "./CaseList";
+import { ConditionDeck } from "./ConditionDeck";
+import { PassageDrawer } from "./PassageDrawer";
+import { RunBar } from "./RunBar";
 import "./bench.css";
-
-const EASE = [0.2, 0.8, 0.2, 1] as const;
+import "./run.css";
 
 /** Outline of a specimen tag — the empty slot a case will occupy. */
 function EmptyTag() {
@@ -22,27 +23,8 @@ function EmptyTag() {
   );
 }
 
-function CaseListPane({ selectedId, onSelect }: { selectedId: string | null; onSelect: (id: string) => void }) {
-  const { data, error, isPending } = useCases();
-  if (data) return <CaseList cases={data} selectedId={selectedId} onSelect={onSelect} />;
-  return (
-    <section className="pane" aria-labelledby="pane-cases">
-      <div className="pane-header">
-        <h2 className="pane-title" id="pane-cases">
-          Cases
-        </h2>
-      </div>
-      <div className="empty">
-        <EmptyTag />
-        <p className="empty-title">{isPending ? "Loading cases…" : "Cases could not be loaded"}</p>
-        {error && (
-          <p className="empty-body error-text" role="alert">
-            {error.message}
-          </p>
-        )}
-      </div>
-    </section>
-  );
+function isTypingTarget(el: EventTarget | null): boolean {
+  return el instanceof HTMLElement && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
 }
 
 function CasePane({ selected }: { selected: Case | undefined }) {
@@ -70,81 +52,137 @@ function CasePane({ selected }: { selected: Case | undefined }) {
   );
 }
 
-function ConditionsPane({ hasCase }: { hasCase: boolean }) {
-  return (
-    <section className="pane" aria-labelledby="pane-conditions">
-      <div className="pane-header">
-        <h2 className="pane-title" id="pane-conditions">
-          Conditions
-        </h2>
-        <ol className="ladder-legend mono" aria-label="Ablation ladder components">
-          {LADDER_STEPS.map((s) => (
-            <li key={s}>{s}</li>
-          ))}
-        </ol>
-      </div>
-      <motion.ul
-        className="conditions"
-        initial="hidden"
-        animate="show"
-        variants={{ show: { transition: { staggerChildren: 0.04 } } }}
-      >
-        {CONDITIONS.map((c) => (
-          <motion.li
-            key={c.id}
-            className="condition"
-            data-cond={c.id}
-            variants={{
-              hidden: { opacity: 0, y: 6 },
-              show: { opacity: 1, y: 0, transition: { duration: 0.22, ease: EASE } },
-            }}
-          >
-            <span className="condition-bar" aria-hidden="true" />
-            <div className="condition-head">
-              <span className="condition-id mono">{c.id}</span>
-              <span className="condition-name">{c.name}</span>
-              <AblationLadder condition={c} />
-            </div>
-            <p className="condition-summary">{c.summary}</p>
-            <p className="condition-status mono">{hasCase ? "Not run" : "Waiting for a case"}</p>
-          </motion.li>
-        ))}
-      </motion.ul>
-    </section>
-  );
-}
-
 export function BenchPage() {
   const [params, setParams] = useSearchParams();
-  const selectedId = params.get("case");
-  const { data: cases } = useCases();
+  // Local state is the source of truth (updates synchronously); the URL mirrors it for deep links.
+  const [selectedId, setSelectedId] = useState<string | null>(() => params.get("case"));
+  const [interview, setInterviewState] = useState(() => params.get("mode") === "interview");
+  const [force, setForce] = useState(false);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [citePage, setCitePage] = useState<number | null>(null);
+
+  const { data: cases, error, isPending } = useCases();
+  const { data: latest } = useLatestResults(interview);
+  const { live, run, start, starting } = useRun();
   const selected = cases?.find((c) => c.case_id === selectedId);
 
-  const onSelect = useCallback(
-    (id: string) => setParams((p) => {
-      const next = new URLSearchParams(p);
-      next.set("case", id);
-      return next;
-    }, { replace: true }),
+  const setParam = useCallback(
+    (key: string, value: string | null) =>
+      setParams(
+        (p) => {
+          const next = new URLSearchParams(p);
+          if (value === null) next.delete(key);
+          else next.set(key, value);
+          return next;
+        },
+        { replace: true },
+      ),
     [setParams],
   );
+  const onSelect = useCallback(
+    (id: string) => {
+      setSelectedId(id);
+      setParam("case", id);
+    },
+    [setParam],
+  );
+  const setInterview = useCallback(
+    (v: boolean) => {
+      setInterviewState(v);
+      setParam("mode", v ? "interview" : null);
+    },
+    [setParam],
+  );
+
+  const onCheck = useCallback((ids: string[], on: boolean) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) {
+        if (on) next.add(id);
+        else next.delete(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const dots = useMemo(() => {
+    const out: Record<string, DotState> = {};
+    for (const c of cases ?? []) {
+      const keys = CONDITION_IDS.map((cond) => live[resultKey(c.case_id, cond, interview)]);
+      if (keys.some((k) => k?.status === "running" || k?.status === "queued")) {
+        out[c.case_id] = "running";
+        continue;
+      }
+      const results = Object.values(latest?.[c.case_id] ?? {});
+      if (results.length === 0) out[c.case_id] = "none";
+      else if (results.some((r) => r?.verdict.dangerous)) out[c.case_id] = "danger";
+      else if (results.some((r) => r?.status === "error")) out[c.case_id] = "error";
+      else out[c.case_id] = "ok";
+    }
+    return out;
+  }, [cases, latest, live, interview]);
+
+  // R = run this case, Shift+R = force re-run this case.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) return;
+      if (e.key.toLowerCase() !== "r" || !selectedId) return;
+      if (run?.status === "running" || starting) return;
+      e.preventDefault();
+      void start({ case_ids: [selectedId], interview, force: e.shiftKey || force });
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedId, interview, force, run?.status, starting, start]);
+
+  const closeDrawer = useCallback(() => setCitePage(null), []);
+  const allIds = useMemo(() => (cases ?? []).map((c) => c.case_id), [cases]);
 
   return (
     <div className="bench" data-testid="bench">
       <GraphPaper />
+      <RunBar
+        caseId={selectedId}
+        selected={[...checked]}
+        allIds={allIds}
+        interview={interview}
+        force={force}
+        setInterview={setInterview}
+        setForce={setForce}
+      />
       <Group orientation="horizontal" id="bench-panes" className="bench-panes">
-        <Panel id="cases" defaultSize="26" minSize="260px">
-          <CaseListPane selectedId={selectedId} onSelect={onSelect} />
+        <Panel id="cases" defaultSize="23" minSize="260px">
+          {cases ? (
+            <CaseList cases={cases} selectedId={selectedId} onSelect={onSelect} checked={checked} onCheck={onCheck} dots={dots} />
+          ) : (
+            <section className="pane" aria-labelledby="pane-cases">
+              <div className="pane-header">
+                <h2 className="pane-title" id="pane-cases">
+                  Cases
+                </h2>
+              </div>
+              <div className="empty">
+                <EmptyTag />
+                <p className="empty-title">{isPending ? "Loading cases…" : "Cases could not be loaded"}</p>
+                {error && (
+                  <p className="empty-body error-text" role="alert">
+                    {error.message}
+                  </p>
+                )}
+              </div>
+            </section>
+          )}
         </Panel>
         <Separator className="pane-separator" />
-        <Panel id="case" defaultSize="40" minSize="320px">
+        <Panel id="case" defaultSize="32" minSize="300px">
           <CasePane selected={selected} />
         </Panel>
         <Separator className="pane-separator" />
-        <Panel id="conditions" defaultSize="34" minSize="300px">
-          <ConditionsPane hasCase={Boolean(selected)} />
+        <Panel id="conditions" defaultSize="45" minSize="320px">
+          <ConditionDeck caseId={selected ? selected.case_id : null} interview={interview} latest={latest} onCite={setCitePage} />
         </Panel>
       </Group>
+      <PassageDrawer page={citePage} onClose={closeDrawer} />
     </div>
   );
 }

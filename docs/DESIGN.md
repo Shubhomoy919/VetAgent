@@ -86,8 +86,16 @@ Scale: 11 / 12.5 / 14 (base) / 16 / 22 / 34 px.
 1. **Specimen tags** — luggage-tag case IDs in mono with a punched hole and species colour stripe. Built:
    `components/Tags.tsx` (with the question-type pill and the UNVERIFIED tag).
 2. **Ablation ladder** — Retrieval / Tools / Verify / Guardrail as filled or hollow dots per condition, joined by a hairline. Built: `components/AblationLadder.tsx`.
-3. **Verdict stamps** — CORRECT (leaf), FALSE-SAFE / UNDER-TRIAGE (vermilion), ESCALATED (indigo); uppercase mono, 2px border, rotated about -3°, stamp-down animation. (M4.)
-4. **Lab-log traces** — numbered vertical timeline; tool calls as mono readouts with latency and tokens. (M4.)
+3. **Verdict stamps** — CORRECT (leaf), FALSE-SAFE / UNDER-TRIAGE / MISSED ESCALATION / WITHDRAWAL ERROR
+   (vermilion), ESCALATED (indigo); uppercase mono, 2px border, rotated −3°, stamp-down (scale 1.5→1, 220 ms).
+   Built: `components/Stamp.tsx`; verdict logic in `backend/app/scoring/verdict.py`.
+4. **Lab-log traces** — numbered vertical timeline with a hairline spine; each step is a mono readout
+   (MODEL / TOOL / OWNER / VERIFY / RULE / RETRY, name, latency, tokens) that expands to input/output JSON.
+   Streamed steps slide in. Built: `features/bench/TraceLog.tsx`.
+
+Running state: a 2px turmeric scan line crosses the run bar and the active card, only while a run is in
+progress (static full-width line under reduced motion). Toasts are sonner in unstyled mode: flat surface, hairline,
+turmeric (or vermilion for errors) left edge — no shadows.
 5. **Dot-and-whisker charts** — metrics with CIs; headline numbers in Instrument Serif. (M5.)
 
 ## Banned
