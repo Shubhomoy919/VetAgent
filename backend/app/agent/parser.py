@@ -94,6 +94,9 @@ def parse_final_answer(data: dict[str, Any] | str) -> FinalAnswer:
 def parse_action(text: str) -> dict[str, Any]:
     """A ReAct step: {"thought", "action", "action_input"} or {"thought", "final_answer"}."""
     obj = extract_json(text)
+    # Some models return the answer object itself instead of {"final_answer": {...}}.
+    if "action" not in obj and "final_answer" not in obj and "most_likely" in obj:
+        return {"thought": "", "final_answer": obj, "unwrapped": True}
     if "final_answer" in obj:
         if not isinstance(obj["final_answer"], dict):
             raise ParseError("final_answer must be a JSON object")

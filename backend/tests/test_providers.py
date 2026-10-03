@@ -72,3 +72,79 @@ def test_factory_openai_compatible():
                  openai_base_url="http://x/v1", openai_model="m")
     p = get_provider(s)
     assert isinstance(p, OpenAICompatibleProvider) and p.model == "m"
+
+
+# ---------- Gemini rate limits ----------
+
+from google.genai import errors as genai_errors  # noqa: E402
+
+from app.llm.gemini import GeminiProvider, quota_info  # noqa: E402
+
+
+def _quota_body(quota_id: str, delay: str | None = "7s") -> dict:
+    details = [{"@type": "type.googleapis.com/google.rpc.QuotaFailure", "violations": [{"quotaId": quota_id}]}]
+    if delay:
+        details.append({"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": delay})
+    return {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED", "message": "You exceeded your current quota", "details": details}}
+
+
+class _Resp:
+    text = '{"ok": true}'
+    candidates = None
+
+    class usage_metadata:  # noqa: N801
+        prompt_token_count = 10
+        candidates_token_count = 3
+        thoughts_token_count = 0
+
+
+def _provider(responses, sleeps):
+    p = GeminiProvider(KEY, "gemini-test", sleep=sleeps.append)
+    seq = list(responses)
+
+    def call(contents, config):
+        nxt = seq.pop(0)
+        if isinstance(nxt, Exception):
+            raise nxt
+        return nxt
+
+    p._call = call  # type: ignore[method-assign]
+    return p
+
+
+def test_quota_info_parses_ids_and_delay():
+    ids, delay = quota_info(_quota_body("GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "34.5s"))
+    assert ids == ["GenerateRequestsPerMinutePerProjectPerModel-FreeTier"] and delay == 34.5
+    assert quota_info({"nothing": 1}) == ([], None)
+
+
+def test_per_minute_429_waits_and_retries():
+    err = genai_errors.ClientError(429, _quota_body("GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "7s"))
+    sleeps: list[float] = []
+    r = _provider([err, err, _Resp()], sleeps).complete(req())
+    assert r.text == '{"ok": true}'
+    assert sleeps == [7.0, 7.0]
+
+
+def test_per_minute_429_gives_up_after_retries():
+    err = genai_errors.ClientError(429, _quota_body("GenerateRequestsPerMinutePerProjectPerModel-FreeTier", "500s"))
+    sleeps: list[float] = []
+    with pytest.raises(LLMError, match="still hit after 3 retries"):
+        _provider([err] * 4, sleeps).complete(req())
+    assert sleeps == [65.0, 65.0, 65.0]  # capped
+
+
+def test_daily_quota_fails_fast():
+    err = genai_errors.ClientError(429, _quota_body("GenerateRequestsPerDayPerProjectPerModel-FreeTier"))
+    sleeps: list[float] = []
+    with pytest.raises(LLMError, match="daily quota exhausted.*PerDay"):
+        _provider([err], sleeps).complete(req())
+    assert sleeps == []
+
+
+def test_server_error_retried_then_raised():
+    err = genai_errors.ServerError(503, {"error": {"code": 503, "status": "UNAVAILABLE", "message": "overloaded"}})
+    sleeps: list[float] = []
+    assert _provider([err, _Resp()], sleeps).complete(req()).text == '{"ok": true}'
+    with pytest.raises(LLMError, match="503"):
+        _provider([err, err, err], []).complete(req())

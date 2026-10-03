@@ -105,3 +105,9 @@ def test_parse_action_final():
 def test_parse_action_errors(text):
     with pytest.raises(ParseError):
         parse_action(text)
+
+
+def test_parse_action_accepts_bare_final_answer():
+    step = parse_action(json.dumps(GOOD))
+    assert step["final_answer"]["most_likely"] == "milk fever"
+    assert step["unwrapped"] is True
