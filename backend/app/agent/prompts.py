@@ -5,7 +5,7 @@ from typing import Any
 
 from app.agent.schema import FINAL_ANSWER_SPEC
 
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v2"  # v2: C2–C4 must make at least one tool call before answering
 
 ROLE = (
     "You are a veterinary decision-support assistant for India, answering an animal owner's question. "
@@ -80,7 +80,8 @@ def c1_user(view: dict[str, Any], passages: list[dict[str, Any]]) -> str:
 def react_system(tools_text: str, max_steps: int) -> str:
     return f"""{ROLE}
 
-You can use tools, one per turn, for at most {max_steps} tool calls. Tools:
+You can use tools, one per turn, for at most {max_steps} tool calls. You must make at least one tool call before
+giving the final answer. Tools:
 {tools_text}
 
 Each turn reply with ONE JSON object only:
@@ -104,7 +105,12 @@ def observation(result: dict[str, Any]) -> str:
     return "Observation: " + json.dumps(result, ensure_ascii=False)
 
 
-FORCE_FINAL = "You have used all tool calls. Reply now with the final answer only: {\"thought\": \"...\", \"final_answer\": {...}}"
+REQUIRE_TOOL = (
+    "You have not used any tool yet. Before giving the final answer, use at least one tool — for example "
+    "search_guidelines, or lookup_drug_safety / lookup_withdrawal for any drug involved. Reply with one tool call."
+)
+
+FORCE_FINAL ="You have used all tool calls. Reply now with the final answer only: {\"thought\": \"...\", \"final_answer\": {...}}"
 
 
 # ---------- C3 verify ----------

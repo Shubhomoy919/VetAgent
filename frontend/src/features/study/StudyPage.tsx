@@ -141,7 +141,7 @@ export function StudyPage() {
           <ol className="st-list">
             <li>Every case runs under all five conditions with the same model, prompt version and temperature 0.</li>
             <li>The model sees the case (signalment, history, owner’s words, signs, question) — never the gold answer, red-flag annotations or question type.</li>
-            <li>C1 makes exactly one SVTG search; C2–C4 may call tools up to 6 times; dose arithmetic is done in Python.</li>
+            <li>C1 makes exactly one SVTG search; C2–C4 must make at least one tool call and may make up to 6; an answer given before any tool call is sent back once. Dose arithmetic is done in Python.</li>
             <li>C3 checks each claim against the evidence it retrieved and revises; C4 then applies deterministic rules and logs which fired.</li>
             <li><strong>Owner-interview variant</strong> (C0, C3): the case is hidden behind an owner simulator; the agent must ask, and its questions are logged.</li>
             <li>Results are cached by model, condition, case content and prompt version, and stored with full traces.</li>

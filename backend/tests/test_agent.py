@@ -212,6 +212,7 @@ def test_verify_revises_answer(cases, drugs, index):
     revised = {**ANSWER, "dose_mg": None, "citations": []}
     prov = Scripted(
         [
+            json.dumps({"thought": "t", "action": "get_patient_record", "action_input": {}}),
             json.dumps({"thought": "f", "final_answer": {**ANSWER, "dose_mg": 9999}}),
             json.dumps({"checks": [{"claim": "dose 9999", "supported": False, "evidence": "none"}], "revised_answer": revised}),
         ]
@@ -226,7 +227,11 @@ def test_verify_revises_answer(cases, drugs, index):
 def test_c4_logs_rules(cases, drugs, index):
     bad = {**ANSWER, "most_likely": "hoof injury", "drug_status": "safe", "dose_mg": 520, "withdrawal_days": None}
     prov = Scripted(
-        [json.dumps({"thought": "f", "final_answer": bad}), json.dumps({"checks": [], "revised_answer": bad})]
+        [
+            json.dumps({"thought": "t", "action": "lookup_drug_safety", "action_input": {"drug": "diclofenac"}}),
+            json.dumps({"thought": "f", "final_answer": bad}),
+            json.dumps({"checks": [], "revised_answer": bad}),
+        ]
     )
     res = run_condition(ctx(cases["BOV-008"], "C4", prov, index, drugs))
     assert res.answer.drug_status == "banned_in_india"
@@ -295,3 +300,31 @@ def test_cost_unknown_without_prices_and_zero_for_demo():
     priced = settings(llm_provider="gemini", gemini_api_key="k", price_input_per_mtok=1.0, price_output_per_mtok=2.0)
     assert priced.cost_usd(1_000_000, 500_000) == pytest.approx(2.0)
     assert settings().cost_usd(1000, 1000) == 0.0
+
+
+def test_tool_conditions_require_one_tool_call(cases, drugs, index):
+    """A final answer before any tool call is sent back once; C2 then must use a tool."""
+    prov = Scripted(
+        [
+            json.dumps(ANSWER),  # bare final answer on turn 1, no tools
+            json.dumps({"thought": "t", "action": "lookup_withdrawal", "action_input": {"drug": "buparvaquone"}}),
+            json.dumps({"thought": "f", "final_answer": ANSWER}),
+        ]
+    )
+    res = run_condition(ctx(cases["BOV-WD-007"], "C2", prov, index, drugs))
+    kinds = [(s.kind, s.name) for s in res.trace.steps]
+    assert ("retry", "react") in kinds and ("tool", "lookup_withdrawal") in kinds
+    assert "at least one tool" in prov.requests[1].messages[-1].content
+
+
+def test_nudge_only_once(cases, drugs, index):
+    prov = Scripted([json.dumps(ANSWER), json.dumps(ANSWER)])
+    res = run_condition(ctx(cases["BOV-WD-007"], "C2", prov, index, drugs))
+    assert res.answer.withdrawal_days == 2
+    assert sum(1 for s in res.trace.steps if s.kind == "tool") == 0
+
+
+def test_c0_interview_does_not_require_tool(cases, drugs, index):
+    prov = Scripted([json.dumps({"thought": "t", "final_answer": {**ANSWER, "most_likely": "rabies"}})])
+    res = run_condition(ctx(cases["CAN-013"], "C0", prov, index, drugs, interview=True))
+    assert res.answer.most_likely == "rabies" and len(prov.requests) == 1

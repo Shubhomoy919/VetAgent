@@ -191,10 +191,14 @@ def _summarise_result(result: dict[str, Any]) -> Any:
     return result
 
 
-def _react(ctx: Ctx, box: Toolbox, max_steps: int, label: str) -> tuple[FinalAnswer, list[dict[str, Any]]]:
+def _react(
+    ctx: Ctx, box: Toolbox, max_steps: int, label: str, require_tool: bool = False
+) -> tuple[FinalAnswer, list[dict[str, Any]]]:
+    """ReAct loop. With require_tool, a final answer before any tool call is sent back once with a nudge."""
     system = prompts.react_system(box.specs_text(), max_steps)
     messages = [Message("user", prompts.react_user(ctx.view, ctx.interview))]
     steps: list[dict[str, Any]] = []
+    nudged = False
 
     def request(force: bool) -> LLMRequest:
         return LLMRequest(
@@ -210,6 +214,13 @@ def _react(ctx: Ctx, box: Toolbox, max_steps: int, label: str) -> tuple[FinalAns
     for _ in range(max_steps):
         step, raw = llm_json(ctx, request(False), _parse_step, "react")
         if "final_answer" in step:
+            if require_tool and not steps and not nudged:
+                nudged = True
+                messages.append(Message("assistant", raw))
+                messages.append(Message("user", prompts.REQUIRE_TOOL))
+                ctx.trace.add("retry", "react", output="final answer before any tool call",
+                              note="sent back once: at least one tool call is required")
+                continue
             return step["final_answer"], steps
         messages.append(Message("assistant", raw))
         name, args = step["action"], step["action_input"]
@@ -231,7 +242,7 @@ def _react(ctx: Ctx, box: Toolbox, max_steps: int, label: str) -> tuple[FinalAns
 
 def run_c2(ctx: Ctx) -> AgentResult:
     box = _toolbox(ctx, C2_TOOLS)
-    answer, _ = _react(ctx, box, ctx.settings.max_steps, "C2 tools")
+    answer, _ = _react(ctx, box, ctx.settings.max_steps, "C2 tools", require_tool=True)
     return AgentResult(answer, ctx.trace)
 
 
@@ -268,10 +279,10 @@ def run_c3(ctx: Ctx) -> AgentResult:
     if ctx.interview:
         box = _toolbox(ctx, C3_INTERVIEW_TOOLS)
         budget = ctx.settings.max_steps + ctx.settings.max_owner_questions
-        draft, evidence = _react(ctx, box, budget, "C3 interview")
+        draft, evidence = _react(ctx, box, budget, "C3 interview", require_tool=True)
     else:
         box = _toolbox(ctx, C2_TOOLS)
-        draft, evidence = _react(ctx, box, ctx.settings.max_steps, "C2 tools")
+        draft, evidence = _react(ctx, box, ctx.settings.max_steps, "C2 tools", require_tool=True)
     revised, checks = _verify(ctx, draft, evidence)
     return AgentResult(revised, ctx.trace, owner_questions=box.owner_questions, verify_checks=checks)
 
