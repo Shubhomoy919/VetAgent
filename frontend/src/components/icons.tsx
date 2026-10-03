@@ -43,6 +43,27 @@ export function ScorecardIcon(props: IconProps) {
   );
 }
 
+/** Cases: a luggage tag. */
+export function CasesIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M5.5 2.5h8v11h-8L2.5 8z" />
+      <circle cx="6.2" cy="8" r="1" />
+      <path d="M8.5 6h3M8.5 10h3" />
+    </Svg>
+  );
+}
+
+/** Drug table: a capsule. */
+export function DrugIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="1.8" y="5.2" width="12.4" height="5.6" rx="2.8" transform="rotate(-35 8 8)" />
+      <path d="M6.3 5.6l3.3 4.8" />
+    </Svg>
+  );
+}
+
 export function SunIcon(props: IconProps) {
   return (
     <Svg {...props}>

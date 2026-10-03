@@ -44,7 +44,8 @@ def _format_validation(err: ValidationError) -> str:
     return "; ".join(parts)
 
 
-def load_cases(path: Path = CASES_PATH) -> list[Case]:
+def load_cases(path: Path | None = None) -> list[Case]:
+    path = path or CASES_PATH
     if not path.is_file():
         raise DataError(f"{path.name} not found at {path}")
     try:
@@ -69,7 +70,8 @@ def load_cases(path: Path = CASES_PATH) -> list[Case]:
     return cases
 
 
-def load_drugs(path: Path = DRUGS_PATH) -> list[DrugRow]:
+def load_drugs(path: Path | None = None) -> list[DrugRow]:
+    path = path or DRUGS_PATH
     if not path.is_file():
         raise DataError(f"{path.name} not found at {path}")
     try:

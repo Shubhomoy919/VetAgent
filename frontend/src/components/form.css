@@ -1,0 +1,98 @@
+.fs {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.fs-legend {
+  padding: 0 0 var(--s2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.fs-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s3) var(--s4);
+}
+
+.ff {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  min-width: 0;
+}
+
+.ff[data-span="2"] {
+  grid-column: 1 / -1;
+}
+
+.ff-label {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.ff-input {
+  width: 100%;
+  min-height: 30px;
+  padding: 5px var(--s2);
+  background: var(--bg);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.ff-input.mono {
+  font-family: var(--font-mono);
+}
+
+.ff-textarea {
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.ff-input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+}
+
+.ff[data-invalid="true"] .ff-input {
+  border-color: var(--vermilion);
+}
+
+.ff-error {
+  font-size: var(--text-xs);
+  color: var(--vermilion);
+}
+
+.ff-hint {
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+.ff-check {
+  align-self: end;
+  min-height: 30px;
+}
+
+.err-summary {
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--vermilion);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  color: var(--vermilion);
+  font-size: var(--text-sm);
+}
+
+.err-summary ul {
+  margin: var(--s1) 0 0;
+  padding-left: 1.1em;
+}

@@ -85,6 +85,13 @@ Used only by the C4 deterministic rules.
   (e.g. "unable to rise", "open-mouth breathing", "bit my son"). They do not read the cases' `red_flags`
   annotations, which are kept for display and scoring.
 
+## Editing
+
+The Cases and Drug Table pages edit `data/cases.json` and `data/drug_table.csv` directly. Every save, import
+or delete validates the whole file with the same Pydantic models the tests use, rejects duplicates, and writes
+atomically (temp file + replace); an invalid edit changes nothing. Imports are all-or-nothing. Marking a drug row
+verified requires both a verifier name and a date. Editing a case changes its cache key, so its next run is fresh.
+
 ## Before any real use
 
 A registered veterinarian must review every case and drug row, fill `verified_by`/`verified_on` and

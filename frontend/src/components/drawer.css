@@ -1,0 +1,72 @@
+/* Shared side drawer (passage drawer, edit drawers). */
+
+.drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(20, 22, 26, 0.18);
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 51;
+  display: flex;
+  flex-direction: column;
+  width: min(520px, 92vw);
+  background: var(--surface);
+  border-left: 1px solid var(--rule-strong);
+}
+
+.drawer[data-wide="true"] {
+  width: min(680px, 96vw);
+}
+
+.drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s4) var(--s5);
+  border-bottom: var(--hairline);
+}
+
+.drawer-title {
+  font-size: var(--text-xl);
+}
+
+.drawer-printed {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--s4) var(--s5) var(--s6);
+  display: grid;
+  gap: var(--s4);
+  align-content: start;
+}
+
+.drawer-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: var(--s3) var(--s5);
+  border-top: var(--hairline);
+  background: var(--surface);
+}
+
+.drawer-chunk {
+  display: grid;
+  gap: var(--s1);
+}
+
+.drawer-chunk p {
+  font-size: var(--text-md);
+  line-height: 1.55;
+}

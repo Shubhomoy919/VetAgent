@@ -1,0 +1,269 @@
+/* Cases and Drug Table pages. */
+
+.datapage {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--s5) var(--s6) var(--s7);
+  display: grid;
+  gap: var(--s4);
+  align-content: start;
+}
+
+.dp-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s4);
+  flex-wrap: wrap;
+  padding-bottom: var(--s4);
+  border-bottom: var(--hairline);
+}
+
+.dp-title {
+  font-size: var(--text-display);
+  line-height: 1;
+}
+
+.dp-sub {
+  margin-top: var(--s2);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.dp-actions,
+.dp-filters {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+a.btn {
+  text-decoration: none;
+}
+
+.dp-import-mode select,
+.dp-select,
+.dp-search {
+  height: 30px;
+  padding: 0 var(--s2);
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.dp-search {
+  width: min(320px, 100%);
+}
+
+.dp-count {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.dp-table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: var(--hairline);
+  border-radius: var(--radius);
+}
+
+.dp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.dp-table th,
+.dp-table td {
+  padding: 7px var(--s3);
+  border-bottom: var(--hairline);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.dp-table td.wrap {
+  white-space: normal;
+  min-width: 220px;
+  max-width: 360px;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.dp-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-sunk);
+  font-weight: 500;
+  font-size: var(--text-xs);
+}
+
+.dp-table .num {
+  text-align: right;
+}
+
+.dp-table .cap {
+  text-transform: capitalize;
+}
+
+.dp-table tbody tr {
+  cursor: pointer;
+}
+
+.dp-table tbody tr:hover {
+  background: var(--bg);
+}
+
+.dp-table tbody tr:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.dp-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.th-arrow {
+  font-size: 10px;
+  color: var(--ink-2);
+}
+
+[aria-sort="ascending"] .th-arrow,
+[aria-sort="descending"] .th-arrow {
+  color: var(--ink);
+}
+
+.verified-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 4px;
+  border: 1px solid var(--leaf);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--leaf);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-pill[data-status="safe"] {
+  color: var(--leaf);
+}
+
+.status-pill[data-status="contraindicated"] {
+  color: var(--terracotta);
+}
+
+.status-pill[data-status="banned_in_india"] {
+  color: var(--vermilion);
+}
+
+[data-triage="emergency"] {
+  color: var(--vermilion);
+}
+
+[data-triage="urgent"] {
+  color: var(--terracotta);
+}
+
+/* ---------- Editor form ---------- */
+
+.editor {
+  display: grid;
+  gap: var(--s5);
+}
+
+.editor-checks {
+  display: flex;
+  gap: var(--s4);
+  align-items: end;
+}
+
+.editor-actions {
+  position: sticky;
+  bottom: calc(-1 * var(--s6));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin: 0 calc(-1 * var(--s5));
+  padding: var(--s3) var(--s5);
+  background: var(--surface);
+  border-top: var(--hairline);
+}
+
+.editor-actions-right {
+  display: flex;
+  gap: var(--s2);
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.chip {
+  height: 24px;
+  padding: 0 var(--s2);
+  background: none;
+  border: var(--hairline);
+  border-radius: var(--radius-sm);
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.chip[aria-pressed="true"] {
+  color: var(--on-accent);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+[data-bad="true"] {
+  color: var(--vermilion);
+  font-weight: 500;
+}
+
+.chip[data-species]:not([aria-pressed="true"]) {
+  border-left: 3px solid var(--sp, var(--rule));
+}
+
+.chip[data-species="CAN"] { --sp: var(--sp-can); }
+.chip[data-species="FEL"] { --sp: var(--sp-fel); }
+.chip[data-species="BOV"] { --sp: var(--sp-bov); }
+.chip[data-species="CAP"] { --sp: var(--sp-cap); }
+.chip[data-species="AVI"] { --sp: var(--sp-avi); }

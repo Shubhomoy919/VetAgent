@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef } from "react";
 import { useSvtgPage } from "../../api/runs";
+import "../../components/drawer.css";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
