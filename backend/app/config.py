@@ -22,6 +22,7 @@ class Settings(BaseSettings):
         env_file=REPO_ROOT / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        env_ignore_empty=True,  # "PRICE_INPUT_PER_MTOK=" in .env means "not set"
     )
 
     llm_provider: Provider = "demo"
@@ -34,6 +35,22 @@ class Settings(BaseSettings):
     openai_model: str = ""
 
     svtg_pdf_path: str = "data/StandardVeterinaryTreatment.pdf"
+
+    # Agent
+    temperature: float = Field(default=0.0, ge=0.0, le=2.0)
+    max_steps: int = Field(default=6, ge=1, le=12)
+    max_owner_questions: int = Field(default=5, ge=1, le=10)
+
+    # Optional pricing (USD per million tokens). Left empty, cost is reported as unknown.
+    price_input_per_mtok: float | None = None
+    price_output_per_mtok: float | None = None
+
+    def cost_usd(self, tokens_in: int, tokens_out: int) -> float | None:
+        if self.effective_provider == "demo":
+            return 0.0
+        if self.price_input_per_mtok is None or self.price_output_per_mtok is None:
+            return None
+        return round(tokens_in / 1e6 * self.price_input_per_mtok + tokens_out / 1e6 * self.price_output_per_mtok, 6)
 
     @property
     def key_present(self) -> bool:

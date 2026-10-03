@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pymupdf
 
-INDEX_VERSION = 3
+INDEX_VERSION = 4
 TARGET_CHARS = 800
 MAX_CHARS = 1000
 MIN_TAIL_CHARS = 200
@@ -90,6 +90,15 @@ def chunk_text(text: str) -> list[str]:
     return chunks
 
 
+_CONNECTORS = ("or", "and", "of", "in", "with", "&", "-", "–", "the")
+
+
+def _heading_continues(title: str) -> bool:
+    """A heading wrapped onto the next line: ends with a connector or has an unclosed '('."""
+    last = title.rsplit(" ", 1)[-1].lower()
+    return last in _CONNECTORS or title.count("(") > title.count(")")
+
+
 def _merge_short(segments: list[tuple[str, str]]) -> list[tuple[str, str]]:
     """Fold segments shorter than MIN_TAIL_CHARS into their neighbour on the same page.
 
@@ -124,11 +133,21 @@ def chunk_pages(pages: list[tuple[int, str]]) -> list[Chunk]:
         lines = _clean_lines(raw)
         # Split the page into segments at section headings.
         segments: list[tuple[str, list[str]]] = [(section, [])]
+        skip = False
         for i, ln in enumerate(lines):
+            if skip:
+                skip = False
+                continue
             m = HEADING_RE.match(ln)
             a = ANNEXURE_RE.match(ln)
             if m:
-                section = f"{m.group(1)} {m.group(2).strip()}"
+                title = m.group(2).strip()
+                nxt = lines[i + 1] if i + 1 < len(lines) else ""
+                if nxt and _heading_continues(title):
+                    title = f"{title} {nxt}"
+                    ln = f"{ln} {nxt}"
+                    skip = True
+                section = f"{m.group(1)} {title}"
                 segments.append((section, [ln]))
             elif a:
                 # "ANNEXURE-7 :" is usually followed by its title on the next line.

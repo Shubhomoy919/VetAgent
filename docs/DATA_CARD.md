@@ -75,6 +75,16 @@ gold-answer consistency (drug status, withdrawal, no dose for banned/contraindic
   SVTG; sourced to general veterinary toxicology, reference to be added at verification.
 - Drugs not in the table are reported as "unknown" by the tools (Milestone 3).
 
+## Guardrail knowledge (`data/knowledge_seed.json`)
+
+Used only by the C4 deterministic rules.
+- **Notifiable** flags come from explicit SVTG statements (e.g. HS p.112, FMD p.96, anthrax p.116, HPAI p.193,
+  brucellosis p.113). Where SVTG is silent the flag is `null` and the rule does not fire.
+- **Zoonotic** flags come from SVTG statements, except avian influenza (SVTG does not say; marked "verify").
+- **Red-flag patterns** are regular expressions over the case history, owner narrative, signs and question
+  (e.g. "unable to rise", "open-mouth breathing", "bit my son"). They do not read the cases' `red_flags`
+  annotations, which are kept for display and scoring.
+
 ## Before any real use
 
 A registered veterinarian must review every case and drug row, fill `verified_by`/`verified_on` and

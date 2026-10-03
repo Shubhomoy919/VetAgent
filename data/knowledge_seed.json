@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "note": "Deterministic knowledge for the C4 guardrail. Notifiable/zoonotic flags are taken from SVTG statements (PDF page given); entries not stated in SVTG say so. Unverified — needs veterinarian review.",
+  "diseases": [
+    {"name": "haemorrhagic septicaemia", "synonyms": ["hemorrhagic septicemia", "haemorrhagic septicemia", "hemorrhagic septicaemia", "hs"], "notifiable": true, "notifiable_source": "SVTG PDF p.112, p.150", "zoonotic": false, "zoonotic_source": ""},
+    {"name": "foot and mouth disease", "synonyms": ["foot-and-mouth disease", "fmd", "aphthous fever"], "notifiable": true, "notifiable_source": "SVTG PDF p.96 (immediate reporting), p.230", "zoonotic": false, "zoonotic_source": ""},
+    {"name": "anthrax", "synonyms": ["splenic fever", "bacillus anthracis"], "notifiable": true, "notifiable_source": "SVTG PDF p.116, p.155, p.346", "zoonotic": true, "zoonotic_source": "SVTG PDF p.117"},
+    {"name": "avian influenza", "synonyms": ["highly pathogenic avian influenza", "hpai", "bird flu", "fowl plague", "h5n1"], "notifiable": true, "notifiable_source": "SVTG PDF p.193", "zoonotic": true, "zoonotic_source": "Not stated in SVTG; H5 avian influenza is a recognised zoonosis (verify)"},
+    {"name": "brucellosis", "synonyms": ["brucella", "contagious abortion", "bang's disease"], "notifiable": true, "notifiable_source": "SVTG PDF p.113 (prompt reporting of abortions), p.396", "zoonotic": true, "zoonotic_source": "SVTG PDF p.112"},
+    {"name": "tuberculosis", "synonyms": ["bovine tuberculosis", "mycobacterium bovis", "tb"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.113"},
+    {"name": "rabies", "synonyms": ["hydrophobia", "lyssavirus"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.111, p.271"},
+    {"name": "leptospirosis", "synonyms": ["leptospira"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.119"},
+    {"name": "q fever", "synonyms": ["q-fever", "coxiellosis"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.157"},
+    {"name": "dermatophytosis", "synonyms": ["ringworm"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.121, p.162"},
+    {"name": "echinococcosis", "synonyms": ["hydatidosis", "hydatid disease"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.175"},
+    {"name": "buffalopox", "synonyms": ["buffalo pox"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.108"},
+    {"name": "rift valley fever", "synonyms": ["rvf"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.139"},
+    {"name": "enzootic abortion", "synonyms": ["chlamydiosis", "chlamydial abortion", "enzootic abortion of ewes"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.159, p.352"},
+    {"name": "caseous lymphadenitis", "synonyms": ["cla"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.160"},
+    {"name": "trichinellosis", "synonyms": ["trichinosis"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.180, p.255"},
+    {"name": "glanders", "synonyms": [], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.313"},
+    {"name": "japanese encephalitis", "synonyms": ["je"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.237"},
+    {"name": "nipah virus encephalitis", "synonyms": ["nipah"], "notifiable": null, "notifiable_source": "", "zoonotic": true, "zoonotic_source": "SVTG PDF p.241"},
+    {"name": "classical swine fever", "synonyms": ["csf", "hog cholera"], "notifiable": true, "notifiable_source": "SVTG PDF p.227", "zoonotic": false, "zoonotic_source": ""},
+    {"name": "contagious equine metritis", "synonyms": ["cem"], "notifiable": true, "notifiable_source": "SVTG PDF p.318", "zoonotic": false, "zoonotic_source": ""}
+  ],
+  "red_flags": [
+    {"id": "recumbent", "label": "down / unable to rise", "pattern": "unable to rise|cannot (get|stand) up|will not get up|won't get up|recumben", "min_triage": "emergency"},
+    {"id": "resp_distress", "label": "severe breathing difficulty", "pattern": "open[- ]mouth(ed)? breathing|severe dyspn|breathing hard|respiratory distress|gasping|laboured breathing|labored breathing", "min_triage": "emergency"},
+    {"id": "neuro", "label": "convulsions / nervous signs", "pattern": "convuls|seizure|opisthotonus|\\bfits\\b|torticollis|twisted necks?|head pressing|star[- ]gazing", "min_triage": "emergency"},
+    {"id": "tremor", "label": "tremors or twitching", "pattern": "tremor|twitching|shaking", "min_triage": "emergency"},
+    {"id": "no_urine", "label": "cannot pass urine", "pattern": "no urine|nothing comes out|only a few drops|unable to urinate|straining to (pass )?urin", "min_triage": "emergency"},
+    {"id": "deaths", "label": "sudden death / deaths in group", "pattern": "sudden(ly)? death|died suddenly|died .{0,20}overnight|found dead|dying fast|dying one after|have died|died this week|died in", "min_triage": "emergency"},
+    {"id": "unclotted_blood", "label": "unclotted blood from orifices", "pattern": "unclotted blood|not clotting|blood .{0,30}(nose|orifices|back passage)", "min_triage": "emergency"},
+    {"id": "bite", "label": "animal bit a person", "pattern": "\\bbit (my|the|a|our|his|her)\\b|\\bbitten\\b", "min_triage": "emergency"},
+    {"id": "toxic_ingestion", "label": "ate something toxic", "pattern": "(ate|eaten|swallowed|chewed).{0,60}(gum|xylitol|raisin|grape|kishmish|chocolate|rat poison)", "min_triage": "emergency"},
+    {"id": "throat_swelling", "label": "throat / brisket swelling", "pattern": "throat .{0,40}swollen|swollen .{0,20}throat|brisket", "min_triage": "emergency"},
+    {"id": "bloat", "label": "rapid abdominal distension", "pattern": "blown up|like a drum|bloat", "min_triage": "emergency"},
+    {"id": "abortion", "label": "abortion", "pattern": "abort|threw (her|the) calf", "min_triage": "urgent"},
+    {"id": "blood_in_droppings", "label": "blood in droppings or urine", "pattern": "blood in (the )?(droppings|dung|stool|urine)|bloody (droppings|diarrh)", "min_triage": "urgent"},
+    {"id": "vesicles", "label": "blisters / heavy drooling", "pattern": "blisters|ropes of saliva|saliva .{0,10}dripping|drooling", "min_triage": "urgent"}
+  ]
+}

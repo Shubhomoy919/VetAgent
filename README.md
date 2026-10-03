@@ -24,6 +24,18 @@ npm run dev            # or: run.bat
 - Backend: http://127.0.0.1:8010 — health at `/api/health`
   (8010 rather than 8000, because other local projects occupy 8000 on the dev machine)
 
+## Run cases from the command line
+
+```powershell
+cd backend
+..\.venv\Scripts\python.exe -m app.scripts.run_case BOV-WD-007                 # all five conditions
+..\.venv\Scripts\python.exe -m app.scripts.run_case BOV-009 --conditions C0,C4 --force
+..\.venv\Scripts\python.exe -m app.scripts.run_case CAN-013 --interview        # owner-interview mode (C0, C3)
+```
+
+Results are stored in `data/runs.db`. Without an API key the demo provider answers: sample responses built from
+the case text and tool results (never the gold answer), labelled `[Demo]`, not live model output.
+
 ## Checks
 
 ```powershell
