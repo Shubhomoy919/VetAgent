@@ -75,8 +75,8 @@ class GeminiProvider:
                 resp = self._call(contents, config)
                 # Some models occasionally end with MALFORMED_FUNCTION_CALL / MALFORMED_RESPONSE and no text.
                 # It is not deterministic, so a fresh attempt usually succeeds.
-                reason = str(resp.candidates[0].finish_reason) if resp.candidates else ""
-                if not (resp.text or "").strip() and "MALFORMED" in reason:
+                # Empty replies (MALFORMED_* or a plain STOP with no text) are not deterministic: retry.
+                if not (resp.text or "").strip():
                     if malformed_tries < MAX_MALFORMED_RETRIES:
                         malformed_tries += 1
                         continue

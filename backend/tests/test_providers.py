@@ -178,3 +178,14 @@ def test_malformed_falls_back_to_plain_text_then_gives_up():
     assert seen == ["application/json"] * 3 + ["text/plain"]
     with pytest.raises(LLMError, match="MALFORMED_FUNCTION_CALL"):
         _provider([_Malformed()] * 4, []).complete(req())
+
+
+class _EmptyStop(_Malformed):
+    class _Cand:
+        finish_reason = "FinishReason.STOP"
+
+    candidates = [_Cand()]
+
+
+def test_empty_stop_response_is_retried():
+    assert _provider([_EmptyStop(), _Resp()], []).complete(req()).text == '{"ok": true}'
