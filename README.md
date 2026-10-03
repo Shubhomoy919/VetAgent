@@ -38,6 +38,13 @@ cd backend
 ..\.venv\Scripts\python.exe -m app.scripts.run_case CAN-013 --interview        # owner-interview mode (C0, C3)
 ```
 
+Score a run (latest multi-case run by default) and write the CSV to `data/exports/`:
+
+```powershell
+..\.venv\Scripts\python.exe -m app.scripts.score
+..\.venv\Scripts\python.exe -m app.scripts.score <run_id> --csv ..\data\exports\my.csv --json ..\data\exports\my.json
+```
+
 Results are stored in `data/runs.db`. Without an API key the demo provider answers: sample responses built from
 the case text and tool results (never the gold answer), labelled `[Demo]`, not live model output.
 

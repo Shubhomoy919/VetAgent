@@ -31,6 +31,18 @@ export function BenchIcon(props: IconProps) {
   );
 }
 
+/** Scorecard: two dot-and-whisker rows. */
+export function ScorecardIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path d="M2 4.5h12M2 11.5h12" strokeOpacity="0.35" />
+      <path d="M4 4.5h6M6.5 11.5h6" />
+      <circle cx="7" cy="4.5" r="1.6" fill="currentColor" />
+      <circle cx="9.5" cy="11.5" r="1.6" fill="currentColor" />
+    </Svg>
+  );
+}
+
 export function SunIcon(props: IconProps) {
   return (
     <Svg {...props}>

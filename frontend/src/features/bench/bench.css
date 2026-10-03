@@ -189,7 +189,7 @@
 .condition-id {
   font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--cond);
+  color: var(--ink);
 }
 
 .condition-name {

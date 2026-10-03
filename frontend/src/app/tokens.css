@@ -66,12 +66,13 @@
   --sp-cap: #6fbf7f;
   --sp-avi: #e6b04a;
 
-  /* Conditions, lifted for contrast on dark (derived; see DESIGN.md) */
+  /* Conditions on dark: derived and checked with the dataviz palette validator
+     (all-pairs CVD ≥ 8, normal-vision ≥ 15, ≥ 3:1 on surface); see DESIGN.md */
   --c0: #9aa0a8;
-  --c1: #7c9cd0;
-  --c2: #8e9bea;
-  --c3: #5fb3ac;
-  --c4: #d1a03e;
+  --c1: #0b94e7;
+  --c2: #8265a3;
+  --c3: #2c8766;
+  --c4: #b16a08;
 
   --grain-opacity: 0.035;
   --grid-line: rgba(142, 155, 234, 0.05);

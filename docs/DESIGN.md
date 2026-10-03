@@ -40,12 +40,18 @@ Tokens live in `frontend/src/app/tokens.css`; this file is the reference.
 | | Light | Dark (derived for contrast) |
 |---|---|---|
 | C0 Bare LLM | `#6B6F76` | `#9AA0A8` |
-| C1 Retrieval | `#4A6FA5` | `#7C9CD0` |
-| C2 Tools | `#23306B` | `#8E9BEA` |
-| C3 Self-verify | `#1F6F6A` | `#5FB3AC` |
-| C4 Guardrail | `#9A6B0F` | `#D1A03E` |
+| C1 Retrieval | `#4A6FA5` | `#0B94E7` |
+| C2 Tools | `#23306B` | `#8265A3` |
+| C3 Self-verify | `#1F6F6A` | `#2C8766` |
+| C4 Guardrail | `#9A6B0F` | `#B16A08` |
 
-The light condition colours are specified; the dark ones are lifted so they stay legible on `#161A21`.
+The light condition colours are specified in CLAUDE.md. The dark ones were chosen by a search in OKLCH and
+checked with the dataviz palette validator against `#161A21`: all-pairs CVD ΔE ≥ 8.7, normal-vision ΔE ≥ 15.8,
+contrast ≥ 3:1. (The first dark set, used in M1–M4, made C1 and C2 nearly identical: ΔE 4.7.)
+
+The specified light set does **not** pass the validator (C0 is a neutral grey by design; C0/C1 ΔE 8.3). So charts
+never rely on condition colour alone: every chart puts each condition on its own labelled row, and condition IDs are
+always printed in ink text next to the colour mark. Colour is a redundant cue.
 
 ### Species stripes (specimen tags, filter chips — derived from the palette)
 | Code | Light | Dark |
@@ -96,7 +102,11 @@ Scale: 11 / 12.5 / 14 (base) / 16 / 22 / 34 px.
 Running state: a 2px turmeric scan line crosses the run bar and the active card, only while a run is in
 progress (static full-width line under reduced motion). Toasts are sonner in unstyled mode: flat surface, hairline,
 turmeric (or vermilion for errors) left edge — no shadows.
-5. **Dot-and-whisker charts** — metrics with CIs; headline numbers in Instrument Serif. (M5.)
+5. **Dot-and-whisker charts** — one panel per metric, one labelled row per condition on a 0–100% track:
+   2px whisker for the Wilson 95% CI with end caps, 5px dot with a 2px surface ring, rate and k/n in ink text at
+   the right, faint quarter ticks. Whiskers draw in (pathLength, 260 ms, staggered); hover/focus shows a tooltip.
+   Every chart has an equivalent row in the metrics table (the table view). Headline tiles use Instrument Serif
+   40px with a count-up. Built: `features/scorecard/DotWhisker.tsx`, `components/CountUp.tsx`.
 
 ## Banned
 Glassmorphism, `backdrop-filter`, `blur(`, gradients and gradient text, neon glows, large soft shadows,
