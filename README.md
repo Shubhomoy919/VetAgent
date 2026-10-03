@@ -1,0 +1,36 @@
+# VetAgentBench-IN
+
+A research prototype that tests whether LLM agents give safer veterinary advice than a bare LLM,
+using India's Standard Veterinary Treatment Guidelines (SVTG) as the knowledge source.
+
+**Research prototype — not for clinical use. Consult a registered veterinarian.**
+
+## Setup (Windows)
+
+Requires Python 3.11+ and Node 20+.
+
+```powershell
+npm run setup          # creates .venv, installs Python and npm dependencies
+copy .env.example .env # optional: add an API key; without one the app runs in demo mode
+```
+
+## Run
+
+```powershell
+npm run dev            # or: run.bat
+```
+
+- Frontend: http://localhost:5173 (proxies `/api` to the backend)
+- Backend: http://127.0.0.1:8010 — health at `/api/health`
+  (8010 rather than 8000, because other local projects occupy 8000 on the dev machine)
+
+## Checks
+
+```powershell
+npm test               # backend pytest
+npm run typecheck      # frontend tsc
+npm run lint           # frontend eslint
+npm --prefix frontend run e2e   # Playwright
+```
+
+See `CLAUDE.md` for the full spec and `docs/DESIGN.md` for the design system.

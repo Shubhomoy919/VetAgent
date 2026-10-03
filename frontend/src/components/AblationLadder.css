@@ -1,0 +1,51 @@
+.ladder {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ladder-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+  min-width: 18px;
+}
+
+/* connecting hairline between dots */
+.ladder-step + .ladder-step::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 50%;
+  width: 100%;
+  height: 1px;
+  background: var(--rule-strong);
+  z-index: 0;
+}
+
+.ladder-dot {
+  position: relative;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cond, var(--ink-2));
+  background: var(--surface);
+}
+
+.ladder-step[data-on="true"] .ladder-dot {
+  background: var(--cond, var(--ink));
+}
+
+.ladder-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  padding: 0 var(--s1);
+}
