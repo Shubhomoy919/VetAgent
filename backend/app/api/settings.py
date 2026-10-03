@@ -55,9 +55,9 @@ def update(values: dict[str, Any] = Body(...)) -> Any:
             content={"detail": "These settings cannot be changed here", "errors": [{"loc": [k], "msg": "not editable (keys belong in .env)"} for k in unknown]},
         )
     merged = {**load_overrides(), **values}
-    # Blank optional numbers mean "not set".
+    # A blank price that was sent means "not set" (only for keys actually sent, so .env prices aren't hidden).
     for k in ("price_input_per_mtok", "price_output_per_mtok"):
-        if merged.get(k) in ("", None):
+        if k in values and values[k] in ("", None):
             merged[k] = None
     try:
         candidate = Settings(**merged)  # type: ignore[arg-type]

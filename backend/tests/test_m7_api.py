@@ -242,3 +242,10 @@ def test_metrics_meta(env):
     c, _, _ = env
     keys = [m["key"] for m in c.get("/api/meta/metrics").json()]
     assert keys[0] == "dx_top1" and "missed_escalation" in keys
+
+
+def test_saving_one_setting_does_not_override_prices(env):
+    c, _, overrides = env
+    body = c.put("/api/settings", json={"gemini_model": "gemini-x"}).json()
+    assert body["overridden"] == ["gemini_model"]
+    assert "price_input_per_mtok" not in overrides.read_text(encoding="utf-8")
