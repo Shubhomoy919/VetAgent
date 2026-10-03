@@ -86,7 +86,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
         });
         void qc.invalidateQueries({ queryKey: ["latest-results"] });
         void qc.invalidateQueries({ queryKey: ["health"] });
-        const label = { done: "Run finished", done_with_errors: "Run finished with errors", cancelled: "Run cancelled", failed: "Run failed", running: "" }[s.status];
+        const label = { done: "Run finished", done_with_errors: "Run finished with errors", cancelled: "Run cancelled", failed: "Run failed", quota_exhausted: "Run stopped: daily quota exhausted", running: "" }[s.status];
         toast(`${label} · ${s.n_done}/${s.n_total}`);
       });
       es.onerror = () => {

@@ -15,7 +15,7 @@ from app.agent.prompts import PROMPT_VERSION
 from app.agent.trace import Step, Trace
 from app.config import Settings
 from app.data.models import Case, DrugRow
-from app.llm.base import LLMError, Provider
+from app.llm.base import LLMError, Provider, QuotaExhausted
 from app.retrieval.search import SearchIndex
 from app.storage.db import Store
 
@@ -75,6 +75,8 @@ def run_one(
         }
     except (AgentError, LLMError) as e:
         payload = {"status": "error", "answer": None, "error": str(e), "rules_fired": [], "owner_questions": []}
+        if isinstance(e, QuotaExhausted):
+            payload["quota_exhausted"] = True
     payload.update(
         trace=[s.to_dict() for s in trace.steps],
         steps=trace.tool_calls,

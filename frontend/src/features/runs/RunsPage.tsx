@@ -8,7 +8,7 @@ import "../data/data.css";
 import "./runs.css";
 
 const fmtDate = (s: string) => s.replace("T", " ").slice(0, 16);
-const STATUS: Record<string, string> = { running: "running", done: "done", done_with_errors: "done · errors", cancelled: "cancelled", failed: "failed" };
+const STATUS: Record<string, string> = { running: "running", done: "done", done_with_errors: "done · errors", cancelled: "cancelled", failed: "failed", quota_exhausted: "quota stop" };
 
 function Delta({ d, better }: { d: number | null; better: "higher" | "lower" }) {
   if (d === null) return <span className="sc-na">—</span>;
@@ -193,7 +193,7 @@ export function RunsPage() {
                     <td className="num mono">
                       {r.case_ids.length} × {r.conditions.length}
                     </td>
-                    <td className="mono" data-bad={r.status === "failed" || r.status === "done_with_errors"}>
+                    <td className="mono" data-bad={r.status === "failed" || r.status === "done_with_errors" || r.status === "quota_exhausted"}>
                       {STATUS[r.status] ?? r.status}
                     </td>
                     <td className="num mono">

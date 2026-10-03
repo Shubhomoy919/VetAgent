@@ -30,6 +30,10 @@ class RunConflict(Exception):
     pass
 
 
+class QuotaStop(Exception):
+    pass
+
+
 @dataclass
 class RunState:
     id: str
@@ -180,10 +184,15 @@ class RunManager:
                     payload = result_payload(r, cases[cid], rid)
                     payload["trace"] = r["trace"]
                     state.emit("result_done", {**key, "result": payload, "n_done": state.n_done, "n_total": state.n_total})
+                    if r.get("quota_exhausted"):
+                        state.emit("run_error", {"error": r["error"] + " The run was stopped; finished results are kept."})
+                        raise QuotaStop()
                     if r["status"] != "ok":
                         status = "done_with_errors"
         except RunCancelled:
             status = "cancelled"
+        except QuotaStop:
+            status = "quota_exhausted"
         except Exception as e:  # unexpected: surface the real error to the client
             status = "failed"
             state.emit("run_error", {"error": f"{type(e).__name__}: {e}"})

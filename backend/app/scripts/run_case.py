@@ -66,7 +66,10 @@ def main(argv: list[str] | None = None) -> int:
 
     summary = []
     failures = 0
+    quota_stop = False
     for cid in args.case_ids:
+        if quota_stop:
+            break
         for cond in conditions:
             r = run_one(case=cases[cid], condition=cond, provider=provider, settings=settings, index=index,
                         drugs=drugs, store=store, interview=args.interview, force=args.force)
@@ -76,6 +79,11 @@ def main(argv: list[str] | None = None) -> int:
             if r["status"] != "ok":
                 failures += 1
                 print(f"  ERROR: {r['error']}")
+            if r.get("quota_exhausted"):
+                print("  Stopping: quota will not recover during this run. Finished results are kept; "
+                      "re-run later and cached results are reused.")
+                quota_stop = True
+                break
             elif not args.quiet:
                 print(json.dumps(r["answer"], indent=2, ensure_ascii=False))
             print("  trace:")
@@ -90,7 +98,7 @@ def main(argv: list[str] | None = None) -> int:
             summary.append((cid, cond, r["status"], a.get("most_likely", "—"), a.get("triage", "—"),
                             a.get("drug_status", "—"), a.get("withdrawal_days"), r["steps"],
                             [c.get("page") for c in a.get("citations", [])]))
-    store.finish_run(run_id, "done" if failures == 0 else "done_with_errors")
+    store.finish_run(run_id, "quota_exhausted" if quota_stop else "done" if failures == 0 else "done_with_errors")
 
     print("Summary")
     print(f"  {'case':<12} {'cond':<4} {'status':<6} {'most_likely':<34} {'triage':<9} {'drug':<15} {'wd':>4} {'steps':>5}  pages")

@@ -64,7 +64,7 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
         {run && (
           <>
             <span className="mono runbar-count">
-              {run.status === "running" ? "Running" : { done: "Done", done_with_errors: "Done (errors)", cancelled: "Cancelled", failed: "Failed" }[run.status]}{" "}
+              {run.status === "running" ? "Running" : { done: "Done", done_with_errors: "Done (errors)", cancelled: "Cancelled", failed: "Failed", quota_exhausted: "Quota stop" }[run.status]}{" "}
               {run.n_done}/{run.n_total}
             </span>
             <span

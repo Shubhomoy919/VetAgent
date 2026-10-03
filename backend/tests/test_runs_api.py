@@ -159,3 +159,23 @@ def test_svtg_page(client):
     assert body["printed_page"] == 157
     assert any("Buparvaquone" in c["text"] for c in body["chunks"])
     assert client.get("/api/svtg/pages/2").status_code == 404
+
+
+def test_run_stops_on_daily_quota(client, monkeypatch):
+    from app.llm.base import QuotaExhausted
+    from app.llm.demo import DemoProvider
+
+    calls = {"n": 0}
+
+    def exhausted(self, request):
+        calls["n"] += 1
+        raise QuotaExhausted("Gemini daily quota exhausted (GenerateRequestsPerDayPerProjectPerModel-FreeTier).")
+
+    monkeypatch.setattr(DemoProvider, "complete", exhausted)
+    run_id = client.post("/api/runs", json={"case_ids": ["BOV-001", "BOV-002", "BOV-003"], "force": True}).json()["run_id"]
+    events = read_sse(client, run_id)
+    done = [d for t, d in events if t == "result_done"]
+    assert len(done) == 1 and calls["n"] == 1  # stopped after the first failure, not 15
+    assert any(t == "run_error" and "daily quota" in d["error"] for t, d in events)
+    assert events[-1][1]["status"] == "quota_exhausted"
+    assert client.get(f"/api/runs/{run_id}").json()["status"] == "quota_exhausted"

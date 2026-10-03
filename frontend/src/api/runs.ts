@@ -80,7 +80,7 @@ export interface ResultSummary {
 
 export interface RunSummary {
   run_id: string;
-  status: "running" | "done" | "done_with_errors" | "cancelled" | "failed";
+  status: "running" | "done" | "done_with_errors" | "cancelled" | "failed" | "quota_exhausted";
   n_done: number;
   n_total: number;
   case_ids: string[];

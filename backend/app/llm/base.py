@@ -42,6 +42,10 @@ class LLMError(Exception):
     """The provider call failed. The message is safe to show (never contains keys)."""
 
 
+class QuotaExhausted(LLMError):
+    """A quota that will not recover within the run (e.g. a daily limit). Runs stop at the first one."""
+
+
 class Provider(Protocol):
     name: str
     model: str

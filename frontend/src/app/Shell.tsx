@@ -101,7 +101,7 @@ function RunStatus() {
     ? "Idle"
     : run.status === "running"
       ? `Running ${run.n_done}/${run.n_total}`
-      : { done: "Done", done_with_errors: "Done (errors)", cancelled: "Cancelled", failed: "Failed" }[run.status] +
+      : { done: "Done", done_with_errors: "Done (errors)", cancelled: "Cancelled", failed: "Failed", quota_exhausted: "Quota stop" }[run.status] +
         ` ${run.n_done}/${run.n_total}`;
   return (
     <span className="topbar-field">

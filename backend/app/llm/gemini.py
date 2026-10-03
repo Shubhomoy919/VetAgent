@@ -9,7 +9,7 @@ import re
 import time
 from typing import Any
 
-from app.llm.base import LLMError, LLMRequest, LLMResponse, estimate_tokens
+from app.llm.base import LLMError, LLMRequest, LLMResponse, QuotaExhausted, estimate_tokens
 
 MAX_RATE_RETRIES = 3
 MAX_SERVER_RETRIES = 2
@@ -76,7 +76,7 @@ class GeminiProvider:
                     daily = any("PerDay" in q for q in ids)
                     label = ", ".join(ids) or "rate limit"
                     if daily:
-                        raise LLMError(
+                        raise QuotaExhausted(
                             f"Gemini daily quota exhausted ({label}). Wait for the daily reset or enable billing; "
                             "retrying now will not help."
                         ) from None
