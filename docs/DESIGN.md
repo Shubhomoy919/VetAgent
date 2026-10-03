@@ -108,6 +108,29 @@ turmeric (or vermilion for errors) left edge — no shadows.
    Every chart has an equivalent row in the metrics table (the table view). Headline tiles use Instrument Serif
    40px with a count-up. Built: `features/scorecard/DotWhisker.tsx`, `components/CountUp.tsx`.
 
+## Responsive
+
+- **≥ 1440px:** Bench shows three resizable panes (cases · case · conditions).
+- **1024–1439px:** the case list moves into a left drawer opened from the run bar (it stays mounted, so J/K work
+  while it is closed); the sidebar starts collapsed below 1280px.
+- **< 1024px:** case and conditions stack vertically (resizable); conditions show one card at a time, chosen by the
+  tabs or keys 1–5. Tables scroll horizontally inside their frame.
+
+## Keyboard
+
+Ctrl/⌘ K command palette (pages, actions, cases) · ? shortcut sheet · Bench: J/K, X, R, Shift+R, 1–5, G ·
+Review: 1, 2, N, J/K. Shortcuts never fire while typing in a field.
+
+## Density
+
+Comfortable (default) or Compact (tighter spacing and 1px-smaller text), chosen in Settings or the palette and
+applied before first paint.
+
+## Known deviation
+
+The spec lists a "gold reveal blur-to-clear" animation but also bans `blur(`. The ban wins: the gold answer reveals
+with a fade-rise instead.
+
 ## Banned
 Glassmorphism, `backdrop-filter`, `blur(`, gradients and gradient text, neon glows, large soft shadows,
 emoji, sparkle/"AI" icons, generic logo squares, centred hero sections, bubbly over-rounded cards,

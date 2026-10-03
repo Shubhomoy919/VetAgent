@@ -9,19 +9,23 @@ interface Props {
   interview: boolean;
   latest: LatestResults | undefined;
   onCite: (page: number) => void;
+  /** Narrow screens: show one condition at a time, chosen by the tabs. */
+  tabs?: boolean;
 }
 
 function isTypingTarget(el: EventTarget | null): boolean {
   return el instanceof HTMLElement && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
 }
 
-export function ConditionDeck({ caseId, interview, latest, onCite }: Props) {
+export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false }: Props) {
   const { live } = useRun();
   const [compare, setCompare] = useState(false);
   const [picked, setPicked] = useState<ConditionId[]>(["C0", "C4"]);
+  const [active, setActive] = useState<ConditionId>("C0");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scrollTo = (id: ConditionId) => {
+    setActive(id);
     scrollRef.current?.querySelector<HTMLElement>(`[data-cond="${id}"]`)?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
   };
 
@@ -45,7 +49,11 @@ export function ConditionDeck({ caseId, interview, latest, onCite }: Props) {
   const togglePick = (id: ConditionId) =>
     setPicked((p) => (p.includes(id) ? (p.length > 2 ? p.filter((x) => x !== id) : p) : p.length < 3 ? [...p, id] : [...p.slice(1), id]));
 
-  const shown = compare ? CONDITIONS.filter((c) => picked.includes(c.id)) : CONDITIONS;
+  const shown = compare
+    ? CONDITIONS.filter((c) => picked.includes(c.id))
+    : tabs
+      ? CONDITIONS.filter((c) => c.id === active)
+      : CONDITIONS;
 
   return (
     <section className="pane" aria-labelledby="pane-conditions">
@@ -64,7 +72,7 @@ export function ConditionDeck({ caseId, interview, latest, onCite }: Props) {
                 type="button"
                 className="deck-tab mono"
                 data-cond={c.id}
-                aria-pressed={compare ? picked.includes(c.id) : undefined}
+                aria-pressed={compare ? picked.includes(c.id) : tabs ? active === c.id : undefined}
                 onClick={() => (compare ? togglePick(c.id) : scrollTo(c.id))}
                 title={`${c.id} ${c.name} (key ${i + 1})`}
               >
@@ -91,7 +99,7 @@ export function ConditionDeck({ caseId, interview, latest, onCite }: Props) {
         <div
           ref={scrollRef}
           className="deck"
-          data-mode={compare ? "compare" : "scroll"}
+          data-mode={compare ? "compare" : tabs ? "tabs" : "scroll"}
           style={compare ? { gridTemplateColumns: `repeat(${shown.length}, minmax(0, 1fr))` } : undefined}
         >
           {shown.map((c) => (

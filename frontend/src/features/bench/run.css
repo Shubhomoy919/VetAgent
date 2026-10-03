@@ -580,3 +580,67 @@ button.cite-chip:hover {
   color: var(--ink-2);
   margin: var(--s2) 0 0;
 }
+
+/* ---------- Responsive: case drawer (< 1440px) and tabbed conditions (< 1024px) ---------- */
+
+.cases-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 61;
+  width: min(380px, 92vw);
+  padding: var(--s2);
+  background: var(--bg);
+  border-right: 1px solid var(--rule-strong);
+  transform: translateX(-102%);
+  transition: transform var(--dur-slow) var(--ease);
+}
+
+.cases-drawer[data-open="true"] {
+  transform: none;
+}
+
+.cases-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(20, 22, 26, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.cases-drawer-scrim.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.deck[data-mode="tabs"] {
+  display: grid;
+  overflow-y: auto;
+}
+
+.pane-separator-h {
+  width: auto;
+  height: var(--s3);
+}
+
+.pane-separator-h::after {
+  top: 50%;
+  bottom: auto;
+  left: 30%;
+  right: 30%;
+  width: auto;
+  height: 1px;
+}
+
+@media (max-width: 1023px) {
+  .runbar {
+    gap: var(--s2);
+  }
+
+  .runbar-actions .toggle {
+    font-size: var(--text-xs);
+  }
+}

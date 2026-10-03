@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from "react-router";
 import { Toaster } from "sonner";
 import { useHealth } from "../api/health";
 import { CollapseIcon, ExpandIcon, MoonIcon, SunIcon } from "../components/icons";
+import { CommandPalette } from "./CommandPalette";
 import { NAV } from "./nav";
 import { useRun } from "./runState";
 import { usePersistentFlag, useTheme } from "./theme";
@@ -69,6 +70,16 @@ function TopBar() {
           </span>
         </span>
         <RunStatus />
+        <button
+          type="button"
+          className="kbd-button mono"
+          onClick={() => window.dispatchEvent(new Event("vab:palette"))}
+          aria-label="Open command palette (Ctrl+K)"
+          title="Command palette (Ctrl+K) · shortcuts (?)"
+          data-testid="open-palette"
+        >
+          Ctrl K
+        </button>
         <button
           type="button"
           className="icon-button"
@@ -167,7 +178,7 @@ export function Shell() {
   const location = useLocation();
   const [collapsed, setCollapsed] = usePersistentFlag(
     "vab.sidebarCollapsed",
-    () => window.innerWidth < 1024,
+    () => window.innerWidth < 1280,
   );
 
   return (
@@ -193,6 +204,7 @@ export function Shell() {
             </motion.div>
           </AnimatePresence>
         </main>
+        <CommandPalette />
         <Toaster
           position="bottom-right"
           toastOptions={{ unstyled: true, classNames: { toast: "toast", error: "toast-error" } }}

@@ -10,9 +10,10 @@ interface Props {
   force: boolean;
   setInterview: (v: boolean) => void;
   setForce: (v: boolean) => void;
+  onOpenCases?: (() => void) | undefined;
 }
 
-export function RunBar({ caseId, selected, allIds, interview, force, setInterview, setForce }: Props) {
+export function RunBar({ caseId, selected, allIds, interview, force, setInterview, setForce, onOpenCases }: Props) {
   const { run, start, cancel, starting } = useRun();
   const { data: health } = useHealth();
   const running = run?.status === "running";
@@ -36,6 +37,11 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
   return (
     <div className="runbar" data-running={running} role="toolbar" aria-label="Run controls">
       <div className="runbar-actions">
+        {onOpenCases && (
+          <button type="button" className="btn" onClick={onOpenCases} data-testid="open-cases">
+            Cases{caseId ? ` · ${caseId}` : ""}
+          </button>
+        )}
         <button type="button" className="btn btn-primary" disabled={busy || !caseId} onClick={() => caseId && go([caseId])}>
           Run case <kbd>R</kbd>
         </button>

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { formatAge, formatSex, type Case } from "../../api/cases";
 import { SpecimenTag, TypePill, UnverifiedTag } from "../../components/Tags";
 
@@ -88,6 +88,19 @@ export function CaseDetail({ c }: { c: Case }) {
   const [revealed, setRevealed] = useState(false);
   const s = c.signalment;
 
+  // G toggles the gold answer.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target;
+      const typing = el instanceof HTMLElement && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
+      if (typing || e.ctrlKey || e.metaKey || e.altKey || e.key.toLowerCase() !== "g") return;
+      e.preventDefault();
+      setRevealed((r) => !r);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <article className="case-detail" aria-labelledby="case-detail-id" data-testid="case-detail">
       <header className="case-detail-head">
@@ -157,7 +170,7 @@ export function CaseDetail({ c }: { c: Case }) {
           onClick={() => setRevealed(!revealed)}
           data-testid="reveal-gold"
         >
-          {revealed ? "Hide gold answer" : "Reveal gold answer"}
+          {revealed ? "Hide gold answer" : "Reveal gold answer"} <kbd>G</kbd>
         </button>
         <AnimatePresence initial={false}>{revealed && <GoldPanel c={c} />}</AnimatePresence>
       </section>

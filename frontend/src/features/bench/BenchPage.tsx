@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router";
 import { useCases, type Case } from "../../api/cases";
 import { CONDITION_IDS, resultKey, useLatestResults } from "../../api/runs";
 import { useRun } from "../../app/runState";
+import { NARROW, WIDE, useMediaQuery } from "../../app/useMediaQuery";
 import { GraphPaper } from "../../components/GraphPaper";
 import { CaseDetail } from "./CaseDetail";
 import { CaseList, type DotState } from "./CaseList";
@@ -60,6 +61,9 @@ export function BenchPage() {
   const [force, setForce] = useState(false);
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [citePage, setCitePage] = useState<number | null>(null);
+  const [casesOpen, setCasesOpen] = useState(false);
+  const wide = useMediaQuery(WIDE);
+  const narrow = useMediaQuery(NARROW);
 
   const { data: cases, error, isPending } = useCases();
   const { data: latest } = useLatestResults(interview);
@@ -85,6 +89,13 @@ export function BenchPage() {
       setParam("case", id);
     },
     [setParam],
+  );
+  const onSelectFromList = useCallback(
+    (id: string) => {
+      onSelect(id);
+      if (!wide) setCasesOpen(false);
+    },
+    [onSelect, wide],
   );
   const setInterview = useCallback(
     (v: boolean) => {
@@ -136,6 +147,40 @@ export function BenchPage() {
   }, [selectedId, interview, force, run?.status, starting, start]);
 
   const closeDrawer = useCallback(() => setCitePage(null), []);
+
+  // Escape closes the case drawer (medium and narrow layouts).
+  useEffect(() => {
+    if (!casesOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setCasesOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [casesOpen]);
+
+  const caseListPane = cases ? (
+    <CaseList cases={cases} selectedId={selectedId} onSelect={onSelectFromList} checked={checked} onCheck={onCheck} dots={dots} />
+  ) : (
+    <section className="pane" aria-labelledby="pane-cases">
+      <div className="pane-header">
+        <h2 className="pane-title" id="pane-cases">
+          Cases
+        </h2>
+      </div>
+      <div className="empty">
+        <EmptyTag />
+        <p className="empty-title">{isPending ? "Loading cases…" : "Cases could not be loaded"}</p>
+        {error && (
+          <p className="empty-body error-text" role="alert">
+            {error.message}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+  const deck = (
+    <ConditionDeck caseId={selected ? selected.case_id : null} interview={interview} latest={latest} onCite={setCitePage} tabs={narrow} />
+  );
   const allIds = useMemo(() => (cases ?? []).map((c) => c.case_id), [cases]);
 
   return (
@@ -149,39 +194,44 @@ export function BenchPage() {
         force={force}
         setInterview={setInterview}
         setForce={setForce}
+        onOpenCases={wide ? undefined : () => setCasesOpen(true)}
       />
-      <Group orientation="horizontal" id="bench-panes" className="bench-panes">
-        <Panel id="cases" defaultSize="23" minSize="260px">
-          {cases ? (
-            <CaseList cases={cases} selectedId={selectedId} onSelect={onSelect} checked={checked} onCheck={onCheck} dots={dots} />
-          ) : (
-            <section className="pane" aria-labelledby="pane-cases">
-              <div className="pane-header">
-                <h2 className="pane-title" id="pane-cases">
-                  Cases
-                </h2>
-              </div>
-              <div className="empty">
-                <EmptyTag />
-                <p className="empty-title">{isPending ? "Loading cases…" : "Cases could not be loaded"}</p>
-                {error && (
-                  <p className="empty-body error-text" role="alert">
-                    {error.message}
-                  </p>
-                )}
-              </div>
-            </section>
-          )}
-        </Panel>
-        <Separator className="pane-separator" />
-        <Panel id="case" defaultSize="32" minSize="300px">
-          <CasePane selected={selected} />
-        </Panel>
-        <Separator className="pane-separator" />
-        <Panel id="conditions" defaultSize="45" minSize="320px">
-          <ConditionDeck caseId={selected ? selected.case_id : null} interview={interview} latest={latest} onCite={setCitePage} />
-        </Panel>
-      </Group>
+      {wide ? (
+        <Group key="wide" orientation="horizontal" id="bench-panes" className="bench-panes">
+          <Panel id="cases" defaultSize="23" minSize="260px">
+            {caseListPane}
+          </Panel>
+          <Separator className="pane-separator" />
+          <Panel id="case" defaultSize="32" minSize="300px">
+            <CasePane selected={selected} />
+          </Panel>
+          <Separator className="pane-separator" />
+          <Panel id="conditions" defaultSize="45" minSize="320px">
+            {deck}
+          </Panel>
+        </Group>
+      ) : (
+        <>
+          <div className={`cases-drawer-scrim${casesOpen ? " open" : ""}`} onClick={() => setCasesOpen(false)} aria-hidden="true" />
+          <div className="cases-drawer" data-open={casesOpen} inert={!casesOpen} data-testid="cases-drawer">
+            {caseListPane}
+          </div>
+          <Group
+            key={narrow ? "narrow" : "medium"}
+            orientation={narrow ? "vertical" : "horizontal"}
+            id={narrow ? "bench-panes-narrow" : "bench-panes-medium"}
+            className="bench-panes"
+          >
+            <Panel id="case" defaultSize={narrow ? "42" : "42"} minSize={narrow ? "160px" : "300px"}>
+              <CasePane selected={selected} />
+            </Panel>
+            <Separator className={narrow ? "pane-separator pane-separator-h" : "pane-separator"} />
+            <Panel id="conditions" defaultSize="58" minSize={narrow ? "200px" : "320px"}>
+              {deck}
+            </Panel>
+          </Group>
+        </>
+      )}
       <PassageDrawer page={citePage} onClose={closeDrawer} />
     </div>
   );
