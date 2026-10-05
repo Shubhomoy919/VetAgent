@@ -19,7 +19,16 @@ async function cleanup(request: APIRequestContext) {
     if (item.review) await request.delete(`/api/review?result_id=${item.result_id}&reviewer=${REVIEWER}`);
   }
   await request.delete("/api/settings");
+  // Put back any local overrides (e.g. the chosen model) that existed before these tests.
+  if (Object.keys(savedOverrides).length) await request.put("/api/settings", { data: savedOverrides });
 }
+
+let savedOverrides: Record<string, unknown> = {};
+
+test.beforeAll(async ({ request }) => {
+  const s = (await (await request.get("/api/settings")).json()) as { values: Record<string, unknown>; overridden: string[] };
+  savedOverrides = Object.fromEntries(s.overridden.map((k) => [k, s.values[k]]));
+});
 
 test.afterAll(async ({ request }) => cleanup(request));
 
