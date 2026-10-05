@@ -17,6 +17,7 @@ import { applyDensity, applyThemePref, readDensity, readThemePref, type Density,
 import { ErrorSummary, FormSection, SelectField, TextField } from "../../components/form";
 import "../data/data.css";
 import "./settings.css";
+import { PageTitle } from "../../components/PageHeader";
 
 type Form = Record<keyof SettingsValues, string>;
 
@@ -249,7 +250,7 @@ export function SettingsPage() {
     <div className="datapage settings" data-testid="settings-page">
       <header className="dp-header">
         <div>
-          <h1 className="dp-title serif">Settings</h1>
+          <PageTitle plate="09">Settings</PageTitle>
           <p className="dp-sub">
             Non-secret settings saved here override <span className="mono">.env</span>. API keys stay in{" "}
             <span className="mono">.env</span> only.

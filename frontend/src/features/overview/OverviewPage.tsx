@@ -9,6 +9,7 @@ import { DotWhisker } from "../scorecard/DotWhisker";
 import "../data/data.css";
 import "../scorecard/scorecard.css";
 import "./overview.css";
+import { PageTitle } from "../../components/PageHeader";
 
 export function OverviewPage() {
   const { data: health } = useHealth();
@@ -26,7 +27,7 @@ export function OverviewPage() {
     <div className="datapage overview" data-testid="overview-page">
       <header className="dp-header">
         <div>
-          <h1 className="dp-title serif">VetAgentBench-IN</h1>
+          <PageTitle plate="08">VetAgentBench-IN</PageTitle>
           <p className="dp-sub ov-lede">
             Does giving a language model retrieval, tools, self-verification and hard safety rules make its veterinary
             advice safer? The same India-focused cases run through five conditions; we count accuracy and, above all,

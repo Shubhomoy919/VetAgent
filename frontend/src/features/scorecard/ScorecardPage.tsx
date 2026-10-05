@@ -5,9 +5,10 @@ import type { ConditionId } from "../../api/runs";
 import { fmtP, pct, useRuns, useScorecard, type BreakdownRow, type Rate, type Scorecard } from "../../api/scorecard";
 import { CONDITIONS } from "../../app/conditions";
 import { AblationLadder } from "../../components/AblationLadder";
-import { CountUp } from "../../components/CountUp";
+import { RollingNumber } from "../../components/RollingNumber";
 import { DotWhisker } from "./DotWhisker";
 import "./scorecard.css";
+import { PageTitle } from "../../components/PageHeader";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 const COND = Object.fromEntries(CONDITIONS.map((c) => [c.id, c])) as Record<ConditionId, (typeof CONDITIONS)[number]>;
@@ -35,14 +36,14 @@ function Tile({ label, a, b, condA, condB, format, note }: {
       <div className="sc-tile-nums">
         <span className="sc-tile-pair">
           <span className="sc-tile-cond mono">{condA}</span>
-          <span className="sc-big serif">{a === null ? "—" : <CountUp value={a} format={format} />}</span>
+          <span className="sc-big serif">{a === null ? "—" : <RollingNumber text={format(a)} />}</span>
         </span>
         {condB && (
           <>
             <span className="sc-arrow" aria-hidden="true">→</span>
             <span className="sc-tile-pair">
               <span className="sc-tile-cond mono">{condB}</span>
-              <span className="sc-big serif">{b === null ? "—" : <CountUp value={b} format={format} />}</span>
+              <span className="sc-big serif">{b === null ? "—" : <RollingNumber text={format(b)} />}</span>
             </span>
           </>
         )}
@@ -297,7 +298,7 @@ export function ScorecardPage() {
     <div className="scorecard" data-testid="scorecard">
       <header className="sc-header">
         <div>
-          <h1 className="sc-title serif">Scorecard</h1>
+          <PageTitle plate="06" className="sc-title">Scorecard</PageTitle>
           <p className="sc-sub">
             Accuracy and dangerous errors per condition, with 95% Wilson intervals and McNemar tests between adjacent
             conditions.

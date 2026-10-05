@@ -18,7 +18,7 @@ function show(v: unknown): string {
   return JSON.stringify(v, null, 1);
 }
 
-function StepRow({ step }: { step: TraceStep }) {
+function StepRow({ step, maxLatency }: { step: TraceStep; maxLatency: number }) {
   const [open, setOpen] = useState(false);
   const tokens = step.tokens_in || step.tokens_out ? `${step.tokens_in}→${step.tokens_out} tok` : "";
   return (
@@ -39,6 +39,15 @@ function StepRow({ step }: { step: TraceStep }) {
           {step.latency_ms} ms{tokens && ` · ${tokens}`}
         </span>
       </button>
+      {maxLatency > 0 && (
+        <span className="log-lat" aria-hidden="true">
+          <motion.span
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: Math.max(step.latency_ms / maxLatency, 0.01) }}
+            transition={{ duration: 0.26, ease: [0.2, 0.8, 0.2, 1], delay: 0.06 }}
+          />
+        </span>
+      )}
       {step.note && !open && <p className="log-note">{step.note}</p>}
       <AnimatePresence initial={false}>
         {open && (
@@ -66,10 +75,11 @@ function StepRow({ step }: { step: TraceStep }) {
 /** Lab-log trace: numbered vertical timeline of model calls, tool readouts and rules. */
 export function TraceLog({ steps }: { steps: TraceStep[] }) {
   if (steps.length === 0) return <p className="log-empty mono">No steps recorded.</p>;
+  const maxLatency = Math.max(...steps.map((s) => s.latency_ms || 0));
   return (
     <ol className="log">
       {steps.map((s, i) => (
-        <StepRow key={`${s.index}-${s.kind}-${s.name}-${i}`} step={s} />
+        <StepRow key={`${s.index}-${s.kind}-${s.name}-${i}`} step={s} maxLatency={maxLatency} />
       ))}
     </ol>
   );

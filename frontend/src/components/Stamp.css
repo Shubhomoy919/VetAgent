@@ -12,6 +12,18 @@
   white-space: nowrap;
   transform: rotate(-3deg);
   transform-origin: center;
+  /* Inked texture: fractal-noise mask knocks small speckles out of the ink, like a rubber stamp. */
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 1.75'/%3E%3C/filter%3E%3Crect width='120' height='40' filter='url(%23n)'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 1.75'/%3E%3C/filter%3E%3Crect width='120' height='40' filter='url(%23n)'/%3E%3C/svg%3E");
+  -webkit-mask-size: 120px 40px;
+  mask-size: 120px 40px;
+}
+
+@media print, (forced-colors: active) {
+  .stamp {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 }
 
 .stamp[data-tone="good"] {

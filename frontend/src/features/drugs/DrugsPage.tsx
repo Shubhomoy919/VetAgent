@@ -8,6 +8,7 @@ import { UnverifiedTag } from "../../components/Tags";
 import { useSort } from "../../components/useSort";
 import "../data/data.css";
 import { DrugEditor } from "./DrugEditor";
+import { PageTitle } from "../../components/PageHeader";
 
 const SORT = {
   species: (r: DrugRow) => r.species,
@@ -67,7 +68,7 @@ export function DrugsPage() {
     <div className="datapage" data-testid="drugs-page">
       <header className="dp-header">
         <div>
-          <h1 className="dp-title serif">Drug Table</h1>
+          <PageTitle plate="05">Drug Table</PageTitle>
           <p className="dp-sub">
             {rows ? `${rows.length} rows · ${unverified} unverified` : "Loading"} · doses and withdrawal periods only where a
             source states them · stored in <span className="mono">data/drug_table.csv</span>

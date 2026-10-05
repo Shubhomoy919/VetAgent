@@ -1,4 +1,5 @@
 import { QUESTION_TYPE_LABEL, speciesCode, type QuestionType } from "../api/cases";
+import { SpeciesGlyph } from "./SpeciesGlyph";
 import "./Tags.css";
 
 /** Luggage-tag case ID: punched hole, species colour stripe, mono ID. */
@@ -7,6 +8,7 @@ export function SpecimenTag({ caseId, size = "md" }: { caseId: string; size?: "m
   return (
     <span className="specimen-tag" data-species={code} data-size={size}>
       <span className="specimen-hole" aria-hidden="true" />
+      <SpeciesGlyph code={code} className="specimen-glyph" />
       <span className="specimen-id">{caseId}</span>
     </span>
   );

@@ -6,6 +6,7 @@ import { useDrugs } from "../../api/data";
 import { CONDITIONS, LADDER_STEPS } from "../../app/conditions";
 import "../data/data.css";
 import "./study.css";
+import { PageTitle } from "../../components/PageHeader";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -114,7 +115,7 @@ export function StudyPage() {
     <div className="datapage study" data-testid="study-page">
       <header className="dp-header">
         <div>
-          <h1 className="dp-title serif">Study design</h1>
+          <PageTitle plate="07">Study design</PageTitle>
           <p className="dp-sub">
             Do agent components make veterinary advice safer than a bare language model? A within-case ablation on an
             India-focused, livestock-heavy case set.

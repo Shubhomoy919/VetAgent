@@ -42,6 +42,23 @@
 .specimen-tag[data-species="CAP"] { --sp: var(--sp-cap); }
 .specimen-tag[data-species="AVI"] { --sp: var(--sp-avi); }
 
+.specimen-glyph {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  color: var(--sp);
+}
+
+/* Small tags: the glyph takes the punch hole's place so list rows keep their width. */
+.specimen-tag[data-size="md"] .specimen-hole {
+  display: none;
+}
+
+.specimen-tag[data-size="lg"] .specimen-glyph {
+  width: 18px;
+  height: 18px;
+}
+
 /* ---------- Question-type pill ---------- */
 
 .type-pill {

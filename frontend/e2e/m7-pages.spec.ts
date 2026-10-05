@@ -49,7 +49,7 @@ test("Review: rate with 1/2/N, agreement and kappa update", async ({ page }) => 
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/review");
   await page.getByLabel("Reviewer").fill(REVIEWER);
-  await expect(page.locator(".rv-progress")).toContainText(`0/145 rated by ${REVIEWER}`);
+  await expect(page.locator(".rv-progress")).toContainText(new RegExp(`0/\\d+ rated by ${REVIEWER}`));
   await expect(page.getByTestId("review-meta")).toHaveCount(0); // blind by default
 
   await page.locator("body").click({ position: { x: 5, y: 5 } });

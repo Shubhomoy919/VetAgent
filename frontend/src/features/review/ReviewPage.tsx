@@ -9,6 +9,7 @@ import { Stamp } from "../../components/Stamp";
 import { SpecimenTag, TypePill } from "../../components/Tags";
 import "../data/data.css";
 import "./review.css";
+import { PageTitle } from "../../components/PageHeader";
 
 const REVIEWER_KEY = "vab.reviewer";
 const COND_NAME = Object.fromEntries(CONDITIONS.map((c) => [c.id, c.name]));
@@ -251,7 +252,7 @@ export function ReviewPage() {
     <div className="datapage" data-testid="review-page">
       <header className="dp-header">
         <div>
-          <h1 className="dp-title serif">Review</h1>
+          <PageTitle plate="03">Review</PageTitle>
           <p className="dp-sub">
             Rate each answer as a clinician would. Condition and automatic verdict stay hidden until you reveal them.
           </p>

@@ -6,6 +6,7 @@ import { SpecimenTag } from "../../components/Tags";
 import { Stamp } from "../../components/Stamp";
 import "../data/data.css";
 import "./runs.css";
+import { PageTitle } from "../../components/PageHeader";
 
 const fmtDate = (s: string) => s.replace("T", " ").slice(0, 16);
 const STATUS: Record<string, string> = { running: "running", done: "done", done_with_errors: "done · errors", cancelled: "cancelled", failed: "failed", quota_exhausted: "quota stop" };
@@ -132,7 +133,7 @@ export function RunsPage() {
     <div className="datapage" data-testid="runs-page">
       <header className="dp-header">
         <div>
-          <h1 className="dp-title serif">Runs</h1>
+          <PageTitle plate="02">Runs</PageTitle>
           <p className="dp-sub">
             {runs ? `${runs.length} runs stored in data/runs.db` : "Loading"} · tick two runs to compare them
           </p>

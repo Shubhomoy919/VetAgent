@@ -18,6 +18,7 @@ import { SpecimenTag, TypePill, UnverifiedTag } from "../../components/Tags";
 import { useSort } from "../../components/useSort";
 import "../data/data.css";
 import { CaseEditor } from "./CaseEditor";
+import { PageTitle } from "../../components/PageHeader";
 
 const SORT = {
   id: (c: Case) => c.case_id,
@@ -80,7 +81,7 @@ export function CasesPage() {
     <div className="datapage" data-testid="cases-page">
       <header className="dp-header">
         <div>
-          <h1 className="dp-title serif">Cases</h1>
+          <PageTitle plate="04">Cases</PageTitle>
           <p className="dp-sub">
             {cases ? `${cases.length} cases · ${unverifiedCount} unverified` : "Loading"} · stored in{" "}
             <span className="mono">data/cases.json</span>

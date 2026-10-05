@@ -1,5 +1,5 @@
 import { useHealth } from "../../api/health";
-import { INTERVIEW_CONDITIONS } from "../../api/runs";
+import { INTERVIEW_CONDITIONS, resultKey } from "../../api/runs";
 import { useRun } from "../../app/runState";
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function RunBar({ caseId, selected, allIds, interview, force, setInterview, setForce, onOpenCases }: Props) {
-  const { run, start, cancel, starting } = useRun();
+  const { run, live, start, cancel, starting } = useRun();
   const { data: health } = useHealth();
   const running = run?.status === "running";
   const perCase = interview ? INTERVIEW_CONDITIONS.length : 5;
@@ -32,7 +32,9 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
     void start({ case_ids: ids, interview, force });
   };
 
-  const pct = run && run.n_total ? Math.round((run.n_done / run.n_total) * 100) : 0;
+  // Tally strip: one tick per result, in the order results started; coloured as each lands.
+  const ticks = run ? run.case_ids.flatMap((cid) => run.conditions.map((c) => live[resultKey(cid, c, run.interview)]?.status ?? "queued")) : [];
+  const total = run?.n_total ?? 0;
 
   return (
     <div className="runbar" data-running={running} role="toolbar" aria-label="Run controls">
@@ -68,14 +70,16 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
               {run.n_done}/{run.n_total}
             </span>
             <span
-              className="progress"
+              className="progress tally"
               role="progressbar"
               aria-label="Run progress"
               aria-valuemin={0}
               aria-valuemax={run.n_total}
               aria-valuenow={run.n_done}
             >
-              <span className="progress-fill" style={{ width: `${pct}%` }} />
+              {Array.from({ length: total }, (_, i) => (
+                <span key={i} className="tally-tick" data-state={ticks[i] ?? "queued"} data-gap={total <= 60} />
+              ))}
             </span>
           </>
         )}

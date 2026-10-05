@@ -54,11 +54,43 @@
   overflow: hidden;
 }
 
-.progress-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
+.progress.tally {
+  display: flex;
+  width: 180px;
+  height: 10px;
+  padding: 1px;
+  background: var(--surface);
+  border-color: var(--rule-strong);
+}
+
+.tally-tick {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface-sunk);
+  transform-origin: bottom center;
+  transition:
+    background-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+
+.tally-tick[data-gap="true"] + .tally-tick {
+  margin-left: 1px;
+}
+
+.tally-tick[data-state="running"] {
   background: var(--turmeric);
-  transition: width var(--dur-slow) var(--ease);
+}
+
+.tally-tick[data-state="done"] {
+  background: var(--leaf);
+}
+
+.tally-tick[data-state="error"] {
+  background: var(--vermilion);
+}
+
+.tally-tick[data-state="queued"] {
+  transform: scaleY(0.4);
 }
 
 /* Turmeric scan line, only while running; static under reduced motion. */
@@ -469,6 +501,42 @@ button.cite-chip:hover {
   left: 10px;
   width: 1px;
   background: var(--rule-strong);
+  transform-origin: top center;
+  animation: log-spine var(--dur-slow) var(--ease) both;
+}
+
+@keyframes log-spine {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Latency bar: share of the slowest step in this trace, under each step name. */
+.log-lat {
+  grid-column: 2;
+  display: block;
+  height: 2px;
+  margin: 2px 0 1px;
+  background: var(--rule);
+}
+
+.log-lat > span {
+  display: block;
+  height: 100%;
+  background: var(--ink-2);
+  transform-origin: left center;
+}
+
+.log-step[data-kind="tool"] .log-lat > span,
+.log-step[data-kind="owner"] .log-lat > span {
+  background: var(--cond, var(--indigo));
+}
+
+.log-step[data-kind="rule"] .log-lat > span {
+  background: var(--c4);
 }
 
 .log-step {
@@ -643,4 +711,20 @@ button.cite-chip:hover {
   .runbar-actions .toggle {
     font-size: var(--text-xs);
   }
+}
+
+/* Tighter tags in the narrow case list so long IDs (BOV-WD-007) leave room for the type pill. */
+.case-row-left {
+  gap: 6px;
+}
+
+.case-row-left .specimen-tag {
+  gap: 4px;
+  padding: 0 6px 0 7px;
+}
+
+/* If a narrow pane still can't fit tag + pill, the pill wraps below instead of overlapping. */
+.case-row-line:not(.case-row-meta) {
+  flex-wrap: wrap;
+  row-gap: 4px;
 }

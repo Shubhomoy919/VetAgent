@@ -198,15 +198,15 @@ export function BenchPage() {
       />
       {wide ? (
         <Group key="wide" orientation="horizontal" id="bench-panes" className="bench-panes">
-          <Panel id="cases" defaultSize="23" minSize="260px">
+          <Panel id="cases" defaultSize="25" minSize="280px">
             {caseListPane}
           </Panel>
           <Separator className="pane-separator" />
-          <Panel id="case" defaultSize="32" minSize="300px">
+          <Panel id="case" defaultSize="31" minSize="300px">
             <CasePane selected={selected} />
           </Panel>
           <Separator className="pane-separator" />
-          <Panel id="conditions" defaultSize="45" minSize="320px">
+          <Panel id="conditions" defaultSize="44" minSize="320px">
             {deck}
           </Panel>
         </Group>

@@ -86,7 +86,7 @@ export function ConditionCard({ condition, available, live, latest, onCite }: Pr
       {v && v.stamps.length > 0 && (
         <div className="ccard-stamps" data-testid={`stamps-${condition.id}`}>
           {v.stamps.map((s, i) => (
-            <Stamp key={`${result?.id}-${s}`} kind={s} delay={i * 0.06} />
+            <Stamp key={`${result?.id}-${s}`} kind={s} seed={String(result?.id ?? "")} delay={i * 0.06} />
           ))}
         </div>
       )}

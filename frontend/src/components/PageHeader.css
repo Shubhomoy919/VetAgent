@@ -1,0 +1,51 @@
+/* Page headers: plate eyebrow, inked title, double rule that draws across once. */
+.dp-header,
+.sc-header {
+  position: relative;
+  border-bottom: 0;
+  padding-bottom: var(--s4);
+}
+
+.dp-header::after,
+.sc-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  transform-origin: left center;
+  animation: ph-rule var(--dur-slow) var(--ease) 80ms both;
+}
+
+@keyframes ph-rule {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.ph-plate {
+  display: block;
+  margin-bottom: 6px;
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.ph-plate-sep {
+  color: var(--rule-strong);
+  margin: 0 4px;
+}
+
+.ph-title {
+  font-size: 44px;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  padding-bottom: 2px;
+}

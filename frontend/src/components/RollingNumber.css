@@ -1,0 +1,44 @@
+.roll {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+.roll-digits {
+  display: inline-flex;
+  align-items: flex-start;
+}
+
+/* Each column is as wide as its own final digit (serif figures are proportional);
+   the rolling stack is centred over it. */
+.roll-col {
+  position: relative;
+  display: inline-block;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.roll-sizer {
+  visibility: hidden;
+}
+
+.roll-stack {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  translate: -50% 0;
+}
+
+.roll-digit {
+  display: block;
+  height: 1em;
+  line-height: 1;
+}
+
+.roll-static {
+  display: inline-block;
+  line-height: 1;
+}

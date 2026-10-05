@@ -6,6 +6,7 @@
 @import "@fontsource/ibm-plex-mono/500.css";
 @import "./tokens.css";
 @import "./controls.css";
+@import "./effects.css";
 
 *,
 *::before,
