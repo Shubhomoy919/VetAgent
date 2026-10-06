@@ -12,6 +12,14 @@ export function InkDefs() {
         <feColorMatrix in="grit" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.6 2.05" result="speckle" />
         <feComposite in="edged" in2="speckle" operator="in" />
       </filter>
+      {/* Gentler roughening for small stamps (UNVERIFIED tags) so 9px type stays legible. */}
+      <filter id="ink-rough-sm" x="-6%" y="-14%" width="112%" height="128%" colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="1" seed="5" result="warp" />
+        <feDisplacementMap in="SourceGraphic" in2="warp" scale="0.9" xChannelSelector="R" yChannelSelector="G" result="edged" />
+        <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="1" seed="2" result="grit" />
+        <feColorMatrix in="grit" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.4 1.75" result="speckle" />
+        <feComposite in="edged" in2="speckle" operator="in" />
+      </filter>
     </svg>
   );
 }

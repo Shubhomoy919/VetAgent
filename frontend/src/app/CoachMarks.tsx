@@ -7,9 +7,9 @@ const KEY = "vab.coach";
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
 const STEPS: { target: string; title: string; body: string; keys: string[] }[] = [
-  { target: "cases", title: "Pick a specimen", body: "Each tag is one case. Move with J and K; X ticks a case for a batch run.", keys: ["J", "K", "X"] },
-  { target: "runbar", title: "Run all five conditions", body: "R runs the selected case through C0–C4. The meter lights one segment per result.", keys: ["R"] },
-  { target: "deck", title: "Read the verdicts", body: "Each card is one condition. Stamps mark verdicts; open Trace for the lab log, 1–5 to jump.", keys: ["1", "5"] },
+  { target: "cases", title: "Choose a specimen", body: "The ledger lists every case as a tagged specimen. J and K move; X ticks a case for a batch run.", keys: ["J", "K", "X"] },
+  { target: "runbar", title: "Examine it five ways", body: "R runs the specimen through C0–C4. The meter lights one segment per result; LEDs show each condition.", keys: ["R"] },
+  { target: "deck", title: "Read the instruments", body: "Each card carries a vital-signs trace, the triage strip, the dose dial and the verdict stamps. 1–5 jump between conditions.", keys: ["1", "5"] },
   { target: "palette", title: "Everything else", body: "Ctrl K opens the command palette; ? lists every shortcut.", keys: ["Ctrl K", "?"] },
 ];
 
@@ -64,7 +64,7 @@ export function CoachMarks() {
           key="coach"
           className="coach paper-slip"
           role="dialog"
-          aria-label={`Getting started, step ${step + 1} of ${STEPS.length}`}
+          aria-label={`Field manual, step ${step + 1} of ${STEPS.length}`}
           data-testid="coach"
           initial={{ opacity: 0, y: 10, rotate: -1.5 }}
           animate={{ opacity: 1, y: 0, rotate: -0.8 }}
@@ -73,7 +73,7 @@ export function CoachMarks() {
         >
           <div className="coach-head">
             <span className="coach-step mono">
-              {String(step + 1).padStart(2, "0")} / {String(STEPS.length).padStart(2, "0")}
+              Field manual · {String(step + 1).padStart(2, "0")} / {String(STEPS.length).padStart(2, "0")}
             </span>
             <button type="button" className="coach-skip" onClick={finish}>
               Skip

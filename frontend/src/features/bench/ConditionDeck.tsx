@@ -3,7 +3,7 @@ import { INTERVIEW_CONDITIONS, resultKey, type ConditionId, type LatestResults }
 import { useCaseDose, type Case } from "../../api/cases";
 import { useRun } from "../../app/runState";
 import { CONDITIONS } from "../../app/conditions";
-import { EmptyLadder } from "../../components/EmptyLadder";
+import { EmptySpecimen } from "../../components/EmptySpecimen";
 import { ConditionCard } from "./ConditionCard";
 import { ANSWER_DIFF_FIELDS, pickResult, type DiffField } from "./answerDiff";
 
@@ -122,12 +122,12 @@ export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false,
       </div>
 
       {caseId === null ? (
-        <EmptyLadder title="Nothing on the bench yet">
+        <EmptySpecimen title="No specimen examined yet" testId="deck-empty">
           <p>
-            Select a case, then press <kbd>R</kbd> to run it. Each condition — bare model, retrieval, tools, self-verify,
-            guardrail — answers the same question, and its trace streams in here step by step.
+            Choose a case from the ledger, then press <kbd>R</kbd>. All five conditions — bare model, retrieval, tools,
+            self-verify, guardrail — examine the same specimen, and each trace is recorded here as it happens.
           </p>
-        </EmptyLadder>
+        </EmptySpecimen>
       ) : (
         <div
           ref={scrollRef}

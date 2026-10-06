@@ -496,3 +496,125 @@ a.btn {
     font-size: var(--display);
   }
 }
+
+/* ---------- Small multiples by species and question type ---------- */
+.sm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: var(--s3);
+}
+
+.sm {
+  margin: 0;
+  padding: var(--s2) var(--s3) var(--s3);
+  background: var(--surface);
+  border: var(--hairline);
+  border-top: 2px solid var(--ink);
+}
+
+.sm-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.sm-title {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  line-height: 1;
+  text-transform: capitalize;
+}
+
+.sm-n {
+  font-size: 10px;
+  color: var(--ink-2);
+}
+
+.sm-rows {
+  display: grid;
+  gap: 3px;
+}
+
+.sm-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 6px;
+}
+
+.sm-id {
+  font-size: 10px;
+  color: var(--cond-text);
+}
+
+.sm-track {
+  position: relative;
+  height: 8px;
+}
+
+.sm-track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 3.5px;
+  height: 1px;
+  background: var(--rule-strong);
+}
+
+.sm-dot {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--cond);
+  box-shadow: 0 0 0 1.5px var(--surface);
+}
+
+.sm-danger {
+  font-size: 10px;
+  text-align: right;
+  color: var(--ink-2);
+}
+
+.sm-danger[data-bad="true"] {
+  color: var(--vermilion-text);
+}
+
+.sm-ledger {
+  margin-top: var(--s3);
+}
+
+.sm-ledger summary {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+/* Crosshair cursor readout */
+.dw-cross {
+  stroke: var(--riso);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  pointer-events: none;
+}
+
+.dw-cross-read {
+  position: absolute;
+  top: -1px;
+  z-index: 2;
+  padding: 0 4px;
+  translate: -50% 0;
+  font-size: 10px;
+  color: var(--on-accent);
+  background: var(--riso-text);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.dw-track {
+  cursor: crosshair;
+}

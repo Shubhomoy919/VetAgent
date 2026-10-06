@@ -28,6 +28,8 @@ const NAME = Object.fromEntries(CONDITIONS.map((c) => [c.id, c.name])) as Record
 export function DotWhisker({ metric, conditions }: { metric: MetricRow; conditions: ConditionId[] }) {
   const [trackRef, width] = useWidth<HTMLDivElement>();
   const [hover, setHover] = useState<ConditionId | null>(null);
+  // Crosshair: x position (px) within the shared track width, mirrored across every row.
+  const [cx, setCx] = useState<number | null>(null);
   const x = (v: number) => PAD + v * Math.max(0, width - 2 * PAD);
   const ticks = [0, 0.25, 0.5, 0.75, 1];
   const htId = `ht-${useId().replace(/:/g, "")}`;
@@ -40,7 +42,7 @@ export function DotWhisker({ metric, conditions }: { metric: MetricRow; conditio
           {metric.better === "higher" ? "↑ higher is better" : "↓ lower is better"}
         </span>
       </figcaption>
-      <div className="dw-grid">
+      <div className="dw-grid" onMouseLeave={() => setCx(null)}>
         {conditions.map((cond, i) => {
           const r = metric.by_condition[cond];
           const has = r && r.rate !== null && r.lo !== null && r.hi !== null;
@@ -63,12 +65,17 @@ export function DotWhisker({ metric, conditions }: { metric: MetricRow; conditio
                 <span className="dw-swatch" aria-hidden="true" />
                 {cond}
               </span>
-              <div className="dw-track" ref={i === 0 ? trackRef : undefined}>
+              <div
+                className="dw-track"
+                ref={i === 0 ? trackRef : undefined}
+                onMouseMove={(e) => setCx(e.clientX - e.currentTarget.getBoundingClientRect().left)}
+              >
                 {width > 0 && (
                   <svg width={width} height={ROW_H} aria-hidden="true">
                     {ticks.map((t) => (
                       <line key={t} x1={x(t)} x2={x(t)} y1={2} y2={ROW_H - 2} className="dw-tick" />
                     ))}
+                    {cx !== null && <line x1={cx} x2={cx} y1={0} y2={ROW_H} className="dw-cross" />}
                     <defs>
                       {/* Halftone screen for the interval band, in this row's condition pigment. */}
                       <pattern id={`${htId}-${cond}`} width="4" height="4" patternUnits="userSpaceOnUse">
@@ -128,6 +135,11 @@ export function DotWhisker({ metric, conditions }: { metric: MetricRow; conditio
         <div className="dw-axis" aria-hidden="true">
           <span />
           <div className="dw-axis-track">
+            {cx !== null && width > 0 && (
+              <span className="dw-cross-read mono" style={{ left: cx }}>
+                {Math.round(Math.min(Math.max((cx - PAD) / Math.max(1, width - 2 * PAD), 0), 1) * 100)}%
+              </span>
+            )}
             {width > 0 &&
               ticks.map((t) => (
                 <span key={t} className="mono" style={{ left: x(t) }}>

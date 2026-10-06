@@ -345,7 +345,7 @@
   background: var(--bg);
   border: var(--hairline);
   border-left: 3px solid var(--riso);
-  border-radius: var(--radius);
+  border-radius: 0;
 }
 
 .case-row-line {
@@ -701,4 +701,34 @@
 
 .sig-sub {
   color: var(--ink-2);
+}
+
+/* ---------- Field Station: the case list as a slim ledger ---------- */
+.case-list {
+  position: relative;
+}
+
+.case-row {
+  border-radius: 0;
+  padding: 6px var(--s2) 6px var(--s4);
+}
+
+.case-row + .case-row {
+  border-top: var(--hairline);
+}
+
+/* Ledger margin rule (madder), running the length of the list. */
+.case-row::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: color-mix(in srgb, var(--madder) 45%, transparent);
+  pointer-events: none;
+}
+
+.case-row:hover {
+  background: color-mix(in srgb, var(--marigold) 7%, transparent);
 }

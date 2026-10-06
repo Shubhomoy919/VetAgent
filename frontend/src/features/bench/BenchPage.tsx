@@ -6,6 +6,7 @@ import { CONDITION_IDS, resultKey, useLatestResults } from "../../api/runs";
 import { useRun } from "../../app/runState";
 import { NARROW, WIDE, useMediaQuery } from "../../app/useMediaQuery";
 import { withViewTransition } from "../../lib/viewTransition";
+import { EmptySpecimen } from "../../components/EmptySpecimen";
 import { CaseDetail } from "./CaseDetail";
 import { CaseDossier } from "./CaseDossier";
 import { CaseList, type DotState } from "./CaseList";
@@ -42,13 +43,12 @@ function CasePane({ selected, plateNo, onOpenDossier }: { selected: Case | undef
           <CaseDetail key={selected.case_id} c={selected} plateNo={plateNo} onOpenDossier={onOpenDossier} />
         </div>
       ) : (
-        <div className="empty">
-          <p className="empty-title serif empty-title-lg">No case selected</p>
-          <p className="empty-body">
-            Pick a case from the list (or press J) to see its signalment, history, owner narrative, clinical signs and
-            red flags. The gold answer stays hidden until you reveal it.
+        <EmptySpecimen title="No specimen on the plate">
+          <p>
+            Pick a case from the ledger, or press <kbd>J</kbd>, to mount its plate: signalment, history, owner narrative,
+            clinical signs and red flags. The gold answer stays sealed until you reveal it.
           </p>
-        </div>
+        </EmptySpecimen>
       )}
     </section>
   );

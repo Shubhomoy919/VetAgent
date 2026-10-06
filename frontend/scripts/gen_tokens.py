@@ -176,6 +176,9 @@ for name, t in THEMES.items():
     for k in ("leaf", "vermilion", "marigold", "peacock", "indigo", "cyan"):
         best = max(cands, key=lambda c, k=k: cr(c, p[k]))
         vals[f"on-{k}"] = best
+    # Secondary text on the peacock colour block (Scorecard hero): AA-checked.
+    vals["on-peacock-2"] = shift_until(mix(vals["on-peacock"], p["peacock"], 0.9), lambda c: cr(c, p["peacock"]) >= 4.6,
+                                       lighter=lum(vals["on-peacock"]) > lum(p["peacock"]))
     # Instrument face (meter, triage strip): face, unlit segment, and the ink for labels on unlit segments.
     face = b["sidebar"] if dark else b["ink"]
     off = mix(b["ink-2"], face, 0.30)

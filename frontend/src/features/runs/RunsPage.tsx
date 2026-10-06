@@ -8,7 +8,7 @@ import "../data/data.css";
 import "./runs.css";
 import { PageTitle } from "../../components/PageHeader";
 import { SectionTitle } from "../../components/Ink";
-import { EmptyLadder } from "../../components/EmptyLadder";
+import { EmptySpecimen } from "../../components/EmptySpecimen";
 import { LedgerToggle } from "../../components/LedgerToggle";
 
 const fmtDate = (s: string) => s.replace("T", " ").slice(0, 16);
@@ -149,11 +149,11 @@ export function RunsPage() {
       {isPending && <p className="empty-body">Loading runs…</p>}
       {error && <p className="error-text" role="alert">{error.message}</p>}
       {runs && runs.length === 0 && (
-        <EmptyLadder title="No runs yet">
+        <EmptySpecimen title="No examinations recorded yet">
           <p>
-            Open the Bench, pick a case and press <kbd>R</kbd>. Every run is listed here.
+            Open the Bench, choose a case and press <kbd>R</kbd>. Every run is entered in this ledger.
           </p>
-        </EmptyLadder>
+        </EmptySpecimen>
       )}
 
       {runs && runs.length > 0 && (

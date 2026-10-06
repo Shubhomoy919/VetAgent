@@ -55,10 +55,12 @@ export function SideDrawer({ open, title, eyebrow, onClose, children, footer, wi
             role="dialog"
             aria-modal="true"
             aria-labelledby="side-drawer-title"
-            initial={{ x: 24, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 24, opacity: 0 }}
-            transition={{ duration: 0.22, ease: EASE }}
+            // A paper sheet sliding onto the bench: it arrives slightly askew and settles (0.5°) flat.
+            initial={{ x: 56, rotate: 1.4, opacity: 0 }}
+            animate={{ x: 0, rotate: [1.4, -0.5, 0], opacity: 1 }}
+            exit={{ x: 40, rotate: 0.8, opacity: 0 }}
+            transition={{ duration: 0.32, ease: EASE, times: [0, 0.7, 1] }}
+            style={{ transformOrigin: "100% 0%" }}
             data-testid={testId}
           >
             <header className="drawer-head">

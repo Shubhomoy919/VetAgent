@@ -54,48 +54,87 @@ function Tile({ label, a, b, condA, condB, format, note }: {
   );
 }
 
+/** Small multiples: one mini panel per group (species or question type) — top-1 accuracy as a dot on a
+ *  0–100 track and the dangerous-error rate as a number, per condition. The full ledger sits below. */
 function Breakdown({ title, rows, conditions }: { title: string; rows: BreakdownRow[]; conditions: ConditionId[] }) {
   return (
     <section className="sc-section">
       <SectionTitle>{title}</SectionTitle>
-      <div className="sc-table-wrap">
-        <table className="sc-table ledger">
-          <thead>
-            <tr>
-              <th scope="col">Group</th>
-              <th scope="col" className="num">n</th>
-              {conditions.map((c) => (
-                <th key={c} scope="col" data-cond={c}>
-                  <span className="sc-th-cond mono">{c}</span>
-                  <span className="sc-th-sub">top-1 · danger</span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.group}>
-                <th scope="row">{row.label}</th>
-                <td className="num mono">{row.n_cases}</td>
-                {conditions.map((c) => {
-                  const v = row.by_condition[c];
-                  return (
-                    <td key={c} className="mono">
-                      {v ? (
-                        <>
-                          {pct(v.dx_top1.rate)} · <span data-bad={(v.dangerous.rate ?? 0) > 0}>{pct(v.dangerous.rate)}</span>
-                        </>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="sm-grid">
+        {rows.map((row) => (
+          <figure
+            key={row.group}
+            className="sm"
+            aria-label={`${row.label}, ${row.n_cases} cases: ${conditions
+              .map((c) => {
+                const v = row.by_condition[c];
+                return v ? `${c} top-1 ${pct(v.dx_top1.rate)}, dangerous ${pct(v.dangerous.rate)}` : `${c} n/a`;
+              })
+              .join("; ")}`}
+          >
+            <figcaption className="sm-head">
+              <span className="sm-title">{row.label}</span>
+              <span className="sm-n mono">n={row.n_cases}</span>
+            </figcaption>
+            <div className="sm-rows" aria-hidden="true">
+              {conditions.map((c) => {
+                const v = row.by_condition[c];
+                const r = v?.dx_top1.rate ?? null;
+                const d = v?.dangerous.rate ?? null;
+                return (
+                  <div key={c} className="sm-row" data-cond={c}>
+                    <span className="sm-id mono">{c}</span>
+                    <span className="sm-track">{r !== null && <span className="sm-dot" style={{ left: `${r * 100}%` }} />}</span>
+                    <span className="sm-danger mono" data-bad={(d ?? 0) > 0}>
+                      {d === null ? "—" : pct(d)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </figure>
+        ))}
       </div>
+      <details className="sm-ledger">
+        <summary className="mono">Ledger view · top-1 · danger</summary>
+        <div className="sc-table-wrap">
+          <table className="sc-table ledger">
+            <thead>
+              <tr>
+                <th scope="col">Group</th>
+                <th scope="col" className="num">n</th>
+                {conditions.map((c) => (
+                  <th key={c} scope="col" data-cond={c}>
+                    <span className="sc-th-cond mono">{c}</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.group}>
+                  <th scope="row">{row.label}</th>
+                  <td className="num mono">{row.n_cases}</td>
+                  {conditions.map((c) => {
+                    const v = row.by_condition[c];
+                    return (
+                      <td key={c} className="mono">
+                        {v ? (
+                          <>
+                            {pct(v.dx_top1.rate)} · <span data-bad={(v.dangerous.rate ?? 0) > 0}>{pct(v.dangerous.rate)}</span>
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
     </section>
   );
 }
@@ -227,10 +266,29 @@ function Report({ sc }: { sc: Scorecard }) {
             ))}
           </div>
         </div>
-        <div className="sc-charts">
-          {sc.metrics.map((m) => (
-            <DotWhisker key={m.key} metric={m} conditions={conds} />
-          ))}
+        <div className="grid-12">
+          <div className="sc-charts span-9">
+            {sc.metrics.map((m) => (
+              <DotWhisker key={m.key} metric={m} conditions={conds} />
+            ))}
+          </div>
+          <ol className="marginalia span-3" aria-label="Reading this report">
+            <li>
+              <strong>Dot and whisker.</strong> The dot is the observed rate; the whisker its Wilson 95% interval. Hover a
+              chart for a crosshair reading.
+            </li>
+            <li>
+              <strong>Small n.</strong> {sc.n_cases} cases: intervals are wide, and only McNemar p &lt; 0.05 between adjacent
+              conditions counts as a difference.
+            </li>
+            <li>
+              <strong>Dangerous</strong> is any false-safe drug, illegal drug, under-triage, missed escalation or withdrawal
+              error.
+            </li>
+            <li>
+              <strong>Gold answers are unverified</strong> by a veterinarian; treat every rate as provisional.
+            </li>
+          </ol>
         </div>
       </section>
 

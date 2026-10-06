@@ -74,7 +74,7 @@ function TopBar() {
 
   return (
     <header className="topbar">
-      <h1 className="topbar-title serif">{routeTitle(pathname)}</h1>
+      <h1 className="topbar-title serif">{routeTitle(pathname) || "Not found"}</h1>
       <div className="topbar-meta">
         <ModePill />
         <span className="readout">

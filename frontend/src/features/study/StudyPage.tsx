@@ -26,7 +26,7 @@ function Ladder() {
   const colX = (i: number) => 260 + i * 170;
   const rowY = (j: number) => 120 + j * 62;
   return (
-    <figure className="ladder-fig">
+    <figure className="ladder-fig ladder-plate">
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-labelledby="ladder-title ladder-desc" className="ladder-svg">
         <title id="ladder-title">Ablation ladder</title>
         <desc id="ladder-desc">
@@ -128,8 +128,27 @@ export function StudyPage() {
       </header>
 
       <section className="st-section">
-        <SectionTitle>The ablation ladder</SectionTitle>
-        <Ladder />
+        <SectionTitle>The ablation switchboard</SectionTitle>
+        <div className="grid-12">
+          <div className="span-9">
+            <Ladder />
+          </div>
+          <ol className="marginalia span-3 st-margin" aria-label="Notes on the switchboard">
+            <li>
+              <strong>One switch per step.</strong> Each condition throws exactly one more switch than the one before, so
+              any change in safety can be traced to that component.
+            </li>
+            <li>
+              <strong>Retrieval</strong> is a single SVTG search; <strong>tools</strong> add a ReAct loop of up to six calls
+              with dose maths done in Python.
+            </li>
+            <li>
+              <strong>Verify</strong> re-checks every claim against the retrieved evidence; the <strong>guardrail</strong>{" "}
+              applies deterministic rules after the model and logs which fired.
+            </li>
+            <li>The dashed ring marks the switch each condition adds.</li>
+          </ol>
+        </div>
         <div className="st-conds">
           {CONDITIONS.map((c) => (
             <div key={c.id} className="st-cond" data-cond={c.id}>

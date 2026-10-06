@@ -135,3 +135,75 @@
     display: none;
   }
 }
+
+/* ---------- Field Station: editorial spread ---------- */
+.ov-spread {
+  margin-bottom: var(--s6);
+}
+
+.ov-lede {
+  font-family: var(--font-serif);
+  font-size: 34px;
+  line-height: 1.1;
+  text-wrap: balance;
+  hanging-punctuation: first last;
+}
+
+.ov-lede em {
+  color: var(--leaf-text);
+}
+
+.ov-para {
+  max-width: 62ch;
+  margin-top: var(--s3);
+  font-size: var(--text-lg);
+  line-height: 1.55;
+}
+
+.ov-notes {
+  margin-top: var(--s5);
+  max-width: 54ch;
+}
+
+.ov-figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+  border-top: 2px solid var(--ink);
+}
+
+.ov-fig {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: var(--s3) var(--s3) var(--s4) 0;
+  border-bottom: var(--hairline);
+}
+
+.ov-fig:first-child {
+  grid-column: span 2;
+}
+
+.ov-fig dd {
+  margin: 0;
+}
+
+.ov-num {
+  font-size: var(--display);
+  line-height: 0.95;
+}
+
+.ov-fig:first-child .ov-num {
+  font-size: var(--display-lg);
+}
+
+.ov-cap {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.ov-pair {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+}

@@ -110,27 +110,6 @@
   display: none;
 }
 
-/* The Scorecard hero sits on a solid peacock block. */
-:root[data-theme="bone-block"] .sc-hero {
-  --ink: var(--bg);
-  --ink-2: color-mix(in srgb, var(--bg) 82%, var(--peacock));
-  --cond-text: var(--bg);
-  --leaf-text: var(--bg);
-  --vermilion-text: var(--bg);
-  --rule: color-mix(in srgb, var(--bg) 35%, var(--peacock));
-  --surface-sunk: color-mix(in srgb, var(--bg) 20%, var(--peacock));
-  --raised: var(--bg);
-  background: var(--peacock);
-  border-color: var(--peacock);
-  border-top-color: var(--ink);
-  color: var(--ink);
-}
-
-:root[data-theme="bone-block"] .sc-hero .sc-hero-delta {
-  text-decoration: underline 1px;
-  text-underline-offset: 3px;
-}
-
 /* ---------- Kalamkari: block-print border motif ---------- */
 /* A small repeating one-colour geometric block print (madder), 8% opacity, along the sidebar edge.
    Drawn as an SVG mask filled with the pigment, so the colour stays a token. */
@@ -163,8 +142,31 @@
   --block-print: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 2l6 6-6 6-6-6z' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3Cpath d='M8 5.5l2.5 2.5L8 10.5 5.5 8z'/%3E%3Ccircle cx='1' cy='1' r='1'/%3E%3Ccircle cx='15' cy='1' r='1'/%3E%3Ccircle cx='1' cy='15' r='1'/%3E%3Ccircle cx='15' cy='15' r='1'/%3E%3C/svg%3E");
 }
 
-:root[data-theme="bone-block"] .sc-hero [data-cond] {
-  --cond-text: var(--bg);
-  --cond: var(--bg);
-  color: var(--bg);
+
+
+/* ---------- Scorecard hero: a solid colour block (peacock) in every theme ---------- */
+.sc-hero {
+  --ink: var(--on-peacock);
+  --ink-2: var(--on-peacock-2);
+  --cond-text: var(--on-peacock);
+  --leaf-text: var(--on-peacock);
+  --vermilion-text: var(--on-peacock);
+  --rule: color-mix(in srgb, var(--on-peacock) 35%, var(--peacock));
+  --surface-sunk: color-mix(in srgb, var(--on-peacock) 18%, var(--peacock));
+  --raised: var(--on-peacock);
+  background: var(--peacock);
+  border-color: var(--peacock);
+  border-top-color: var(--on-peacock);
+  color: var(--ink);
+}
+
+.sc-hero [data-cond] {
+  --cond-text: var(--on-peacock);
+  --cond: var(--on-peacock);
+  color: var(--on-peacock);
+}
+
+.sc-hero .sc-hero-delta {
+  text-decoration: underline 1px;
+  text-underline-offset: 3px;
 }

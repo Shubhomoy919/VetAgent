@@ -138,3 +138,40 @@
 .plate .sig-field dd {
   white-space: normal;
 }
+
+.plate-empty {
+  margin: var(--s5);
+  padding: var(--s6) var(--s5);
+  border-style: dashed;
+  outline-style: dashed;
+  box-shadow: none;
+}
+
+.plate-empty .plate-no {
+  border: 0;
+  padding: 0;
+}
+
+.plate-empty .plate-code {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.plate-empty-title {
+  font-size: 30px;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.plate-empty-body {
+  max-width: 46ch;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.plate-empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--s2);
+  margin-top: var(--s3);
+}

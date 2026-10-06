@@ -139,3 +139,14 @@
 [data-cond="C2"] { --cond: var(--c2); }
 [data-cond="C3"] { --cond: var(--c3); }
 [data-cond="C4"] { --cond: var(--c4); }
+
+/* Field Station: the diagram mounted as a plate (double rule, hard print shadow). */
+.ladder-plate {
+  outline: 1px solid var(--rule-strong);
+  outline-offset: 3px;
+  margin: 4px;
+}
+
+.st-margin {
+  margin-top: var(--s2);
+}

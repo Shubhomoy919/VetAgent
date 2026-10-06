@@ -765,3 +765,37 @@ button.cite-chip:hover {
     animation: none;
   }
 }
+
+/* ---------- Field Station: the run bar as an instrument panel ---------- */
+.runbar {
+  padding: var(--s2) var(--s5);
+  background: var(--surface-sunk);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hard);
+}
+
+/* Panel screws in the four corners (slotted heads). */
+.runbar::before,
+.runbar::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
+  border: 1px solid var(--ink-2);
+  border-radius: 50%;
+  background: var(--surface);
+  pointer-events: none;
+}
+
+.runbar::before {
+  left: 7px;
+  transform: rotate(35deg);
+}
+
+.runbar::after {
+  right: 7px;
+  transform: rotate(-20deg);
+}
