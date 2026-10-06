@@ -2,7 +2,7 @@
 import { chromium } from "@playwright/test";
 const [base, out, ...routes] = process.argv.slice(2);
 const b = await chromium.launch(); const errs = [];
-for (const theme of ["cyanotype", "bone-block", "kalamkari"]) {
+for (const theme of ["riso-black", "cyanotype", "kalamkari"]) {
   const c = await b.newContext({ viewport: { width: 1440, height: 900 }, baseURL: base });
   await c.addInitScript((t) => { localStorage.setItem("vab.coach", "done"); localStorage.setItem("vab.theme", t); }, theme);
   const p = await c.newPage(); p.on("pageerror", (e) => errs.push(e.message)); p.on("console", (m) => m.type() === "error" && errs.push(`${theme} ${m.text()}`));

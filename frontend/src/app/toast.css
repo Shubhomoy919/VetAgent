@@ -9,9 +9,9 @@
   padding: var(--s3) var(--s4) calc(var(--s3) + 4px);
   background: var(--raised);
   border: 1px solid var(--rule-strong);
-  border-left: 4px solid var(--marigold);
+  border-left: 4px solid var(--running);
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   line-height: 1.4;
@@ -19,12 +19,12 @@
 }
 
 .toast-error {
-  border-left-color: var(--vermilion);
-  color: var(--vermilion-text);
+  border-left-color: var(--unsafe);
+  color: var(--unsafe-text);
   overflow-wrap: anywhere;
   transform: rotate(0.5deg);
 }
 
 .topbar-value[data-running="true"] {
-  color: var(--marigold-text);
+  color: var(--running-text);
 }

@@ -3,7 +3,7 @@
 /* 10. Mechanical buttons: a 2px darker bottom edge at rest; on press the cap moves down 1px
    and the edge darkens. Flat fills only; no halo or shadow bloom. */
 .btn {
-  --edge: color-mix(in srgb, var(--ink) 30%, var(--rule-strong));
+  --edge: color-mix(in srgb, var(--text) 30%, var(--rule-strong));
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -13,7 +13,7 @@
   border: 1px solid var(--rule-strong);
   border-bottom: 2px solid var(--edge);
   border-radius: var(--radius);
-  color: var(--ink);
+  color: var(--text);
   font-size: var(--text-sm);
   cursor: pointer;
   white-space: nowrap;
@@ -24,13 +24,13 @@
 }
 
 .btn:hover:not(:disabled) {
-  border-color: var(--ink-2);
+  border-color: var(--text-muted);
   border-bottom-color: var(--edge);
 }
 
 .btn:active:not(:disabled) {
   transform: translateY(1px);
-  border-bottom-color: var(--ink);
+  border-bottom-color: var(--text);
 }
 
 .btn:disabled {
@@ -39,31 +39,31 @@
 }
 
 .btn-primary {
-  --edge: color-mix(in srgb, var(--print-ink) 45%, var(--indigo));
-  background: var(--indigo);
-  border-color: var(--indigo);
-  color: var(--on-accent);
+  --edge: color-mix(in srgb, var(--print-ink) 45%, var(--info));
+  background: var(--info);
+  border-color: var(--info);
+  color: var(--text-on-ink);
 }
 
 .btn-primary:hover:not(:disabled) {
-  border-color: var(--indigo);
-  background: color-mix(in srgb, var(--print-ink) 12%, var(--indigo));
+  border-color: var(--info);
+  background: color-mix(in srgb, var(--print-ink) 12%, var(--info));
 }
 
 .btn-primary:active:not(:disabled) {
-  border-bottom-color: color-mix(in srgb, var(--print-ink) 70%, var(--indigo));
+  border-bottom-color: color-mix(in srgb, var(--print-ink) 70%, var(--info));
 }
 
 .btn-danger:not(:disabled) {
-  --edge: color-mix(in srgb, var(--ink) 35%, var(--vermilion));
-  color: var(--vermilion-text);
-  border-color: var(--vermilion);
+  --edge: color-mix(in srgb, var(--text) 35%, var(--unsafe));
+  color: var(--unsafe-text);
+  border-color: var(--unsafe);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: var(--vermilion-text);
-  border-color: var(--vermilion-text);
-  color: var(--on-accent);
+  background: var(--unsafe-tint);
+  border-color: var(--unsafe);
+  color: var(--text);
 }
 
 .toggle {
@@ -71,7 +71,7 @@
   align-items: center;
   gap: 6px;
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
   cursor: pointer;
   white-space: nowrap;
 }

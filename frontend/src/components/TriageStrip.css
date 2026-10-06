@@ -24,18 +24,21 @@
 }
 
 .triage-seg[data-on="true"][data-level="routine"] {
-  background: var(--leaf);
-  color: var(--on-leaf);
+  background: var(--safe);
+  color: var(--text-on-ink);
 }
 
 .triage-seg[data-on="true"][data-level="urgent"] {
-  background: var(--marigold);
-  color: var(--on-marigold);
+  background: var(--running);
+  color: var(--text-on-ink);
 }
 
+/* Madder is never a background for small text: emergency lights as madder ink on a madder tint. */
 .triage-seg[data-on="true"][data-level="emergency"] {
-  background: var(--vermilion);
-  color: var(--on-vermilion);
+  background: var(--unsafe-tint);
+  color: var(--text);
+  outline: 1px solid var(--unsafe);
+  outline-offset: -1px;
 }
 
 /* Under-triage: a madder notch over the gold level. */
@@ -48,9 +51,10 @@
   margin-left: -5px;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-top: 7px solid var(--madder);
+  border-top: 7px solid var(--unsafe);
 }
 
 .triage[data-diff] {
-  box-shadow: inset 0 -2px 0 var(--marigold);
+  outline: 2px solid var(--running);
+  outline-offset: 1px;
 }

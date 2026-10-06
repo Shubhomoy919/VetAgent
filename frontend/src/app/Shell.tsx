@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { useHealth } from "../api/health";
 import { CollapseIcon, ExpandIcon } from "../components/icons";
 import { ThemeSwatches } from "../components/ThemeSwatches";
+import { ColorBar, CropMarks } from "../components/PrintMarks";
 import { InkDefs, InkUnderline } from "../components/Ink";
 import { canViewTransition, markTransition } from "../lib/viewTransition";
 import { useKeyPressFeedback } from "../lib/useKeyPressFeedback";
@@ -20,8 +21,9 @@ import "./toast.css";
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
 /** Page colour zone: each section tints the ground with its own pigment. */
-function routeZone(pathname: string): "bench" | "scorecard" | "data" | "runs" | "about" {
+function routeZone(pathname: string): "bench" | "scorecard" | "data" | "runs" | "overview" | "about" {
   if (pathname === "/") return "bench";
+  if (pathname.startsWith("/overview")) return "overview";
   if (pathname.startsWith("/scorecard")) return "scorecard";
   if (pathname.startsWith("/cases") || pathname.startsWith("/drugs")) return "data";
   if (pathname.startsWith("/runs") || pathname.startsWith("/review")) return "runs";
@@ -227,10 +229,9 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
 export function Shell() {
   const location = useLocation();
   useKeyPressFeedback();
-  // Ground: zone tint + oversized outlined watermark (page name; the Bench sets the case ID itself).
+  // Ground: the page's ink pair (the single ink-bleed cloud).
   useEffect(() => {
     document.documentElement.dataset.zone = routeZone(location.pathname);
-    if (location.pathname !== "/") document.body.dataset.watermark = routeTitle(location.pathname) || "Specimen";
   }, [location.pathname]);
   // View Transitions animate route changes where supported; motion is the fallback.
   const vt = canViewTransition();
@@ -247,8 +248,10 @@ export function Shell() {
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="main">
         <TopBar />
+        <ColorBar />
         <DemoBanner />
         <main id="content" className="content" tabIndex={-1}>
+          <CropMarks />
           {vt ? (
             // View Transitions animate the swap (motion.css); the route mounts synchronously.
             <div key={location.pathname} className="route">

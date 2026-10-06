@@ -39,7 +39,7 @@
 
 .runbar-count {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
   min-width: 11ch;
   text-align: right;
 }
@@ -47,7 +47,7 @@
 .meter-readout {
   min-width: 4ch;
   font-size: var(--text-xs);
-  color: var(--marigold-text);
+  color: var(--running-text);
 }
 
 /* Running marker: a static marigold rule across the running card / run bar (no looping sweep). */
@@ -57,7 +57,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--marigold);
+  background: var(--running);
   pointer-events: none;
   z-index: 2;
   transform-origin: left center;
@@ -93,23 +93,23 @@
 }
 
 .result-dot[data-state="ok"] {
-  background: var(--leaf);
-  border-color: var(--leaf);
+  background: var(--safe);
+  border-color: var(--safe);
 }
 
 .result-dot[data-state="danger"] {
-  background: var(--vermilion);
-  border-color: var(--vermilion);
+  background: var(--unsafe);
+  border-color: var(--unsafe);
 }
 
 .result-dot[data-state="error"] {
-  background: var(--ink-2);
-  border-color: var(--ink-2);
+  background: var(--text-muted);
+  border-color: var(--text-muted);
 }
 
 .result-dot[data-state="running"] {
-  background: var(--marigold);
-  border-color: var(--marigold);
+  background: var(--running);
+  border-color: var(--running);
 }
 
 /* ---------- Condition deck ---------- */
@@ -135,18 +135,18 @@
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   font-weight: 500;
-  color: var(--ink-2);
+  color: var(--text-muted);
   cursor: pointer;
 }
 
 .deck-tab:hover {
   border-color: var(--rule);
-  color: var(--ink);
+  color: var(--text);
 }
 
 .deck-tab[aria-pressed="true"] {
-  border-color: var(--ink);
-  color: var(--ink);
+  border-color: var(--text);
+  color: var(--text);
 }
 
 .deck-compare {
@@ -225,7 +225,7 @@
 .ccard-id {
   font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--ink);
+  color: var(--text);
 }
 
 .ccard-name {
@@ -246,26 +246,26 @@
   font-size: var(--text-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .ccard-status[data-status="running"],
 .ccard-status[data-status="queued"] {
-  color: var(--marigold-text);
+  color: var(--running-text);
 }
 
 .ccard-status[data-status="error"] {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
 }
 
 .ccard-meta {
   font-size: 10.5px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .ccard-empty {
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .ccard-stamps {
@@ -278,9 +278,9 @@
 .ccard-error {
   margin: 0;
   padding: var(--s2) var(--s3);
-  border: 1px solid var(--vermilion);
+  border: 1px solid var(--unsafe);
   border-radius: var(--radius-sm);
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
   font-size: var(--text-xs);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -304,7 +304,7 @@
 
 .ccard-diff {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .ans-pills {
@@ -325,7 +325,7 @@
 .ans-pill-label {
   padding: 2px 5px;
   background: var(--surface-sunk);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .ans-pill-value {
@@ -334,20 +334,20 @@
 }
 
 .ans-pill[data-tone="danger"] {
-  border-color: var(--vermilion);
+  border-color: var(--unsafe);
 }
 
 .ans-pill[data-tone="danger"] .ans-pill-value {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
   font-weight: 500;
 }
 
 .ans-pill[data-tone="warn"] .ans-pill-value {
-  color: var(--terracotta-text);
+  color: var(--caution-text);
 }
 
 .ans-pill[data-tone="info"] .ans-pill-value {
-  color: var(--indigo-text);
+  color: var(--info-text);
 }
 
 .ccard-advice {
@@ -370,8 +370,8 @@ button.cite-chip {
 }
 
 button.cite-chip:hover {
-  background: var(--indigo);
-  color: var(--on-accent);
+  background: var(--info);
+  color: var(--text-on-ink);
 }
 
 .ccard-rules {
@@ -400,7 +400,7 @@ button.cite-chip:hover {
   padding: 2px 0;
   background: none;
   border: 0;
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-size: var(--text-xs);
   cursor: pointer;
 }
@@ -451,13 +451,13 @@ button.cite-chip:hover {
 .log-lat > span {
   display: block;
   height: 100%;
-  background: var(--ink-2);
+  background: var(--text-muted);
   transform-origin: left center;
 }
 
 .log-step[data-kind="tool"] .log-lat > span,
 .log-step[data-kind="owner"] .log-lat > span {
-  background: var(--cond, var(--indigo));
+  background: var(--cond, var(--info));
 }
 
 .log-step[data-kind="rule"] .log-lat > span {
@@ -483,13 +483,13 @@ button.cite-chip:hover {
   border: 1px solid var(--rule-strong);
   border-radius: 2px;
   font-size: 10px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .log-step[data-kind="tool"] .log-index,
 .log-step[data-kind="owner"] .log-index {
-  border-color: var(--cond, var(--indigo));
-  color: var(--cond, var(--indigo));
+  border-color: var(--cond, var(--info));
+  color: var(--cond, var(--info));
 }
 
 .log-step[data-kind="rule"] .log-index {
@@ -498,8 +498,8 @@ button.cite-chip:hover {
 }
 
 .log-step[data-kind="retry"] .log-index {
-  border-color: var(--vermilion);
-  color: var(--vermilion-text);
+  border-color: var(--unsafe);
+  color: var(--unsafe-text);
 }
 
 .log-head {
@@ -517,7 +517,7 @@ button.cite-chip:hover {
 .log-kind {
   font-size: 9.5px;
   letter-spacing: 0.08em;
-  color: var(--ink-2);
+  color: var(--text-muted);
   width: 5.5ch;
   flex-shrink: 0;
 }
@@ -534,13 +534,13 @@ button.cite-chip:hover {
 .log-meta {
   flex-shrink: 0;
   font-size: 10px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .log-note {
   grid-column: 2;
   font-size: 11px;
-  color: var(--ink-2);
+  color: var(--text-muted);
   overflow-wrap: anywhere;
 }
 
@@ -570,7 +570,7 @@ button.cite-chip:hover {
 
 .log-empty {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
   margin: var(--s2) 0 0;
 }
 
@@ -667,13 +667,13 @@ button.cite-chip:hover {
 
 /* Running: the header lights up in marigold halftone, LED pulsing. */
 .ccard-head[data-lit] {
-  --ht-color: color-mix(in srgb, var(--marigold) 45%, transparent);
+  --ht-color: color-mix(in srgb, var(--running) 45%, transparent);
 }
 
 /* Compare: answers that differ between compared conditions get a marigold underline. */
 .ans-pill[data-diff] .ans-pill-value,
 .ccard-dx-value[data-diff] {
-  text-decoration: underline 2px var(--marigold);
+  text-decoration: underline 2px var(--running);
   text-underline-offset: 4px;
   text-decoration-skip-ink: none;
 }
@@ -691,12 +691,12 @@ button.cite-chip:hover {
 
 /* :has() — a card carrying a danger stamp gets a vermilion left edge. */
 .ccard:has(.stamp[data-tone="danger"]) {
-  border-left: 3px solid var(--vermilion);
+  border-left: 3px solid var(--unsafe);
 }
 
 /* :has() — while any card is running, the deck tabs show it. */
 .pane:has(.ccard[data-status="running"]) .deck-header {
-  border-bottom-color: var(--marigold);
+  border-bottom-color: var(--running);
 }
 
 /* Narrow cards (container query): stack the status line, tighten the answer pills. */
@@ -772,7 +772,6 @@ button.cite-chip:hover {
   background: var(--surface-sunk);
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-hard);
 }
 
 /* Panel screws in the four corners (slotted heads). */
@@ -784,7 +783,7 @@ button.cite-chip:hover {
   width: 7px;
   height: 7px;
   margin-top: -3.5px;
-  border: 1px solid var(--ink-2);
+  border: 1px solid var(--text-muted);
   border-radius: 50%;
   background: var(--surface);
   pointer-events: none;

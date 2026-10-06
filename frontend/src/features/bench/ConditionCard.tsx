@@ -18,8 +18,6 @@ interface Props {
   live: LiveEntry | undefined;
   latest: ResultSummary | undefined;
   onCite: (page: number) => void;
-  /** The condition currently in focus (tabs / 1–5): its header gets halftone shading. */
-  focused?: boolean;
   /** Compare mode: fields that differ between the compared conditions. */
   diffs?: Set<DiffField> | undefined;
   /** The case under examination (gold triage for the under-triage notch, stamp seeds). */
@@ -62,7 +60,7 @@ function fmtNum(n: number | null): string {
   return n === null ? "—" : Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 }
 
-export function ConditionCard({ condition, available, live, latest, onCite, focused = false, diffs, caseData, dose }: Props) {
+export function ConditionCard({ condition, available, live, latest, onCite, diffs, caseData, dose }: Props) {
   const [note, setNote] = useState<number | null>(null);
   const [traceOpen, setTraceOpen] = useState(false);
   const result = pickResult(live, latest);
@@ -86,7 +84,7 @@ export function ConditionCard({ condition, available, live, latest, onCite, focu
     >
       <span className="ccard-bar" aria-hidden="true" />
       {running && <span className="scanline" aria-hidden="true" />}
-      <header className={`ccard-head${running || focused ? " halftone halftone-soft" : ""}`} data-lit={running || undefined}>
+      <header className="ccard-head" data-lit={running || undefined}>
         <span className="led" data-state={status === "idle" ? undefined : status} aria-hidden="true" />
         <span className="ccard-id mono">{condition.id}</span>
         <span className="ccard-name">{condition.name}</span>

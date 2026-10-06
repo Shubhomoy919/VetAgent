@@ -23,7 +23,7 @@
 
 .vt-seg {
   fill: none;
-  stroke: var(--cond, var(--ink));
+  stroke: var(--cond, var(--text));
   stroke-width: 1.6;
   stroke-linejoin: round;
   stroke-linecap: round;
@@ -34,7 +34,7 @@
 }
 
 .vt-step[data-kind="flat"] .vt-seg {
-  stroke: var(--madder);
+  stroke: var(--unsafe);
   stroke-width: 2.4;
 }
 
@@ -42,7 +42,7 @@
   font-family: var(--font-mono);
   font-size: 7px;
   letter-spacing: 0.06em;
-  fill: var(--ink-2);
+  fill: var(--text-muted);
   text-anchor: middle;
 }
 
@@ -53,11 +53,11 @@
 
 .vt-step[role="button"]:hover .vt-label,
 .vt-step[role="button"]:focus-visible .vt-label {
-  fill: var(--ink);
+  fill: var(--text);
 }
 
 .vt-step[role="button"]:focus-visible .vt-hit {
-  stroke: var(--focus);
+  stroke: var(--focus-ring);
   stroke-width: 1.5;
 }
 
@@ -66,11 +66,11 @@
 }
 
 .vt-settle {
-  fill: var(--cond, var(--ink));
+  fill: var(--cond, var(--text));
 }
 
 .vt-head {
-  fill: var(--marigold);
+  fill: var(--running);
 }
 
 @keyframes vt-draw {

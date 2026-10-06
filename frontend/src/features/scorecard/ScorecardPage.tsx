@@ -152,12 +152,12 @@ function Breakdown({ title, rows, conditions }: { title: string; rows: Breakdown
   );
 }
 
-/** Hero figure: 72px Instrument Serif, misregistered, counting up via the registered --count property. */
+/** Hero figure: 72px Instrument Serif, counting up via the registered --count property. */
 function HeroNumber({ value }: { value: number | null }) {
   if (value === null) return <span className="sc-hero-num serif">—</span>;
   const n = Math.round(value * 100);
   return (
-    <span className="sc-hero-num serif misreg">
+    <span className="sc-hero-num serif">
       <span className="visually-hidden">{n}%</span>
       <span className="count" aria-hidden="true" style={{ "--to": n, "--suffix": '"%"' } as CSSProperties} />
     </span>

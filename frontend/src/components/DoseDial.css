@@ -26,27 +26,27 @@
 
 .dial-band {
   fill: none;
-  stroke: var(--leaf);
+  stroke: var(--safe);
   stroke-width: 9;
 }
 
 .dial-tick {
-  stroke: var(--ink-2);
+  stroke: var(--text-muted);
   stroke-width: 1;
 }
 
 .dial-needle line {
-  stroke: var(--ink);
+  stroke: var(--text);
   stroke-width: 2;
   stroke-linecap: round;
 }
 
 .dial[data-state="outside"] .dial-needle line {
-  stroke: var(--vermilion);
+  stroke: var(--unsafe);
 }
 
 .dial-hub {
-  fill: var(--ink);
+  fill: var(--text);
 }
 
 .dial-read {
@@ -59,7 +59,7 @@
   font-size: var(--text-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .dial-value {
@@ -69,17 +69,17 @@
 
 .dial-note {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
   overflow-wrap: anywhere;
 }
 
 .dial-nodata {
-  color: var(--marigold-text);
+  color: var(--running-text);
   letter-spacing: 0.04em;
 }
 
 .dial-bad {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
 }
 
 /* Banned / contraindicated: the instrument is switched off (grey, no needle). */

@@ -20,14 +20,14 @@
 }
 
 .dp-title {
-  font-size: var(--text-display);
+  font-size: var(--display-sm);
   line-height: 1;
 }
 
 .dp-sub {
   margin-top: var(--s2);
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .dp-actions,
@@ -50,7 +50,7 @@ a.btn {
   background: var(--surface);
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
-  color: var(--ink);
+  color: var(--text);
   font: inherit;
   font-size: var(--text-sm);
 }
@@ -62,7 +62,7 @@ a.btn {
 .dp-count {
   margin-left: auto;
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .dp-table-wrap {
@@ -91,7 +91,7 @@ a.btn {
   min-width: 220px;
   max-width: 360px;
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .dp-table thead th {
@@ -120,7 +120,7 @@ a.btn {
 }
 
 .dp-table tbody tr:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
 }
 
@@ -142,12 +142,12 @@ a.btn {
 
 .th-arrow {
   font-size: 10px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 [aria-sort="ascending"] .th-arrow,
 [aria-sort="descending"] .th-arrow {
-  color: var(--ink);
+  color: var(--text);
 }
 
 .verified-tag {
@@ -155,14 +155,14 @@ a.btn {
   align-items: center;
   height: 16px;
   padding: 0 4px;
-  border: 1px solid var(--leaf);
+  border: 1px solid var(--safe);
   border-radius: 2px;
   font-family: var(--font-mono);
   font-size: 9.5px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--leaf-text);
+  color: var(--safe-text);
 }
 
 .status-pill {
@@ -180,23 +180,23 @@ a.btn {
 }
 
 .status-pill[data-status="safe"] {
-  color: var(--leaf-text);
+  color: var(--safe-text);
 }
 
 .status-pill[data-status="contraindicated"] {
-  color: var(--terracotta-text);
+  color: var(--caution-text);
 }
 
 .status-pill[data-status="banned_in_india"] {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
 }
 
 [data-triage="emergency"] {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
 }
 
 [data-triage="urgent"] {
-  color: var(--terracotta-text);
+  color: var(--caution-text);
 }
 
 /* ---------- Editor form ---------- */
@@ -242,19 +242,19 @@ a.btn {
   background: none;
   border: var(--hairline);
   border-radius: var(--radius-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-size: var(--text-xs);
   cursor: pointer;
 }
 
 .chip[aria-pressed="true"] {
-  color: var(--on-accent);
-  background: var(--ink);
-  border-color: var(--ink);
+  color: var(--text-on-ink);
+  background: var(--text);
+  border-color: var(--text);
 }
 
 [data-bad="true"] {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
   font-weight: 500;
 }
 

@@ -1,23 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Theme = "cyanotype" | "bone-block" | "kalamkari";
+export type Theme = "riso-black" | "cyanotype" | "kalamkari";
 export type Density = "comfortable" | "compact";
 
 export const THEMES: { id: Theme; label: string; note: string }[] = [
-  { id: "cyanotype", label: "Cyanotype", note: "Prussian-blue print, cyan line work (default)" },
-  { id: "bone-block", label: "Bone & Block", note: "Light, colour-blocked editorial" },
+  { id: "riso-black", label: "Riso Black", note: "Pure black, risograph inks (default)" },
+  { id: "cyanotype", label: "Cyanotype", note: "Prussian-blue print, cyan line work" },
   { id: "kalamkari", label: "Kalamkari", note: "Warm Indian textile pigments" },
 ];
-export const DEFAULT_THEME: Theme = "cyanotype";
+export const DEFAULT_THEME: Theme = "riso-black";
 
 const KEY = "vab.theme";
 const DENSITY_KEY = "vab.density";
 const EVENT = "vab-appearance";
 
-/** Earlier builds stored "light" / "dark"; map them onto the new themes. */
+/** Earlier builds stored "light" / "dark" / "bone-block"; anything unknown falls back to Riso Black. */
 export function normaliseTheme(v: string | null | undefined): Theme {
-  if (v === "cyanotype" || v === "bone-block" || v === "kalamkari") return v;
-  if (v === "light") return "bone-block";
+  if (v === "riso-black" || v === "cyanotype" || v === "kalamkari") return v;
   return DEFAULT_THEME;
 }
 

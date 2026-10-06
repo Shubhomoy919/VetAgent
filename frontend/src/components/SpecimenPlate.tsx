@@ -5,16 +5,6 @@ import { latinName, roman } from "../lib/species";
 import { TypePill, SpecimenTag, UnverifiedTag } from "./Tags";
 import "./SpecimenPlate.css";
 
-/** Small print registration mark (circle + cross) for plate corners. */
-export function RegMark({ corner }: { corner: "tl" | "tr" | "bl" | "br" }) {
-  return (
-    <svg className="reg-mark" data-corner={corner} viewBox="0 0 14 14" aria-hidden="true" focusable="false">
-      <circle cx="7" cy="7" r="3.2" />
-      <path d="M7 0v14M0 7h14" />
-    </svg>
-  );
-}
-
 function hhmm(iso: string | undefined): string | null {
   if (!iso) return null;
   const t = iso.split("T")[1];
@@ -23,7 +13,7 @@ function hhmm(iso: string | undefined): string | null {
 
 /** Specimen plate: the case header as a natural-history plate — double-rule frame, plate number in
  *  Roman numerals, species code in large serif, Latin binomial in italic, signalment strip,
- *  registration marks, and a lab-notebook line ("examined 3 times · last run 14:02"). */
+ *  and a lab-notebook line ("examined 3 times · last run 14:02"). */
 export function SpecimenPlate({ c, plateNo, actions }: { c: Case; plateNo: number; actions?: ReactNode }) {
   const s = c.signalment;
   const code = speciesCode(c.case_id);
@@ -32,10 +22,6 @@ export function SpecimenPlate({ c, plateNo, actions }: { c: Case; plateNo: numbe
   const last = hhmm(past?.[0]?.created_at);
   return (
     <header className="plate plate-frame" data-species={code} data-testid="specimen-plate">
-      <RegMark corner="tl" />
-      <RegMark corner="tr" />
-      <RegMark corner="bl" />
-      <RegMark corner="br" />
       <div className="plate-top">
         <span className="plate-no mono">Plate {roman(plateNo)}</span>
         <SpecimenTag caseId={c.case_id} />
@@ -44,7 +30,7 @@ export function SpecimenPlate({ c, plateNo, actions }: { c: Case; plateNo: numbe
         {actions && <span className="plate-actions">{actions}</span>}
       </div>
       <div className="plate-body">
-        <span className="plate-code serif misreg" aria-hidden="true">
+        <span className="plate-code serif" aria-hidden="true">
           {code}
         </span>
         <div className="plate-names">

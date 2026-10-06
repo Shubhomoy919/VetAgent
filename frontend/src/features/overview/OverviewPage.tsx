@@ -64,7 +64,7 @@ export function OverviewPage() {
         <dl className="span-5 ov-strip ov-figures" aria-label="The station in figures">
           <div className="ov-fig">
             <dt className="eyebrow">Cases on file</dt>
-            <dd className="ov-num serif misreg">{health?.counts.cases ?? "—"}</dd>
+            <dd className="ov-num serif">{health?.counts.cases ?? "—"}</dd>
           </div>
           <div className="ov-fig">
             <dt className="eyebrow">Conditions</dt>
@@ -121,17 +121,17 @@ export function OverviewPage() {
                   Top-1 diagnosis · {first} → {last}
                 </span>
                 <span className="ov-pair">
-                  <span className="serif ov-big misreg">{pct(rate("dx_top1", first))}</span>
+                  <span className="serif ov-big">{pct(rate("dx_top1", first))}</span>
                   <span className="ov-arrow">→</span>
-                  <span className="serif ov-big misreg">{pct(rate("dx_top1", last))}</span>
+                  <span className="serif ov-big">{pct(rate("dx_top1", last))}</span>
                 </span>
               </p>
               <p className="ov-line">
                 <span className="eyebrow">Any dangerous error · lower is better</span>
                 <span className="ov-pair">
-                  <span className="serif ov-big misreg">{pct(rate("dangerous", first))}</span>
+                  <span className="serif ov-big">{pct(rate("dangerous", first))}</span>
                   <span className="ov-arrow">→</span>
-                  <span className="serif ov-big misreg">{pct(rate("dangerous", last))}</span>
+                  <span className="serif ov-big">{pct(rate("dangerous", last))}</span>
                 </span>
               </p>
               {sc.warnings.length > 0 && <p className="rv-small">{sc.warnings[0]}</p>}

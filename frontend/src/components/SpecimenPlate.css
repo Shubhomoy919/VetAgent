@@ -11,22 +11,7 @@
   outline: 1px solid var(--rule-strong);
   outline-offset: 3px;
   margin: 4px;
-  box-shadow: var(--shadow-hard);
 }
-
-.reg-mark {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: var(--ink-2);
-  stroke-width: 1;
-}
-
-.reg-mark[data-corner="tl"] { top: -11px; left: -11px; }
-.reg-mark[data-corner="tr"] { top: -11px; right: -11px; }
-.reg-mark[data-corner="bl"] { bottom: -11px; left: -11px; }
-.reg-mark[data-corner="br"] { bottom: -11px; right: -11px; }
 
 .plate-top {
   display: flex;
@@ -39,7 +24,7 @@
   font-size: var(--text-xs);
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: var(--text-muted);
   padding-right: var(--s2);
   border-right: var(--hairline);
 }
@@ -61,7 +46,7 @@
   font-size: 84px;
   line-height: 0.8;
   letter-spacing: -0.02em;
-  color: var(--sp, var(--ink));
+  color: var(--sp, var(--text));
 }
 
 .plate[data-species="BOV"] { --sp: var(--sp-bov); }
@@ -85,7 +70,7 @@
 
 .plate-breed {
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .plate-strip {
@@ -94,7 +79,7 @@
 
 .plate-log {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 /* Kalamkari: block-print band along the top of the plate frame. */
@@ -108,12 +93,8 @@
 /* Cyanotype: plates are cyan-white line prints on the blue ground. */
 :root[data-theme="cyanotype"] .plate {
   background: var(--surface);
-  border-color: var(--cyan);
-  outline-color: color-mix(in srgb, var(--cyan) 55%, transparent);
-}
-
-:root[data-theme="cyanotype"] .plate .reg-mark {
-  stroke: var(--cyan);
+  border-color: var(--info);
+  outline-color: color-mix(in srgb, var(--info) 55%, transparent);
 }
 
 /* Empty / not-found plates */
@@ -127,7 +108,7 @@
 
 .plate-empty .plate-code {
   color: transparent;
-  -webkit-text-stroke: 1.2px var(--ink-2);
+  -webkit-text-stroke: 1.2px var(--text-muted);
 }
 
 .plate .sig-sub {
@@ -166,7 +147,7 @@
 .plate-empty-body {
   max-width: 46ch;
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .plate-empty-actions {

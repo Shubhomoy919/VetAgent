@@ -1,25 +1,25 @@
-/* The Field Station — layered grounds. One of the two files allowed gradient functions
-   (technical patterns only: grid lines, halftone dots, vignette masks). All layers are fixed
-   pseudo-elements: painted once, never re-laid-out while a run streams.
+/* Ground: pure base colour, graph grid, paper grain, and exactly ONE ink-bleed cloud at the top-right
+   (never behind text). One of the two files allowed gradient functions (technical patterns only).
+   All layers are fixed pseudo-elements: painted once, never re-laid-out while a run streams.
 
-   Stack (bottom → top):
-     html            saturated base colour
-     html::before    zone tint (6–10% of the section pigment) + graph paper, 8px minor / 40px major
-     html::after     halftone edge shading — dots denser toward the edges (a printed vignette, no blur)
-     body::after     oversized outlined Instrument Serif watermark bleeding off the right edge
+     html            base colour
+     html::before    graph grid, 8px minor / 40px major
+     html::after     ink-bleed cloud: two halftone dot screens in the page's ink pair, top-right
      #root           the app (z-index 1)
-     body::before    paper grain (feTurbulence noise, 4–6%), above everything, pointer-events none */
+     body::before    paper grain (feTurbulence noise), above everything, pointer-events none */
 
 html {
   background-color: var(--bg);
   --zone: var(--zone-about);
+  --zone-b: var(--zone-about-b);
 }
 
-html[data-zone="bench"] { --zone: var(--zone-bench); }
-html[data-zone="scorecard"] { --zone: var(--zone-scorecard); }
-html[data-zone="data"] { --zone: var(--zone-data); }
-html[data-zone="runs"] { --zone: var(--zone-runs); }
-html[data-zone="about"] { --zone: var(--zone-about); }
+html[data-zone="bench"] { --zone: var(--zone-bench); --zone-b: var(--zone-bench-b); }
+html[data-zone="scorecard"] { --zone: var(--zone-scorecard); --zone-b: var(--zone-scorecard-b); }
+html[data-zone="data"] { --zone: var(--zone-data); --zone-b: var(--zone-data-b); }
+html[data-zone="runs"] { --zone: var(--zone-runs); --zone-b: var(--zone-runs-b); }
+html[data-zone="overview"] { --zone: var(--zone-overview); --zone-b: var(--zone-overview-b); }
+html[data-zone="about"] { --zone: var(--zone-about); --zone-b: var(--zone-about-b); }
 
 body {
   background: transparent;
@@ -30,14 +30,13 @@ body {
   z-index: 1;
 }
 
-/* 1–2. Zone tint + graph paper */
+/* Graph grid */
 html::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-color: color-mix(in oklab, var(--zone) 8%, var(--bg));
   background-image:
     linear-gradient(to right, var(--grid-major) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid-major) 1px, transparent 1px),
@@ -48,49 +47,40 @@ html::before {
     40px 40px,
     8px 8px,
     8px 8px;
-  transition: background-color var(--dur-xslow) var(--ease);
 }
 
-/* 4. Halftone edge shading: two dot screens, masked so they thicken toward the edges. */
+/* Ink-bleed cloud: one per page, top-right, in the page's ink pair; overprints (screen on dark
+   grounds, multiply on light) and fades out toward the page so it never sits behind text. */
 html::after {
   content: "";
   position: fixed;
-  inset: 0;
+  top: -60px;
+  right: -60px;
+  width: 360px;
+  height: 300px;
   z-index: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at center, color-mix(in srgb, var(--zone) 40%, var(--shadow)) 0 1.1px, transparent 1.4px),
-    radial-gradient(circle at center, color-mix(in srgb, var(--zone) 40%, var(--shadow)) 0 0.7px, transparent 1px);
+    radial-gradient(circle at center, var(--zone) 0 1.6px, transparent 2px),
+    radial-gradient(circle at center, var(--zone-b) 0 1.3px, transparent 1.7px);
   background-size:
     7px 7px,
-    7px 7px;
+    9px 9px;
   background-position:
     0 0,
-    3.5px 3.5px;
-  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 55% 45%, transparent 58%, #000 100%);
-  mask-image: radial-gradient(ellipse 75% 70% at 55% 45%, transparent 58%, #000 100%);
+    3px 4px;
+  -webkit-mask-image: radial-gradient(closest-side at 62% 38%, #000 0%, transparent 100%);
+  mask-image: radial-gradient(closest-side at 62% 38%, #000 0%, transparent 100%);
+  mix-blend-mode: screen;
   opacity: 0.55;
 }
 
-/* 5. Watermark: the case ID on the Bench, the page name elsewhere (body[data-watermark]). */
-body::after {
-  content: attr(data-watermark);
-  position: fixed;
-  right: -0.08em;
-  bottom: -0.14em;
-  z-index: 0;
-  pointer-events: none;
-  font-family: var(--font-serif);
-  font-size: clamp(220px, 19vw, 280px);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--zone);
-  opacity: 0.06;
+:root[data-theme="kalamkari"]::after {
+  mix-blend-mode: multiply;
+  opacity: 0.35;
 }
 
-/* 3. Paper grain */
+/* Paper grain */
 body::before {
   content: "";
   position: fixed;
@@ -104,8 +94,7 @@ body::before {
 @media print {
   html::before,
   html::after,
-  body::before,
-  body::after {
+  body::before {
     display: none;
   }
 }

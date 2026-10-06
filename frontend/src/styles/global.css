@@ -31,7 +31,7 @@ body,
 
 body {
   margin: 0;
-  color: var(--ink);
+  color: var(--text);
   font-family: var(--font-sans);
   font-size: var(--text-md);
   line-height: 1.45;
@@ -66,20 +66,20 @@ a {
 
 /* Riso-pink focus ring: the one place the pop colour is guaranteed to appear. */
 :focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
 ::selection {
   background: var(--selection);
-  color: var(--ink);
+  color: var(--text);
 }
 
 /* Thin scrollbars: rule track, graphite thumb. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--ink-2) var(--rule);
+  scrollbar-color: var(--text-muted) var(--rule);
 }
 
 ::-webkit-scrollbar {
@@ -92,7 +92,7 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--ink-2);
+  background: var(--text-muted);
   border: 2px solid var(--rule);
   border-radius: 4px;
 }
@@ -133,7 +133,7 @@ a {
   font-weight: 600;
   font-variant-caps: all-small-caps;
   letter-spacing: var(--tracking-label);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 /* Craft: hanging punctuation for running text (where supported). */

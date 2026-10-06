@@ -43,14 +43,14 @@
   background: var(--surface);
   border: 0;
   border-bottom: var(--hairline);
-  color: var(--ink);
+  color: var(--text);
   font: inherit;
   font-size: var(--text-md);
   outline: none;
 }
 
 .cmdk-input::placeholder {
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .cmdk-list {
@@ -62,7 +62,7 @@
 .cmdk-empty {
   padding: var(--s4);
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .cmdk-group [cmdk-group-heading] {
@@ -71,7 +71,7 @@
   font-size: var(--text-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .cmdk-item {
@@ -91,7 +91,7 @@
 }
 
 .cmdk-icon {
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .cmdk-case {
@@ -99,7 +99,7 @@
 }
 
 .cmdk-sub {
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-size: var(--text-xs);
   text-transform: capitalize;
 }
@@ -162,12 +162,12 @@
   background: none;
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-size: var(--text-xs);
   cursor: pointer;
 }
 
 .kbd-button:hover {
-  color: var(--ink);
-  border-color: var(--ink);
+  color: var(--text);
+  border-color: var(--text);
 }

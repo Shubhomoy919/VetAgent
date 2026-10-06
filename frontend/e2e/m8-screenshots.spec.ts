@@ -17,7 +17,7 @@ const PAGES: { name: string; url: string; ready: string }[] = [
 ];
 
 for (const width of [1440, 1024]) {
-  for (const theme of ["cyanotype", "bone-block", "kalamkari"] as const) {
+  for (const theme of ["riso-black", "cyanotype", "kalamkari"] as const) {
     test(`all pages at ${width} · ${theme}`, async ({ page }) => {
       await page.setViewportSize({ width, height: width === 1440 ? 900 : 768 });
       await page.addInitScript((t) => localStorage.setItem("vab.theme", t), theme);

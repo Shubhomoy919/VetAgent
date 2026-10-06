@@ -45,11 +45,11 @@
 }
 
 .set-key[data-present="true"] {
-  color: var(--leaf-text);
+  color: var(--safe-text);
 }
 
 .set-key[data-present="false"] {
-  color: var(--marigold-text);
+  color: var(--running-text);
 }
 
 .set-test-row {
@@ -64,20 +64,20 @@
 }
 
 .set-test-result[data-ok="true"] {
-  color: var(--leaf-text);
+  color: var(--safe-text);
 }
 
 .set-test-result[data-ok="false"] {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
 }
 
 .set-pdf[data-ok="true"] {
-  color: var(--leaf-text);
+  color: var(--safe-text);
   font-size: var(--text-sm);
 }
 
 .set-pdf[data-ok="false"] {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
   font-size: var(--text-sm);
 }
 
@@ -109,7 +109,7 @@
   padding: 0 var(--s2);
   border: 1px solid var(--pill-color, var(--rule-strong));
   border-radius: var(--radius-sm);
-  color: var(--pill-color, var(--ink-2));
+  color: var(--pill-color, var(--text-muted));
   font-family: var(--font-mono);
   font-size: var(--text-xs);
   font-weight: 500;
@@ -118,11 +118,11 @@
 }
 
 .settings .pill[data-tone="live"] {
-  --pill-color: var(--leaf);
+  --pill-color: var(--safe);
 }
 
 .settings .pill[data-tone="demo"] {
-  --pill-color: var(--marigold-text);
+  --pill-color: var(--running-text);
 }
 
 .settings .pill-dot {

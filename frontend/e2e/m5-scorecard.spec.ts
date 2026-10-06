@@ -56,10 +56,10 @@ test("Scorecard renders real numbers, charts, tables and exports CSV", async ({ 
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
-test("Scorecard in Bone & Block", async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem("vab.theme", "bone-block"));
+test("Scorecard in Cyanotype", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("vab.theme", "cyanotype"));
   await page.goto("/scorecard");
   await expect(page.getByTestId("chart-dx_top1")).toBeVisible();
   await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-1440-bone-block.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-1440-cyanotype.png") });
 });

@@ -14,7 +14,7 @@
   right: 0;
   bottom: 0;
   height: 4px;
-  border-top: 2px solid var(--ink);
+  border-top: 2px solid var(--text);
   border-bottom: 1px solid var(--rule);
   transform-origin: left center;
   animation: ph-rule var(--dur-slow) var(--ease) 80ms both;
@@ -35,7 +35,7 @@
   font-size: var(--text-xs);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .ph-plate-sep {

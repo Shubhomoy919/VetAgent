@@ -15,13 +15,13 @@
   font-weight: 600;
   font-variant-caps: all-small-caps;
   letter-spacing: var(--tracking-label);
-  color: var(--ink-2);
+  color: var(--text-muted);
   border-bottom: 3px double var(--rule-strong);
 }
 
 .ledger td:first-child,
 .ledger th:first-child {
-  box-shadow: inset -1px 0 0 color-mix(in srgb, var(--madder) 45%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--unsafe) 45%, transparent);
 }
 
 .ledger tbody tr:nth-child(5n) td {
@@ -34,7 +34,7 @@
 }
 
 .ledger tbody tr:hover {
-  background: color-mix(in srgb, var(--marigold) 7%, transparent);
+  background: color-mix(in srgb, var(--running) 7%, transparent);
 }
 
 :root[data-ledger="dense"] .ledger th,
@@ -44,5 +44,5 @@
 }
 
 .ledger-toggle[aria-pressed="true"] {
-  border-color: var(--marigold);
+  border-color: var(--running);
 }

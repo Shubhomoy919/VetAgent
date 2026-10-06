@@ -144,7 +144,6 @@ export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false,
               live={live[resultKey(caseId, c.id, interview)]}
               latest={latest?.[caseId]?.[c.id]}
               onCite={onCite}
-              focused={!compare && active === c.id}
               diffs={compare ? diffs : undefined}
               caseData={caseData}
               dose={dose}

@@ -12,8 +12,8 @@
     "e2e": "playwright test",
     "tokens": "..\\.venv\\Scripts\\python.exe scripts/gen_tokens.py",
     "check:style": "node scripts/check-style.mjs",
-    "check:contrast": "node scripts/check-contrast.mjs",
-    "check": "tsc && eslint . --max-warnings 0 && node scripts/check-style.mjs && node scripts/check-contrast.mjs"
+    "check:contrast": "node scripts/check-contrast.ts",
+    "check": "tsc && eslint . --max-warnings 0 && node scripts/check-style.mjs && node scripts/check-contrast.ts"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",

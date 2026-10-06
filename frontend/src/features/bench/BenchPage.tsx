@@ -75,10 +75,6 @@ export function BenchPage() {
   const selected = cases?.find((c) => c.case_id === selectedId);
   const plateNo = (cases?.findIndex((c) => c.case_id === selectedId) ?? 0) + 1;
 
-  // Ground watermark: the case under examination.
-  useEffect(() => {
-    document.body.dataset.watermark = selectedId ?? "Bench";
-  }, [selectedId]);
 
   const setParam = useCallback(
     (key: string, value: string | null) =>

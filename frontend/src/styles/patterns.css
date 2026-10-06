@@ -29,7 +29,7 @@
 .halftone[data-ht="flat"]::after {
   -webkit-mask-image: none;
   mask-image: none;
-  --ht-color: color-mix(in srgb, var(--ink) 9%, transparent);
+  --ht-color: color-mix(in srgb, var(--text) 9%, transparent);
 }
 
 /* ---------- Specimen tag: punched hole ----------

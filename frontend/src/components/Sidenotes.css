@@ -9,10 +9,10 @@
   padding: 0 2px;
   background: none;
   border: 0;
-  border-bottom: 1px solid var(--riso);
+  border-bottom: 1px solid var(--ink-pink);
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--riso-text);
+  color: var(--accent-text);
   cursor: pointer;
 }
 
@@ -36,7 +36,7 @@
 
 .sn-n {
   font-size: 10px;
-  color: var(--riso-text);
+  color: var(--accent-text);
 }
 
 .sn-body {
@@ -49,7 +49,7 @@
   font-family: var(--font-serif);
   font-size: 14px;
   line-height: 1.25;
-  color: var(--ink-2);
+  color: var(--text-muted);
   hanging-punctuation: first last;
 }
 
@@ -67,7 +67,6 @@
   padding: var(--s2) var(--s3);
   background: var(--raised);
   border: 1px solid var(--rule-strong);
-  box-shadow: var(--shadow-hard);
   transform: rotate(-0.4deg);
 }
 

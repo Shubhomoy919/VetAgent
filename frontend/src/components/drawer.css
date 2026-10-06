@@ -39,7 +39,7 @@
 
 .drawer-printed {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .drawer-body {

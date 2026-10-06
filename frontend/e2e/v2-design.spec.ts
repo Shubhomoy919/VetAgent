@@ -83,11 +83,11 @@ test("ablation ladder renders as toggles with the right on-states", async ({ pag
 
 test("tokens: pigments, text twins and focus ring are defined in both themes", async ({ page }) => {
   await page.goto("/overview");
-  for (const theme of ["cyanotype", "bone-block", "kalamkari"]) {
+  for (const theme of ["riso-black", "cyanotype", "kalamkari"]) {
     await page.evaluate((t) => (document.documentElement.dataset.theme = t), theme);
     const v = await page.evaluate(() => {
       const s = getComputedStyle(document.documentElement);
-      return ["--riso", "--marigold", "--peacock", "--vermilion-text", "--c4-text", "--focus"].map((k) => s.getPropertyValue(k).trim());
+      return ["--ink-pink", "--running", "--ink-mint", "--unsafe-text", "--c4-text", "--focus-ring"].map((k) => s.getPropertyValue(k).trim());
     });
     for (const x of v) expect(x).not.toBe("");
   }

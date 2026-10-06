@@ -1,0 +1,126 @@
+/* ColorBar: a press-sheet colour bar under the top bar. */
+.colorbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  height: 16px;
+  padding: 0 var(--s4);
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.cb-swatches {
+  display: flex;
+  gap: 4px;
+}
+
+.cb-ink {
+  display: flex;
+}
+
+.cb-sq {
+  width: 8px;
+  height: 8px;
+}
+
+.cb-ink[data-ink="pink"] .cb-sq[data-tint="100"] { background: var(--ink-pink); }
+.cb-ink[data-ink="pink"] .cb-sq[data-tint="55"] { background: var(--ink-pink-55); }
+.cb-ink[data-ink="pink"] .cb-sq[data-tint="25"] { background: var(--ink-pink-25); }
+.cb-ink[data-ink="sunflower"] .cb-sq[data-tint="100"] { background: var(--ink-sunflower); }
+.cb-ink[data-ink="sunflower"] .cb-sq[data-tint="55"] { background: var(--ink-sunflower-55); }
+.cb-ink[data-ink="sunflower"] .cb-sq[data-tint="25"] { background: var(--ink-sunflower-25); }
+.cb-ink[data-ink="orange"] .cb-sq[data-tint="100"] { background: var(--ink-orange); }
+.cb-ink[data-ink="orange"] .cb-sq[data-tint="55"] { background: var(--ink-orange-55); }
+.cb-ink[data-ink="orange"] .cb-sq[data-tint="25"] { background: var(--ink-orange-25); }
+.cb-ink[data-ink="cornflower"] .cb-sq[data-tint="100"] { background: var(--ink-cornflower); }
+.cb-ink[data-ink="cornflower"] .cb-sq[data-tint="55"] { background: var(--ink-cornflower-55); }
+.cb-ink[data-ink="cornflower"] .cb-sq[data-tint="25"] { background: var(--ink-cornflower-25); }
+.cb-ink[data-ink="violet"] .cb-sq[data-tint="100"] { background: var(--ink-violet); }
+.cb-ink[data-ink="violet"] .cb-sq[data-tint="55"] { background: var(--ink-violet-55); }
+.cb-ink[data-ink="violet"] .cb-sq[data-tint="25"] { background: var(--ink-violet-25); }
+.cb-ink[data-ink="mint"] .cb-sq[data-tint="100"] { background: var(--ink-mint); }
+.cb-ink[data-ink="mint"] .cb-sq[data-tint="55"] { background: var(--ink-mint-55); }
+.cb-ink[data-ink="mint"] .cb-sq[data-tint="25"] { background: var(--ink-mint-25); }
+.cb-ink[data-ink="madder"] .cb-sq[data-tint="100"] { background: var(--ink-madder); }
+.cb-ink[data-ink="madder"] .cb-sq[data-tint="55"] { background: var(--ink-madder-55); }
+.cb-ink[data-ink="madder"] .cb-sq[data-tint="25"] { background: var(--ink-madder-25); }
+
+.cb-target {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+
+.cb-check {
+  margin-left: auto;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+/* One printer-head pass, left to right, on the first load of a session. */
+.colorbar[data-first-pass] .cb-swatches {
+  animation: cb-print 600ms steps(21, end) both;
+}
+
+@keyframes cb-print {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Crop marks at the content corners */
+.cropmarks {
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.crop {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1;
+}
+
+.crop[data-corner="tl"] { top: 0; left: 0; }
+.crop[data-corner="tr"] { top: 0; right: 0; transform: scaleX(-1); }
+.crop[data-corner="bl"] { bottom: 0; left: 0; transform: scaleY(-1); }
+.crop[data-corner="br"] { bottom: 0; right: 0; transform: scale(-1, -1); }
+
+.crop path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.cropmarks[data-drawn] .crop path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--dur-xslow) var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .colorbar[data-first-pass] .cb-swatches {
+    animation: none;
+  }
+
+  .crop path {
+    stroke-dashoffset: 0;
+    transition: none;
+  }
+}
+
+@media print {
+  .colorbar,
+  .cropmarks {
+    display: none;
+  }
+}

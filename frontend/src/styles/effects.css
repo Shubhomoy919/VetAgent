@@ -2,37 +2,6 @@
    (what it is, where it is used). Flat pigment only; motion 120–320 ms on --ease;
    every animation collapses to instant under prefers-reduced-motion via the duration tokens. */
 
-/* ===== 1. Risograph misregistration =====
-   Display type only (page titles, hero numbers, the Bench case title): two crisp ghost layers,
-   riso-pink left and peacock right, offset by --misreg. They settle in on load and drift on hover. */
-.misreg {
-  --mis: var(--misreg);
-  text-shadow:
-    calc(var(--mis) * -1) 0 0 color-mix(in srgb, var(--riso) 75%, transparent),
-    var(--mis) 0 0 color-mix(in srgb, var(--peacock) 70%, transparent);
-  animation: misreg-settle var(--dur-xslow) var(--ease) both;
-  transition: --mis var(--dur) var(--ease);
-}
-
-.misreg:hover {
-  --mis: calc(var(--misreg) * 2);
-}
-
-@keyframes misreg-settle {
-  from {
-    --mis: 6px;
-  }
-  to {
-    --mis: var(--misreg);
-  }
-}
-
-@media print {
-  .misreg {
-    text-shadow: none;
-  }
-}
-
 /* ===== 2. Halftone shading ===== (dot pattern lives in patterns.css; this tunes it per use) */
 .halftone-soft {
   --ht-size: 5px;
@@ -56,7 +25,7 @@
 
 .ink-underline path {
   fill: none;
-  stroke: var(--riso);
+  stroke: var(--ink-pink);
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-dasharray: 1;
@@ -78,27 +47,27 @@
   height: 7px;
   border-radius: 50%;
   background: var(--meter-off);
-  border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 25%, transparent);
   transition: background-color var(--dur) var(--ease);
 }
 
 .led[data-state="queued"] {
-  background: color-mix(in srgb, var(--marigold) 35%, var(--meter-off));
+  background: color-mix(in srgb, var(--running) 35%, var(--meter-off));
 }
 
 .led[data-state="running"] {
-  background: var(--marigold);
+  background: var(--running);
   animation: led-pulse 900ms var(--ease) infinite alternate;
 }
 
 .led[data-state="done"],
 .led[data-state="ok"] {
-  background: var(--leaf);
+  background: var(--safe);
 }
 
 .led[data-state="error"],
 .led[data-state="danger"] {
-  background: var(--vermilion);
+  background: var(--unsafe);
 }
 
 /* Functional busy indicator: runs only while a result is in flight, stops when it lands. */
@@ -133,15 +102,15 @@
 }
 
 .meter-seg[data-state="running"] {
-  background: color-mix(in srgb, var(--marigold) 60%, var(--meter-off));
+  background: color-mix(in srgb, var(--running) 60%, var(--meter-off));
 }
 
 .meter-seg[data-state="done"] {
-  background: var(--marigold);
+  background: var(--running);
 }
 
 .meter-seg[data-state="error"] {
-  background: var(--vermilion);
+  background: var(--unsafe);
 }
 
 /* Hairline fill gauge under the segments, animated through the registered --fill property. */
@@ -152,7 +121,7 @@
   right: 3px;
   bottom: -4px;
   height: 1px;
-  background: var(--marigold-text);
+  background: var(--running-text);
   transform: scaleX(var(--fill));
   transform-origin: left center;
 }
@@ -191,11 +160,11 @@ kbd {
   font-size: 10.5px;
   font-weight: 500;
   line-height: 1;
-  color: var(--ink);
+  color: var(--text);
   background: var(--raised);
   border: 1px solid var(--rule-strong);
   border-bottom-width: 2px;
-  border-bottom-color: color-mix(in srgb, var(--ink) 45%, var(--rule-strong));
+  border-bottom-color: color-mix(in srgb, var(--text) 45%, var(--rule-strong));
   border-radius: 3px;
   vertical-align: 1px;
   transition:
@@ -211,67 +180,6 @@ kbd.is-pressed,
 
 /* ===== 10. Mechanical buttons ===== see styles/controls.css */
 
-/* ---------- Registration / crop marks on panels ---------- */
-
-.pane,
-.ccard,
-.dw,
-.dp-table-wrap,
-.ladder-fig,
-.rv-case,
-.rv-answer,
-.ov-headline,
-.st-form {
-  position: relative;
-}
-
-.pane::before,
-.pane::after,
-.ladder-fig::before,
-.ladder-fig::after,
-.ov-headline::before,
-.ov-headline::after {
-  content: "";
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  pointer-events: none;
-  border-color: var(--rule-strong);
-  border-style: solid;
-  border-width: 0;
-  z-index: 2;
-}
-
-.pane::before,
-.ladder-fig::before,
-.ov-headline::before {
-  top: -5px;
-  left: -5px;
-  border-top-width: 1px;
-  border-left-width: 1px;
-}
-
-.pane::after,
-.ladder-fig::after,
-.ov-headline::after {
-  bottom: -5px;
-  right: -5px;
-  border-bottom-width: 1px;
-  border-right-width: 1px;
-}
-
-/* Panes clip their overflow, so their marks sit just inside the corners. */
-.pane::before {
-  top: 4px;
-  left: 4px;
-}
-
-.pane::after {
-  bottom: 4px;
-  right: 4px;
-}
-
-
 /* ---------- Tick boxes: drawn check ---------- */
 
 input[type="checkbox"] {
@@ -284,7 +192,7 @@ input[type="checkbox"] {
   margin: 0;
   flex-shrink: 0;
   vertical-align: middle;
-  border: 1.5px solid var(--ink-2);
+  border: 1.5px solid var(--text-muted);
   border-radius: 2px;
   background: var(--surface);
   cursor: pointer;
@@ -298,16 +206,16 @@ input[type="checkbox"]::after {
   width: 8px;
   height: 4px;
   margin-top: -2px;
-  border-left: 2px solid var(--on-accent);
-  border-bottom: 2px solid var(--on-accent);
+  border-left: 2px solid var(--text-on-ink);
+  border-bottom: 2px solid var(--text-on-ink);
   transform: rotate(-45deg) scale(0);
   transform-origin: center;
   transition: transform var(--dur) var(--ease);
 }
 
 input[type="checkbox"]:checked {
-  background: var(--indigo);
-  border-color: var(--indigo);
+  background: var(--info);
+  border-color: var(--info);
 }
 
 input[type="checkbox"]:checked::after {
@@ -315,11 +223,11 @@ input[type="checkbox"]:checked::after {
 }
 
 input[type="checkbox"]:hover {
-  border-color: var(--ink);
+  border-color: var(--text);
 }
 
 input[type="checkbox"]:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -338,7 +246,7 @@ input[type="checkbox"]:focus-visible {
   margin: 0;
   border: 0;
   border-radius: 50%;
-  background: var(--ink-2);
+  background: var(--text-muted);
   transform: translateX(0);
   transition:
     transform var(--dur) var(--ease),
@@ -346,7 +254,7 @@ input[type="checkbox"]:focus-visible {
 }
 
 .switch input[type="checkbox"]:checked::after {
-  background: var(--on-accent);
+  background: var(--text-on-ink);
   transform: translateX(12px);
 }
 
@@ -362,7 +270,7 @@ input[type="checkbox"]:focus-visible {
 .ff-input:focus,
 .dp-search:focus,
 .case-search:focus {
-  border-color: var(--ink);
+  border-color: var(--text);
   outline: none;
 }
 
@@ -370,7 +278,7 @@ input[type="checkbox"]:focus-visible {
 .dp-search:focus-visible,
 .case-search:focus-visible {
   outline: none;
-  border-bottom-color: var(--indigo);
+  border-bottom-color: var(--info);
   border-bottom-width: 2px;
 }
 
@@ -403,7 +311,7 @@ select.ff-input,
   top: 0;
   bottom: 0;
   width: 2px;
-  background: var(--marigold);
+  background: var(--running);
   transform: scaleY(0);
   transition: transform var(--dur) var(--ease);
 }
@@ -431,68 +339,3 @@ select.ff-input,
   overflow: hidden;
 }
 
-/* ===== 11. Registration marks draw in on hover / focus =====
-   Print crop marks at two corners of cards; they scale out from the corner when the card is
-   hovered or holds focus (drawn just inside the corner, as some cards clip their overflow). */
-.ccard,
-.dw,
-.st-cond,
-.rv-case,
-.rv-answer,
-.sc-hero {
-  position: relative;
-}
-
-.ccard::before,
-.ccard::after,
-.dw::before,
-.dw::after,
-.st-cond::before,
-.st-cond::after,
-.rv-case::before,
-.rv-case::after,
-.rv-answer::before,
-.rv-answer::after,
-.sc-hero::before,
-.sc-hero::after {
-  content: "";
-  position: absolute;
-  z-index: 3;
-  width: 10px;
-  height: 10px;
-  pointer-events: none;
-  border: 0 solid var(--riso);
-  transform: scale(0);
-  transition: transform var(--dur) var(--ease);
-}
-
-.ccard::before,
-.dw::before,
-.st-cond::before,
-.rv-case::before,
-.rv-answer::before,
-.sc-hero::before {
-  top: 3px;
-  left: 3px;
-  border-top-width: 1.5px;
-  border-left-width: 1.5px;
-  transform-origin: top left;
-}
-
-.ccard::after,
-.dw::after,
-.st-cond::after,
-.rv-case::after,
-.rv-answer::after,
-.sc-hero::after {
-  bottom: 3px;
-  right: 3px;
-  border-bottom-width: 1.5px;
-  border-right-width: 1.5px;
-  transform-origin: bottom right;
-}
-
-:is(.ccard, .dw, .st-cond, .rv-case, .rv-answer, .sc-hero):is(:hover, :focus-within)::before,
-:is(.ccard, .dw, .st-cond, .rv-case, .rv-answer, .sc-hero):is(:hover, :focus-within)::after {
-  transform: scale(1);
-}

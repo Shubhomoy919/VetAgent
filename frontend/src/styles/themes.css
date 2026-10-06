@@ -1,30 +1,30 @@
 /* The Field Station — theme structure that goes beyond colour tokens.
-   Technique: chrome regions RE-SCOPE the core tokens (--ink, --ink-2, --rule, --raised …) to their own
+   Technique: chrome regions RE-SCOPE the core tokens (--text, --text-muted, --rule, --raised …) to their own
    block colours, so every component inside them adapts with no per-component overrides. */
 
 /* ---------- Chrome: sidebar and top bar (all themes) ---------- */
 .sidebar {
-  --ink: var(--sidebar-ink);
-  --ink-2: var(--sidebar-ink-2);
+  --text: var(--sidebar-ink);
+  --text-muted: var(--sidebar-ink-2);
   --rule: color-mix(in srgb, var(--sidebar-ink) 18%, var(--sidebar));
   --rule-strong: color-mix(in srgb, var(--sidebar-ink) 30%, var(--sidebar));
   --raised: color-mix(in srgb, var(--sidebar-ink) 10%, var(--sidebar));
   --surface-sunk: color-mix(in srgb, var(--sidebar-ink) 6%, var(--sidebar));
-  --focus: var(--riso);
+  --focus-ring: var(--ink-pink);
   background: var(--sidebar);
-  color: var(--ink);
+  color: var(--text);
 }
 
 .topbar {
-  --ink: var(--topbar-ink);
-  --ink-2: var(--topbar-ink-2);
+  --text: var(--topbar-ink);
+  --text-muted: var(--topbar-ink-2);
   --rule: color-mix(in srgb, var(--topbar-ink) 18%, var(--topbar-bg));
   --rule-strong: color-mix(in srgb, var(--topbar-ink) 30%, var(--topbar-bg));
   --raised: color-mix(in srgb, var(--topbar-ink) 8%, var(--topbar-bg));
   --topbar-rule: var(--rule-strong);
-  --focus: var(--riso);
+  --focus-ring: var(--ink-pink);
   background: var(--topbar-bg);
-  color: var(--ink);
+  color: var(--text);
 }
 
 /* Instrument readouts in the top bar read in the theme's accent ink. */
@@ -33,7 +33,7 @@
 }
 
 .topbar .eyebrow {
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 /* Footer and demo banner sit on the ground. */
@@ -42,38 +42,7 @@
   background: color-mix(in srgb, var(--surface) 92%, transparent);
 }
 
-/* ---------- Depth: hairlines + hard offset print shadows only ---------- */
-.pane,
-.ccard,
-.dw,
-.sc-hero,
-.sc-table-wrap,
-.dp-table-wrap,
-.ladder-fig,
-.st-cond,
-.rv-case,
-.rv-answer,
-.ov-headline,
-.drawer,
-.pal,
-.coach,
-.toast {
-  box-shadow: var(--shadow-hard);
-}
-
-/* Primary buttons sit on a 2px hard shadow and press down into it. */
-.btn-primary {
-  box-shadow: var(--shadow-press);
-  transition:
-    transform var(--dur-fast) var(--ease),
-    box-shadow var(--dur-fast) var(--ease),
-    background-color var(--dur-fast) var(--ease);
-}
-
-.btn-primary:active:not(:disabled) {
-  transform: translate(2px, 2px);
-  box-shadow: 0 0 0 var(--shadow);
-}
+/* Buttons press down 1px (mechanical edge in controls.css); no button shadows. */
 
 /* ---------- Cyanotype: cyan-white line work ---------- */
 :root[data-theme="cyanotype"] .pane,
@@ -84,86 +53,28 @@
 
 :root[data-theme="cyanotype"] .ph-title,
 :root[data-theme="cyanotype"] .case-title {
-  color: var(--ink);
+  color: var(--text);
 }
 
-/* ---------- Bone & Block: solid colour blocks ---------- */
-/* Condition headers are solid pigment blocks with bone text. */
-:root[data-theme="bone-block"] .ccard-head {
-  --ink: var(--on-block);
-  --ink-2: color-mix(in srgb, var(--on-block) 80%, var(--cond-block));
-  --surface-sunk: color-mix(in srgb, var(--on-block) 22%, var(--cond-block));
-  --rule-strong: color-mix(in srgb, var(--on-block) 45%, var(--cond-block));
-  --raised: var(--on-block);
-  --cond: var(--on-block);
-  --cond-text: var(--on-block);
-  background: var(--cond-block);
-  color: var(--on-block);
-}
-
-:root[data-theme="bone-block"] .ccard-head .ccard-id,
-:root[data-theme="bone-block"] .ccard-head .ccard-name {
-  color: var(--on-block);
-}
-
-:root[data-theme="bone-block"] .ccard-bar {
-  display: none;
-}
-
-/* ---------- Kalamkari: block-print border motif ---------- */
-/* A small repeating one-colour geometric block print (madder), 8% opacity, along the sidebar edge.
-   Drawn as an SVG mask filled with the pigment, so the colour stays a token. */
-:root[data-theme="kalamkari"] .sidebar {
-  position: relative;
-}
-
-:root[data-theme="kalamkari"] .sidebar::after,
-:root[data-theme="kalamkari"] .plate-frame::before {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  background: var(--madder);
-  opacity: 0.08;
-  -webkit-mask-image: var(--block-print);
-  mask-image: var(--block-print);
-  -webkit-mask-size: 16px 16px;
-  mask-size: 16px 16px;
-}
-
-:root[data-theme="kalamkari"] .sidebar::after {
-  top: 0;
-  bottom: 0;
-  right: 0;
-  width: 16px;
-}
-
-:root[data-theme="kalamkari"] {
-  /* lozenge + four dots, the commonest Machilipatnam border unit */
-  --block-print: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 2l6 6-6 6-6-6z' fill='none' stroke='%23000' stroke-width='1.4'/%3E%3Cpath d='M8 5.5l2.5 2.5L8 10.5 5.5 8z'/%3E%3Ccircle cx='1' cy='1' r='1'/%3E%3Ccircle cx='15' cy='1' r='1'/%3E%3Ccircle cx='1' cy='15' r='1'/%3E%3Ccircle cx='15' cy='15' r='1'/%3E%3C/svg%3E");
-}
-
-
-
-/* ---------- Scorecard hero: a solid colour block (peacock) in every theme ---------- */
+/* ---------- Scorecard hero: a paper ticket on the ground (every theme) ---------- */
 .sc-hero {
-  --ink: var(--on-peacock);
-  --ink-2: var(--on-peacock-2);
-  --cond-text: var(--on-peacock);
-  --leaf-text: var(--on-peacock);
-  --vermilion-text: var(--on-peacock);
-  --rule: color-mix(in srgb, var(--on-peacock) 35%, var(--peacock));
-  --surface-sunk: color-mix(in srgb, var(--on-peacock) 18%, var(--peacock));
-  --raised: var(--on-peacock);
-  background: var(--peacock);
-  border-color: var(--peacock);
-  border-top-color: var(--on-peacock);
-  color: var(--ink);
+  --text: var(--hero-text);
+  --text-muted: var(--hero-text-2);
+  --cond-text: var(--hero-text);
+  --safe-text: var(--hero-text);
+  --unsafe-text: var(--hero-text);
+  --rule: var(--paper-rule);
+  --surface-sunk: color-mix(in srgb, var(--hero-text) 8%, var(--hero-bg));
+  --raised: var(--hero-bg);
+  background: var(--hero-bg);
+  border-color: var(--hero-bg);
+  border-top-color: var(--hero-text);
+  color: var(--text);
 }
 
 .sc-hero [data-cond] {
-  --cond-text: var(--on-peacock);
-  --cond: var(--on-peacock);
-  color: var(--on-peacock);
+  --cond-text: var(--hero-text);
+  color: var(--hero-text);
 }
 
 .sc-hero .sc-hero-delta {

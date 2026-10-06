@@ -3,7 +3,7 @@
    through the stripe (radial mask in patterns.css), mono ID. */
 
 .specimen-tag {
-  --sp: var(--ink-2);
+  --sp: var(--text-muted);
   --hole-x: 5px;
   --hole-r: 2.2px;
   position: relative;
@@ -22,7 +22,7 @@
   font-weight: 500;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  color: var(--ink);
+  color: var(--text);
 }
 
 .specimen-tag[data-size="lg"] {
@@ -68,19 +68,19 @@
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
 .type-pill[data-type="drug_safety"],
 .type-pill[data-type="withdrawal_legal"] {
-  color: var(--terracotta-text);
+  color: var(--caution-text);
   border-color: currentColor;
 }
 
 .type-pill[data-type="escalation"],
 .type-pill[data-type="triage"] {
-  color: var(--indigo-text);
+  color: var(--info-text);
   border-color: currentColor;
 }
 
@@ -99,7 +99,7 @@
   font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--madder-text);
+  color: var(--unsafe-text);
   white-space: nowrap;
   transform: rotate(-2deg);
   filter: url(#ink-rough-sm);

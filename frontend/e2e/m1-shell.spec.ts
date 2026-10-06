@@ -39,20 +39,20 @@ test("/ opens the Bench shell with zero console errors", async ({ page }) => {
     await expect(page.locator(`.deck-tab[data-cond="${id}"]`)).toBeVisible();
   }
 
-  // Default theme is Cyanotype.
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "cyanotype");
+  // Default theme is Riso Black.
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "riso-black");
   await page.waitForTimeout(400); // let entrance motion settle before the screenshot
-  await page.screenshot({ path: path.join(SHOTS, "m1-bench-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m1-bench-1440-riso-black.png") });
 
   // The 3-way swatch switcher in the top bar.
-  await page.getByTestId("theme-swatches").first().getByRole("radio", { name: "Bone & Block" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "bone-block");
+  await page.getByTestId("theme-swatches").first().getByRole("radio", { name: "Cyanotype" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "cyanotype");
   await page.waitForTimeout(400);
-  await page.screenshot({ path: path.join(SHOTS, "m1-bench-1440-bone-block.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m1-bench-1440-cyanotype.png") });
 
   // Theme choice persists across reload.
   await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "bone-block");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "cyanotype");
 
   expect(errors, `console errors:\n${errors.join("\n")}`).toEqual([]);
 });

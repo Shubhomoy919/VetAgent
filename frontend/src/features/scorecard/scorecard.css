@@ -18,14 +18,14 @@
 }
 
 .sc-title {
-  font-size: var(--text-display);
+  font-size: var(--display-sm);
   line-height: 1;
 }
 
 .sc-sub {
   margin-top: var(--s2);
   max-width: 70ch;
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-size: var(--text-sm);
 }
 
@@ -44,7 +44,7 @@
   background: var(--surface);
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);
-  color: var(--ink);
+  color: var(--text);
   font: inherit;
   font-size: var(--text-sm);
 }
@@ -55,7 +55,7 @@ a.btn {
 
 .sc-warnings {
   padding: var(--s3) var(--s4);
-  border: 1px solid var(--marigold);
+  border: 1px solid var(--running);
   border-left-width: 3px;
   border-radius: var(--radius);
   background: var(--surface);
@@ -68,7 +68,7 @@ a.btn {
 
 .sc-warnings p + p {
   margin-top: 2px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 /* ---------- Tiles ---------- */
@@ -79,7 +79,7 @@ a.btn {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   counter-reset: plate;
-  border-top: 2px solid var(--ink);
+  border-top: 2px solid var(--text);
   border-bottom: var(--hairline);
 }
 
@@ -102,7 +102,7 @@ a.btn {
   font-family: var(--font-mono);
   font-variant-caps: normal;
   letter-spacing: 0.02em;
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-weight: 400;
 }
 
@@ -119,7 +119,7 @@ a.btn {
 
 .sc-tile-cond {
   font-size: 10px;
-  color: var(--ink-2);
+  color: var(--text-muted);
   min-height: 12px;
 }
 
@@ -131,12 +131,12 @@ a.btn {
 
 .sc-arrow {
   padding-bottom: 6px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .sc-tile-note {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 /* ---------- Sections ---------- */
@@ -157,7 +157,7 @@ a.btn {
 
 .sc-note {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
   max-width: 90ch;
 }
 
@@ -219,7 +219,7 @@ a.btn {
 
 .dw-dir {
   font-size: 10px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .dw-grid {
@@ -245,7 +245,7 @@ a.btn {
 }
 
 .dw-row:focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 2px solid var(--focus-ring);
   outline-offset: -2px;
 }
 
@@ -289,7 +289,7 @@ a.btn {
 }
 
 .dw-n {
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-size: 10px;
 }
 
@@ -303,7 +303,7 @@ a.btn {
   top: 0;
   transform: translateX(-50%);
   font-size: 9.5px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .dw-tip {
@@ -312,7 +312,7 @@ a.btn {
   transform: translateX(-50%);
   z-index: 5;
   padding: 4px 8px;
-  background: var(--ink);
+  background: var(--text);
   color: var(--bg);
   border-radius: var(--radius-sm);
   font-size: 10.5px;
@@ -367,7 +367,7 @@ a.btn {
 .sc-th-sub {
   display: block;
   font-weight: 400;
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-size: 10px;
 }
 
@@ -382,22 +382,22 @@ a.btn {
 .sc-ci,
 .sc-na,
 .sc-dir {
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .sc-usage-row th,
 .sc-usage-row td {
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 [data-bad="true"] {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
   font-weight: 500;
 }
 
 [data-sig="true"] {
   font-weight: 500;
-  color: var(--indigo-text);
+  color: var(--info-text);
 }
 
 .sc-two {
@@ -423,7 +423,7 @@ a.btn {
   padding: var(--s4) var(--s5) var(--s5);
   background: var(--raised);
   border: var(--hairline);
-  border-top: 3px solid var(--ink);
+  border-top: 3px solid var(--text);
   border-radius: var(--radius);
 }
 
@@ -433,7 +433,7 @@ a.btn {
   flex-wrap: wrap;
   gap: var(--s2);
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .sc-hero-kicker .mono {
@@ -445,7 +445,7 @@ a.btn {
   font-family: var(--font-serif);
   font-style: italic;
   font-size: var(--text-lg);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .sc-hero-grid {
@@ -475,20 +475,20 @@ a.btn {
 
 .sc-hero-base {
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .sc-hero-delta[data-good="true"] {
-  color: var(--leaf-text);
+  color: var(--safe-text);
 }
 
 .sc-hero-delta[data-good="false"] {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
 }
 
 .sc-hero-note {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 @media (max-width: 1100px) {
@@ -509,7 +509,7 @@ a.btn {
   padding: var(--s2) var(--s3) var(--s3);
   background: var(--surface);
   border: var(--hairline);
-  border-top: 2px solid var(--ink);
+  border-top: 2px solid var(--text);
 }
 
 .sm-head {
@@ -528,7 +528,7 @@ a.btn {
 
 .sm-n {
   font-size: 10px;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .sm-rows {
@@ -571,17 +571,17 @@ a.btn {
   margin-left: -4px;
   border-radius: 50%;
   background: var(--cond);
-  box-shadow: 0 0 0 1.5px var(--surface);
+  outline: 1.5px solid var(--surface);
 }
 
 .sm-danger {
   font-size: 10px;
   text-align: right;
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .sm-danger[data-bad="true"] {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
 }
 
 .sm-ledger {
@@ -590,13 +590,13 @@ a.btn {
 
 .sm-ledger summary {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
   cursor: pointer;
 }
 
 /* Crosshair cursor readout */
 .dw-cross {
-  stroke: var(--riso);
+  stroke: var(--ink-pink);
   stroke-width: 1;
   stroke-dasharray: 2 2;
   pointer-events: none;
@@ -609,8 +609,8 @@ a.btn {
   padding: 0 4px;
   translate: -50% 0;
   font-size: 10px;
-  color: var(--on-accent);
-  background: var(--riso-text);
+  color: var(--text-on-ink);
+  background: var(--accent-text);
   border-radius: 2px;
   pointer-events: none;
 }

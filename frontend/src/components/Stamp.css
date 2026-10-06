@@ -29,15 +29,15 @@
 }
 
 .stamp[data-tone="good"] {
-  color: var(--leaf-text);
+  color: var(--safe-text);
 }
 
 .stamp[data-tone="danger"] {
-  color: var(--vermilion-text);
+  color: var(--unsafe-text);
 }
 
 .stamp[data-tone="info"] {
-  color: var(--indigo-text);
+  color: var(--info-text);
 }
 
 @media (forced-colors: active) {

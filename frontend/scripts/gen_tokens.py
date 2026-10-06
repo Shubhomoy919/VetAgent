@@ -1,12 +1,14 @@
-"""Generate src/styles/tokens.css — "The Field Station" (three themes). Run: npm run tokens
+"""Generate src/styles/tokens.css — Riso Black (default), Cyanotype, Kalamkari. Run: npm run tokens
 
-Each theme lists its specified colours. From those the generator derives:
-  * *-text twins: the same hue, shifted only in OKLCH lightness until the colour reaches 4.6:1 as text
-    on every background of the theme (bg, surface, raised, sunk);
-  * c*-block (Bone & Block): condition block fills, deepened in lightness until bone text on them is AA;
-  * the oklch @supports layer (same colours).
-Hex values come first as the fallback. scripts/check-contrast.mjs verifies the result.
+Every theme defines the SAME semantic token names; components use only these.
+Specified values are written as given. Derived values:
+  * *-text twins: same hue, OKLCH lightness shifted until 4.6:1 as text on every background of the theme;
+  * inks used as fills under --text-on-ink are shifted in lightness until that text is AA (reported);
+  * paper inks (marks on paper) are shifted until 3:1 against paper (reported);
+  * an @supports oklch layer repeats every hex colour.
+scripts/check-contrast.ts verifies every text/background pair the UI uses.
 """
+import json
 import math
 import pathlib
 
@@ -65,7 +67,7 @@ def cr(a, b):
     return (x + 0.05) / (y + 0.05)
 
 
-def mix(a, b, p):  # srgb color-mix(a p, b)
+def mix(a, b, p):
     return hexof([x * p + y * (1 - p) for x, y in zip(h2rgb(a), h2rgb(b))])
 
 
@@ -85,150 +87,207 @@ def shift_until(h, ok, lighter):
     raise SystemExit(f"cannot derive a passing variant of {h}")
 
 
-def ok(h):
+def oklch_str(h):
     L, C, H = to_oklch(h)
     return f"oklch({L * 100:.1f}% {C:.3f} {H:.1f})"
 
 
-# ---------------------------------------------------------------- themes
-# Slots: bg (ground), sidebar, surface, raised, rule (hairline), grid, ink, ink-2,
-# pigments: indigo, peacock, marigold, riso, vermilion (unsafe), leaf (safe), terracotta (caution),
-# plus theme pigments (cyan, madder, ochre, forest) and conditions c0–c4.
+INKS = ["pink", "sunflower", "orange", "cornflower", "violet", "mint", "madder"]
+COND_PAPER = {"c0": "orange", "c1": "cornflower", "c2": "violet", "c3": "mint", "c4": "sunflower"}
 
+# ---------------------------------------------------------------- themes
 THEMES = {
-    "cyanotype": dict(
-        dark=True, label="Cyanotype",
-        base=dict(bg="#0C2F57", sidebar="#08223F", surface="#10396A", raised="#154679", rule="#2B5C8F",
-                  grid="#1A4475", ink="#EAF2F8", **{"ink-2": "#A8C3DA"}),
-        pig=dict(indigo="#9CC3FF", cyan="#BFE6FF", peacock="#5FD3C8", marigold="#FFB627", riso="#FF6F9C",
-                 vermilion="#E2574C", madder="#E2574C", leaf="#7FD1A1", terracotta="#F08A5D", ochre="#FFB627",
-                 forest="#7FD1A1",
-                 c0="#9FB3C8", c1="#7FB2FF", c2="#C5D4FF", c3="#5FD3C8", c4="#FFB627"),
-        chrome=dict(sidebar_ink="#EAF2F8", topbar_bg="#08223F", topbar_ink="#EAF2F8", topbar_accent="#FFB627"),
-        zones=dict(bench="cyan", scorecard="peacock", data="marigold", runs="riso", about="ink-2"),
-        derived_ink="#08223F",
+    "riso-black": dict(
+        label="Riso Black", dark=True,
+        base={
+            "bg": "#000000", "sidebar": "#000000", "surface": "#000000", "raised": "#000000",
+            "rule": "#2A2A2A", "rule-soft": "rgba(244,239,230,.13)",
+            "grid-minor": "rgba(255,255,255,.035)", "grid-major": "rgba(255,255,255,.06)",
+            "text": "#F4EFE6", "text-body": "#E4DFD6", "text-muted": "#B8B2A8", "text-dim": "#8A847A",
+            "text-on-ink": "#10201F",
+            "paper": "#F5EBDD", "paper-text": "#10201F", "paper-muted": "#4B5655", "paper-rule": "rgba(16,32,31,.14)",
+        },
+        inks=dict(pink="#FF4F9A", sunflower="#FFC933", orange="#FF7A2F", cornflower="#5B8CFF",
+                  violet="#9B7BFF", mint="#6EE7C8", madder="#E5484D"),
+        paper_inks={"orange": "#E8601C", "cornflower": "#3B6CF0", "violet": "#7A55F0", "mint": "#1FAE8C",
+                    "sunflower": "#D99A00", "madder": "#C23A2E", "stamp-green": "#1F8A5B"},
+        cond=dict(c0="orange", c1="cornflower", c2="violet", c3="mint", c4="sunflower"),
+        topbar_accent="sunflower",
     ),
-    "bone-block": dict(
-        dark=False, label="Bone & Block",
-        base=dict(bg="#F2EDE3", sidebar="#1E2A78", surface="#FBF8F2", raised="#FFFFFF", rule="#D9D1C1",
-                  grid="#E4DCCB", ink="#121418", **{"ink-2": "#575C66"}),
-        pig=dict(indigo="#1E2A78", cyan="#3A6EA5", peacock="#00727A", marigold="#F2A007", riso="#E8447C",
-                 vermilion="#D23B1F", madder="#D23B1F", leaf="#2E7D32", terracotta="#B4532A", ochre="#C4780A",
-                 forest="#2E7D32",
-                 c0="#575C66", c1="#3A6EA5", c2="#1E2A78", c3="#00727A", c4="#C4780A"),
-        chrome=dict(sidebar_ink="#F2EDE3", topbar_bg="#121418", topbar_ink="#F2EDE3", topbar_accent="#F2A007"),
-        zones=dict(bench="indigo", scorecard="peacock", data="marigold", runs="riso", about="ink-2"),
-        derived_ink="#121418",
+    "cyanotype": dict(
+        label="Cyanotype", dark=True,
+        base={
+            "bg": "#0C2F57", "sidebar": "#08223F", "surface": "#10396A", "raised": "#154679",
+            "rule": "#2B5C8F", "rule-soft": "rgba(234,242,248,.14)",
+            "grid-minor": "rgba(191,230,255,.05)", "grid-major": "rgba(191,230,255,.09)",
+            "text": "#EAF2F8", "text-body": "#DCE8F2", "text-muted": "#A8C3DA", "text-dim": "#93B1CB",
+            "text-on-ink": "#08223F",
+            "paper": "#EAF2F8", "paper-text": "#0C2F57", "paper-muted": "#3D5C7D", "paper-rule": "rgba(12,47,87,.16)",
+        },
+        inks=dict(pink="#FF6F9C", sunflower="#FFB627", orange="#F08A5D", cornflower="#7FB2FF",
+                  violet="#B9A6FF", mint="#5FD3C8", madder="#E2574C"),
+        paper_inks={"orange": "#C2551B", "cornflower": "#2F5FC4", "violet": "#6A48D6", "mint": "#12806B",
+                    "sunflower": "#A86F00", "madder": "#B3261E", "stamp-green": "#1F7A4F"},
+        cond={"c0": "#9FB3C8", "c1": "#7FB2FF", "c2": "#C5D4FF", "c3": "#5FD3C8", "c4": "#FFB627"},
+        topbar_accent="sunflower",
     ),
     "kalamkari": dict(
-        dark=False, label="Kalamkari",
-        base=dict(bg="#F4EBDD", sidebar="#EFE3CF", surface="#FBF5EA", raised="#FFFCF5", rule="#D8C7A8",
-                  grid="#E6D8BF", ink="#1C1A17", **{"ink-2": "#5E5548"}),
-        pig=dict(indigo="#1F2B5E", cyan="#1F2B5E", peacock="#2D5A3D", marigold="#C98A1B", riso="#B83A62",
-                 vermilion="#9E2B25", madder="#9E2B25", leaf="#2D5A3D", terracotta="#A8521F", ochre="#C98A1B",
-                 forest="#2D5A3D",
-                 c0="#6E665C", c1="#1F2B5E", c2="#2D5A3D", c3="#C98A1B", c4="#9E2B25"),
-        chrome=dict(sidebar_ink="#1C1A17", topbar_bg="#FBF5EA", topbar_ink="#1C1A17", topbar_accent="#9E2B25"),
-        zones=dict(bench="indigo", scorecard="forest", data="ochre", runs="madder", about="ink-2"),
-        derived_ink="#1C1A17",
+        label="Kalamkari", dark=False,
+        base={
+            "bg": "#F4EBDD", "sidebar": "#EFE3CF", "surface": "#FBF5EA", "raised": "#FFFCF5",
+            "rule": "#D8C7A8", "rule-soft": "rgba(28,26,23,.12)",
+            "grid-minor": "rgba(28,26,23,.05)", "grid-major": "rgba(28,26,23,.09)",
+            "text": "#1C1A17", "text-body": "#2B2823", "text-muted": "#5E5548", "text-dim": "#6A6156",
+            "text-on-ink": "#FBF5EA",
+            "paper": "#FFFCF5", "paper-text": "#1C1A17", "paper-muted": "#5E5548", "paper-rule": "rgba(28,26,23,.14)",
+        },
+        inks=dict(pink="#B83A62", sunflower="#C98A1B", orange="#A8521F", cornflower="#1F2B5E",
+                  violet="#5B3F7A", mint="#2D5A3D", madder="#9E2B25"),
+        paper_inks={"orange": "#8E4317", "cornflower": "#1F2B5E", "violet": "#4A3266", "mint": "#24492F",
+                    "sunflower": "#8F5400", "madder": "#8A241F", "stamp-green": "#2D5A3D"},
+        cond={"c0": "#6E665C", "c1": "#1F2B5E", "c2": "#2D5A3D", "c3": "#C98A1B", "c4": "#9E2B25"},
+        topbar_accent="madder",
     ),
 }
-DEFAULT = "cyanotype"
-SPECIES = dict(bov="indigo", cap="leaf", avi="marigold", can="terracotta", fel="peacock")
+DEFAULT = "riso-black"
+SPECIES = dict(can="orange", fel="violet", bov="cornflower", cap="mint", avi="sunflower")
+# Page zones: each section has its own ink pair (InkBleed clouds, watermark, nav marker tint).
+ZONES = dict(bench=("pink", "cornflower"), scorecard=("mint", "violet"), data=("sunflower", "orange"),
+             runs=("pink", "violet"), overview=("orange", "pink"), about=("cornflower", "mint"))
 
+adjustments = []
+palette_json = {}
 out = [
-    "/* The Field Station — three themes. GENERATED by scripts/gen_tokens.py; edit there, not here.",
-    "   Hex values first (fallback), then an @supports layer in oklch with the same colours.",
-    "   Pigments are fills/marks; *-text twins are the same hue shifted in OKLCH lightness to reach",
-    "   WCAG AA as text on every background of the theme. Checked by scripts/check-contrast.mjs. */",
+    "/* VetAgentBench-IN tokens — Riso Black (default), Cyanotype, Kalamkari.",
+    "   GENERATED by scripts/gen_tokens.py; edit there, not here. Every theme defines the same semantic",
+    "   names; components use only those. Hex first, then an @supports oklch layer with the same colours.",
+    "   Checked by scripts/check-contrast.ts. */",
     "",
 ]
-summary = {}
 for name, t in THEMES.items():
-    b, p, ch = t["base"], t["pig"], t["chrome"]
+    b = dict(t["base"])
     dark = t["dark"]
-    sunk = mix(b["ink"], b["bg"], 0.05)
+    sunk = mix(b["text"], b["bg"], 0.05)
     bgs = [b["bg"], b["surface"], b["raised"], sunk]
+    on_ink = b["text-on-ink"]
     vals = dict(b)
-    vals.update(p)
-    for k, h in p.items():
-        vals[f"{k}-text"] = shift_until(h, lambda c: min(cr(c, x) for x in bgs) >= 4.6, lighter=dark)
-    vals["sidebar-ink"] = ch["sidebar_ink"]
-    vals["sidebar-ink-2"] = shift_until(mix(ch["sidebar_ink"], b["sidebar"], 0.72), lambda c: cr(c, b["sidebar"]) >= 4.6,
-                                        lighter=cr(ch["sidebar_ink"], "#000000") > cr(ch["sidebar_ink"], "#ffffff"))
-    vals["topbar-bg"] = ch["topbar_bg"]
-    vals["topbar-ink"] = ch["topbar_ink"]
-    readout_bg = mix("#000000", ch["topbar_bg"], 0.25 if lum(ch["topbar_bg"]) < 0.2 else 0.07)
-    vals["readout-bg"] = readout_bg
-    on_bar = lambda c: min(cr(c, ch["topbar_bg"]), cr(c, readout_bg)) >= 4.6
-    vals["topbar-accent"] = shift_until(ch["topbar_accent"], on_bar, lighter=lum(ch["topbar_bg"]) < 0.2)
-    vals["topbar-ink-2"] = shift_until(mix(ch["topbar_ink"], ch["topbar_bg"], 0.72), on_bar, lighter=lum(ch["topbar_bg"]) < 0.2)
-    bone = b["bg"]
-    for i in range(5):
-        c = p[f"c{i}"]
-        if name == "bone-block":
-            vals[f"c{i}-block"] = shift_until(c, lambda x: cr(x, bone) >= 4.6, lighter=False)
-        else:
-            vals[f"c{i}-block"] = c
-    vals["scrim-base"] = t["derived_ink"]
-    # Text on solid pigment fills (lit triage segments, chips): whichever ink reads best, must be AA.
-    cands = [b["ink"], b["bg"], "#FFFFFF", "#111111"]
-    for k in ("leaf", "vermilion", "marigold", "peacock", "indigo", "cyan"):
-        best = max(cands, key=lambda c, k=k: cr(c, p[k]))
-        vals[f"on-{k}"] = best
-    # Secondary text on the peacock colour block (Scorecard hero): AA-checked.
-    vals["on-peacock-2"] = shift_until(mix(vals["on-peacock"], p["peacock"], 0.9), lambda c: cr(c, p["peacock"]) >= 4.6,
-                                       lighter=lum(vals["on-peacock"]) > lum(p["peacock"]))
-    # Instrument face (meter, triage strip): face, unlit segment, and the ink for labels on unlit segments.
-    face = b["sidebar"] if dark else b["ink"]
-    off = mix(b["ink-2"], face, 0.30)
-    vals["meter-ink"] = max([b["ink"], b["bg"], "#FFFFFF", b["ink-2"]], key=lambda c: cr(c, off))
-    vals["shadow"] = shift_until(mix(t["derived_ink"], b["bg"], 0.55), lambda x: True, lighter=False)
+    # Dimmest text must still read on every panel.
+    vals["text-dim"] = shift_until(b["text-dim"], lambda x: min(cr(x, g) for g in bgs) >= 4.6, lighter=dark)
+    if vals["text-dim"].lower() != b["text-dim"].lower():
+        adjustments.append(f"{name}: --text-dim {b['text-dim']} -> {vals['text-dim']} (AA on every panel)")
 
-    sel = f':root[data-theme="{name}"]' if name != DEFAULT else f':root,\n:root[data-theme="{name}"]'
+    for k, h in t["inks"].items():
+        # Madder is never a background for small text (colour rule A3), so it keeps its exact value.
+        fixed = h if k == "madder" else shift_until(h, lambda c: cr(c, on_ink) >= 4.6, lighter=lum(on_ink) < 0.2)
+        if fixed.lower() != h.lower():
+            adjustments.append(f"{name}: --ink-{k} {h} -> {fixed} (text-on-ink AA on the fill)")
+        vals[f"ink-{k}"] = fixed
+    for k, h in t["paper_inks"].items():
+        fixed = shift_until(h, lambda c: cr(c, b["paper"]) >= 3.1, lighter=lum(b["paper"]) < 0.2)
+        if fixed.lower() != h.lower():
+            adjustments.append(f"{name}: --paper-{k} {h} -> {fixed} (3:1 mark on paper)")
+        vals[f"paper-{k}"] = fixed
+
+    def ink(k):
+        return vals[f"ink-{k}"]
+
+    for c, v in t["cond"].items():
+        h = v if v.startswith("#") else ink(v)
+        # Condition colours are chart marks (3:1 on the ground) and fills under text-on-ink (AA).
+        fixed = shift_until(h, lambda x: cr(x, b["bg"]) >= 3.0 and cr(x, on_ink) >= 4.6, lighter=lum(on_ink) < 0.2)
+        if fixed.lower() != h.lower():
+            adjustments.append(f"{name}: --{c} {h} -> {fixed} (chart mark 3:1 and text-on-ink AA)")
+        h = fixed
+        vals[c] = h
+        vals[f"{c}-text"] = shift_until(h, lambda x: min(cr(x, g) for g in bgs) >= 4.6, lighter=dark)
+        vals[f"{c}-paper"] = vals[f"paper-{COND_PAPER[c]}"]
+
+    sem = dict(safe=ink("mint"), unsafe=ink("madder"), caution=ink("orange"), info=ink("cornflower"),
+               running=ink("sunflower"), accent=ink("pink"))
+    for k, h in sem.items():
+        vals[k] = h
+        vals[f"{k}-text"] = shift_until(h, lambda x: min(cr(x, g) for g in bgs) >= 4.6, lighter=dark)
+    vals["safe-paper"] = vals["paper-stamp-green"]
+    vals["unsafe-paper"] = vals["paper-madder"]
+    vals["focus-ring"] = shift_until(ink("pink"), lambda x: min(cr(x, g) for g in bgs) >= 3.0, lighter=dark)
+
+    vals["sidebar-ink"] = b["text"]
+    vals["sidebar-ink-2"] = shift_until(b["text-muted"], lambda c: cr(c, b["sidebar"]) >= 4.6, lighter=dark)
+    vals["topbar-bg"] = b["sidebar"]
+    vals["topbar-ink"] = b["text"]
+    readout = mix("#ffffff" if dark else "#000000", b["sidebar"], 0.06)
+    vals["readout-bg"] = readout
+    vals["topbar-accent"] = shift_until(ink(t["topbar_accent"]), lambda c: min(cr(c, b["sidebar"]), cr(c, readout)) >= 4.6, lighter=dark)
+    vals["topbar-ink-2"] = shift_until(b["text-muted"], lambda c: min(cr(c, b["sidebar"]), cr(c, readout)) >= 4.6, lighter=dark)
+    vals["hero-bg"] = b["paper"]
+    vals["hero-text"] = b["paper-text"]
+    vals["hero-text-2"] = b["paper-muted"]
+    face = "#000000" if name == "riso-black" else (b["sidebar"] if dark else b["text"])
+    vals["meter-face"] = face
+    off = mix(b["text-muted"], face, 0.30)
+    vals["meter-ink"] = max([b["text"], b["bg"], b["text-muted"]], key=lambda c: cr(c, off))
+
+    # Palette JSON (hex values per theme) for the Settings palette and its contrast badges.
+    pj = {k: v.lower() for k, v in vals.items() if v.startswith("#")}
+    for k in INKS:
+        pj[f"ink-{k}-55"] = mix(vals[f"ink-{k}"], "#000000", 0.55)
+        pj[f"ink-{k}-25"] = mix(vals[f"ink-{k}"], "#000000", 0.25)
+    pj["unsafe-tint"] = mix(vals["ink-madder"], b["bg"], 0.22)
+    palette_json[name] = {"label": t["label"], "dark": dark, "tokens": pj}
+
+    sel = f':root,\n:root[data-theme="{name}"]' if name == DEFAULT else f':root[data-theme="{name}"]'
     lines = [f"{sel} {{", f"  color-scheme: {'dark' if dark else 'light'};", ""]
-    lines += [f"  --{k}: {v.lower()};" for k, v in vals.items()]
+    lines += [f"  --{k}: {v.lower() if v.startswith('#') else v};" for k, v in vals.items()]
+    lines += ["", "  /* Ink tints (55% / 25%), mixed with black */"]
+    for k in INKS:
+        lines += [f"  --ink-{k}-55: color-mix(in srgb, var(--ink-{k}) 55%, #000);",
+                  f"  --ink-{k}-25: color-mix(in srgb, var(--ink-{k}) 25%, #000);"]
     lines += [
         "",
-        "  /* Derived (color-mix only) */",
-        "  --surface-sunk: color-mix(in srgb, var(--ink) 5%, var(--bg));",
-        "  --rule-strong: color-mix(in srgb, var(--ink) 16%, var(--rule));",
-        "  --on-accent: var(--surface);",
-        f"  --on-block: {'var(--bg)' if name == 'bone-block' else 'var(--ink)'};",
-        "  --focus: var(--riso-text);",
-        "  --scrim: color-mix(in srgb, var(--scrim-base) 45%, transparent);",
-        "  --selection: color-mix(in srgb, var(--marigold) 35%, transparent);",
-        "  --grid-minor: color-mix(in srgb, var(--grid) 60%, transparent);",
-        "  --grid-major: var(--grid);",
-        "  --halftone-ink: color-mix(in srgb, var(--ink) 18%, transparent);",
+        "  /* Derived semantic tokens */",
+        "  --c0-block: var(--c0);",
+        "  --c1-block: var(--c1);",
+        "  --c2-block: var(--c2);",
+        "  --c3-block: var(--c3);",
+        "  --c4-block: var(--c4);",
+        "  --surface-sunk: color-mix(in srgb, var(--text) 5%, var(--bg));",
+        "  /* Madder tint for danger states: madder mixed into the ground, carrying normal text */",
+        "  --unsafe-tint: color-mix(in srgb, var(--ink-madder) 22%, var(--bg));",
+        "  --rule-strong: color-mix(in srgb, var(--text) 18%, var(--rule));",
+        "  --selection: color-mix(in srgb, var(--ink-sunflower) 35%, transparent);",
+        "  --nav-active-bg: var(--ink-pink);",
+        "  --nav-active-shadow: var(--ink-cornflower);",
+        "  --sheet-shadow: var(--ink-pink);",
+        "  --scrim: color-mix(in srgb, var(--bg) 70%, transparent);",
+        "  --halftone-ink: color-mix(in srgb, var(--text) 16%, transparent);",
         f"  --grain-opacity: {0.05 if dark else 0.045};",
-        f"  --meter-face: var(--{'sidebar' if dark else 'ink'});",
-        "  --meter-off: color-mix(in srgb, var(--ink-2) 30%, var(--meter-face));",
-        "  /* Hard offset print shadow: 3px 3px 0 in a darker tone of the ground — never blurred. */",
+        "  --meter-off: color-mix(in srgb, var(--text-muted) 30%, var(--meter-face));",
+        "  /* Hard offset shadows in ink colours only: never black, never blurred */",
+        "  --shadow: var(--ink-cornflower-55);",
         "  --shadow-hard: 3px 3px 0 var(--shadow);",
-        f"  --shadow-press: 2px 2px 0 var(--{'sidebar' if dark else 'ink'});",
+        "  --shadow-press: 2px 2px 0 var(--ink-pink);",
         f"  --theme-is-dark: {1 if dark else 0};",
-        "  /* Page colour zones (html[data-zone] picks one) */",
+        "  /* Page zones: an ink pair per section */",
     ]
-    lines += [f"  --zone-{z}: var(--{v});" for z, v in t["zones"].items()]
-    lines += ["  /* Species stripes */"]
-    lines += [f"  --sp-{k}: var(--{v});" for k, v in SPECIES.items()]
+    for z, (a, bb) in ZONES.items():
+        lines += [f"  --zone-{z}: var(--ink-{a});", f"  --zone-{z}-b: var(--ink-{bb});"]
+    lines += ["  /* Species tags */"] + [f"  --sp-{k}: var(--ink-{v});" for k, v in SPECIES.items()]
     lines += ["}", "", "@supports (color: oklch(0% 0 0)) {", f"  {sel.replace(chr(10), ' ')} {{"]
-    lines += [f"    --{k}: {ok(v)};" for k, v in vals.items()]
+    lines += [f"    --{k}: {oklch_str(v)};" for k, v in vals.items() if v.startswith("#")]
     lines += ["  }", "}", ""]
     out += lines
-    summary[name] = {k: v for k, v in vals.items() if (k.endswith("-text") and v != vals[k[:-5]]) or (k.endswith("-block") and v != vals[k[:-6]])}
 
-# Theme-independent swatch previews for the theme switcher (ground, accent, ink of each theme).
 sw = [":root {"]
 for name, t in THEMES.items():
     sw += [f"  --sw-{name}-ground: {t['base']['bg'].lower()};",
-           f"  --sw-{name}-side: {t['base']['sidebar'].lower()};",
-           f"  --sw-{name}-accent: {t['pig']['marigold'].lower()};",
-           f"  --sw-{name}-ink: {t['base']['ink'].lower()};"]
+           f"  --sw-{name}-side: {t['base']['paper'].lower()};",
+           f"  --sw-{name}-accent: {t['inks']['pink'].lower()};",
+           f"  --sw-{name}-ink: {t['inks']['sunflower'].lower()};"]
 sw += ["}", ""]
 out += sw
 out.append(pathlib.Path("scripts/tokens.static.css").read_text(encoding="utf-8"))
 pathlib.Path("src/styles/tokens.css").write_text("\n".join(out), encoding="utf-8", newline="\n")
-for name, s in summary.items():
-    print(name, s)
+pathlib.Path("src/styles/palette.generated.json").write_text(json.dumps(palette_json, indent=1) + "\n", encoding="utf-8", newline="\n")
+print("adjusted to meet contrast:" if adjustments else "no adjustments needed")
+for a in adjustments:
+    print("  " + a)

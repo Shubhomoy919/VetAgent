@@ -19,6 +19,7 @@ import { ErrorSummary, FormSection, SelectField, TextField } from "../../compone
 import "../data/data.css";
 import "./settings.css";
 import { PageTitle } from "../../components/PageHeader";
+import { Palette } from "./Palette";
 
 type Form = Record<keyof SettingsValues, string>;
 
@@ -268,6 +269,7 @@ export function SettingsPage() {
           <Usage />
         </div>
       </div>
+      <Palette />
     </div>
   );
 }

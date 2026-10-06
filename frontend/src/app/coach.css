@@ -9,8 +9,8 @@
   padding: var(--s3) var(--s4) calc(var(--s3) + 4px);
   background: var(--raised);
   border: 1px solid var(--rule-strong);
-  border-top: 3px solid var(--riso);
-  color: var(--ink);
+  border-top: 3px solid var(--ink-pink);
+  color: var(--text);
 }
 
 .coach-head,
@@ -27,14 +27,14 @@
 
 .coach-step {
   font-size: var(--text-xs);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .coach-skip {
   padding: 0;
   background: none;
   border: 0;
-  color: var(--ink-2);
+  color: var(--text-muted);
   font-size: var(--text-xs);
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -49,7 +49,7 @@
 .coach-body {
   margin-top: 6px;
   font-size: var(--text-sm);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .coach-keys {
@@ -72,6 +72,6 @@ html[data-coach-step="cases"] [data-coach="cases"],
 html[data-coach-step="runbar"] [data-coach="runbar"],
 html[data-coach-step="deck"] [data-coach="deck"],
 html[data-coach-step="palette"] [data-coach="palette"] {
-  outline: 2px dashed var(--focus);
+  outline: 2px dashed var(--focus-ring);
   outline-offset: 3px;
 }

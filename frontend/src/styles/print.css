@@ -16,7 +16,7 @@
     --surface: var(--print-paper);
     --raised: var(--print-paper);
     --surface-sunk: var(--print-paper);
-    --ink: var(--print-ink);
+    --text: var(--print-ink);
   }
 
   html,

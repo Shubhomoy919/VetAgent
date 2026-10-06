@@ -41,12 +41,12 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--ink-2);
+  background: var(--text-muted);
 }
 
 .ladder-step[data-on="true"] .switch-track {
-  background: var(--cond, var(--ink));
-  border-color: var(--cond, var(--ink));
+  background: var(--cond, var(--text));
+  border-color: var(--cond, var(--text));
 }
 
 .ladder-step[data-on="true"] .switch-knob {
@@ -69,9 +69,9 @@
   font-size: var(--text-xs);
   font-variant-caps: all-small-caps;
   letter-spacing: var(--tracking-label);
-  color: var(--ink-2);
+  color: var(--text-muted);
 }
 
 .ladder-step[data-on="true"] .ladder-label {
-  color: var(--ink);
+  color: var(--text);
 }

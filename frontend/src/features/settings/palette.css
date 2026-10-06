@@ -1,0 +1,135 @@
+.pal {
+  display: grid;
+  gap: var(--s5);
+  padding: var(--s4) 0;
+}
+
+.pal-head {
+  display: grid;
+  gap: 4px;
+}
+
+.pal-note {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.pal-group {
+  display: grid;
+  gap: var(--s2);
+}
+
+.pal-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.pal-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--s2) var(--s4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pal-sw {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: var(--s2);
+  align-items: center;
+}
+
+.pal-chip {
+  grid-row: span 2;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--rule-strong);
+}
+
+.pal-name {
+  font-size: var(--text-xs);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.pal-hex {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.pal-conds {
+  display: grid;
+  gap: var(--s2);
+}
+
+.pal-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s4);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--rule);
+}
+
+.pal-on-ground {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.pal-on-paper {
+  background: var(--paper);
+  color: var(--paper-text);
+  --text-muted: var(--paper-muted);
+}
+
+.pal-cond {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+}
+
+.pal-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.pal-samples {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pal-sample {
+  display: grid;
+  gap: 4px;
+  padding: var(--s3);
+  color: var(--text-on-ink);
+}
+
+.pal-sample-text {
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.pal-badge {
+  justify-self: start;
+  padding: 1px 6px;
+  font-size: var(--text-xs);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+}
+
+.pal-badge[data-pass="false"] {
+  text-decoration: line-through;
+}
+
+.pal-rule {
+  font-size: var(--text-xs);
+}
