@@ -37,8 +37,9 @@ test("run BOV-WD-007 from the Bench: steps stream in, five cards finish with sta
   await page.waitForTimeout(400);
   await page.screenshot({ path: path.join(SHOTS, "m4-bench-after-run-1440-cyanotype.png") });
 
-  // Citation chip opens the SVTG passage drawer.
-  await page.getByTestId("card-C2").locator(".cite-chip").first().click();
+  // Citations are superscript sidenotes: the number opens the note, its chip opens the SVTG passage drawer.
+  await page.getByTestId("card-C2").locator(".sn-ref").first().click();
+  await page.getByTestId("card-C2").locator(".sn[data-active] .cite-chip").click();
   const drawer = page.getByTestId("passage-drawer");
   await expect(drawer).toContainText("PDF page");
   await expect(drawer.locator(".drawer-chunk").first()).toBeVisible();

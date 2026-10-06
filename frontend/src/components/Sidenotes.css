@@ -1,0 +1,96 @@
+/* Sidenote citations: superscript refs in the text; margin notes on wide cards, popovers on narrow. */
+.sn-ref-wrap {
+  line-height: 0;
+}
+
+.sn-ref {
+  min-width: 14px;
+  margin-left: 1px;
+  padding: 0 2px;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--riso);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--riso-text);
+  cursor: pointer;
+}
+
+.sn-ref[aria-expanded="true"] {
+  background: var(--selection);
+}
+
+.sidenotes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sn {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 6px;
+  padding: 6px 0;
+  border-top: var(--hairline);
+}
+
+.sn-n {
+  font-size: 10px;
+  color: var(--riso-text);
+}
+
+.sn-body {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+
+.sn-text {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.25;
+  color: var(--ink-2);
+  hanging-punctuation: first last;
+}
+
+/* Narrow cards: notes are hidden until their number is clicked, then show as a paper popover. */
+.ccard .sidenotes {
+  position: relative;
+}
+
+.ccard .sn {
+  display: none;
+}
+
+.ccard .sn[data-active] {
+  display: grid;
+  padding: var(--s2) var(--s3);
+  background: var(--raised);
+  border: 1px solid var(--rule-strong);
+  box-shadow: var(--shadow-hard);
+  transform: rotate(-0.4deg);
+}
+
+/* Wide cards: every note sits in the margin column. */
+@container ccard (min-width: 520px) {
+  .ccard .ccard-prose {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: var(--s4);
+    align-items: start;
+  }
+
+  .ccard .sn {
+    display: grid;
+    padding: 6px 0;
+    background: none;
+    border: 0;
+    border-top: var(--hairline);
+    box-shadow: none;
+    transform: none;
+  }
+
+  .ccard .sn[data-active] {
+    background: var(--selection);
+  }
+}

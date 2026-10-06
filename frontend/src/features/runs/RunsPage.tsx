@@ -9,6 +9,7 @@ import "./runs.css";
 import { PageTitle } from "../../components/PageHeader";
 import { SectionTitle } from "../../components/Ink";
 import { EmptyLadder } from "../../components/EmptyLadder";
+import { LedgerToggle } from "../../components/LedgerToggle";
 
 const fmtDate = (s: string) => s.replace("T", " ").slice(0, 16);
 const STATUS: Record<string, string> = { running: "running", done: "done", done_with_errors: "done · errors", cancelled: "cancelled", failed: "failed", quota_exhausted: "quota stop" };
@@ -39,7 +40,7 @@ function Compare({ data }: { data: CompareResult }) {
         <p className="empty-body">These runs share no conditions.</p>
       ) : (
         <div className="dp-table-wrap">
-          <table className="dp-table cmp-table">
+          <table className="dp-table ledger cmp-table">
             <thead>
               <tr>
                 <th scope="col">Metric</th>
@@ -82,7 +83,7 @@ function Compare({ data }: { data: CompareResult }) {
         <p className="empty-body">No case changed verdict between these runs.</p>
       ) : (
         <div className="dp-table-wrap">
-          <table className="dp-table" data-testid="compare-changes">
+          <table className="dp-table ledger" data-testid="compare-changes">
             <thead>
               <tr>
                 <th scope="col">Case</th>
@@ -140,6 +141,9 @@ export function RunsPage() {
             {runs ? `${runs.length} runs stored in data/runs.db` : "Loading"} · tick two runs to compare them
           </p>
         </div>
+        <div className="dp-actions">
+          <LedgerToggle />
+        </div>
       </header>
 
       {isPending && <p className="empty-body">Loading runs…</p>}
@@ -154,7 +158,7 @@ export function RunsPage() {
 
       {runs && runs.length > 0 && (
         <div className="dp-table-wrap runs-table-wrap">
-          <table className="dp-table" data-testid="runs-table">
+          <table className="dp-table ledger" data-testid="runs-table">
             <thead>
               <tr>
                 <th scope="col"><span className="visually-hidden">Select</span></th>

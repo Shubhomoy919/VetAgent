@@ -1,0 +1,104 @@
+/* Dose dial: a recessed instrument gauge. */
+.dial {
+  position: relative;
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s3);
+  margin: 0;
+  padding: var(--s2) var(--s3);
+  background: var(--surface-sunk);
+  border: var(--hairline);
+  border-radius: var(--radius);
+}
+
+.dial-svg {
+  width: 132px;
+  height: auto;
+  overflow: visible;
+}
+
+.dial-track {
+  fill: none;
+  stroke: var(--rule-strong);
+  stroke-width: 9;
+}
+
+.dial-band {
+  fill: none;
+  stroke: var(--leaf);
+  stroke-width: 9;
+}
+
+.dial-tick {
+  stroke: var(--ink-2);
+  stroke-width: 1;
+}
+
+.dial-needle line {
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.dial[data-state="outside"] .dial-needle line {
+  stroke: var(--vermilion);
+}
+
+.dial-hub {
+  fill: var(--ink);
+}
+
+.dial-read {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dial-drug {
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.dial-value {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.dial-note {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.dial-nodata {
+  color: var(--marigold-text);
+  letter-spacing: 0.04em;
+}
+
+.dial-bad {
+  color: var(--vermilion-text);
+}
+
+/* Banned / contraindicated: the instrument is switched off (grey, no needle). */
+.dial[data-state="banned"] .dial-svg {
+  opacity: 0.35;
+}
+
+.dial[data-state="banned"] .dial-track {
+  stroke-dasharray: 3 3;
+}
+
+.dial-stamp {
+  position: absolute;
+  left: 22px;
+  top: 26px;
+  pointer-events: none;
+}
+
+.dial-stamp .stamp {
+  font-size: 13px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}

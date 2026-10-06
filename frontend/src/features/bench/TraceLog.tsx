@@ -18,11 +18,12 @@ function show(v: unknown): string {
   return JSON.stringify(v, null, 1);
 }
 
-function StepRow({ step, maxLatency, order }: { step: TraceStep; maxLatency: number; order: number }) {
+function StepRow({ step, maxLatency, order, id }: { step: TraceStep; maxLatency: number; order: number; id?: string | undefined }) {
   const [open, setOpen] = useState(false);
   const tokens = step.tokens_in || step.tokens_out ? `${step.tokens_in}→${step.tokens_out} tok` : "";
   return (
     <motion.li
+      id={id}
       className="log-step"
       data-kind={step.kind}
       style={{ "--i": Math.min(order, 12) } as unknown as MotionStyle}
@@ -74,13 +75,13 @@ function StepRow({ step, maxLatency, order }: { step: TraceStep; maxLatency: num
 }
 
 /** Lab-log trace: numbered vertical timeline of model calls, tool readouts and rules. */
-export function TraceLog({ steps }: { steps: TraceStep[] }) {
+export function TraceLog({ steps, idPrefix }: { steps: TraceStep[]; idPrefix?: string }) {
   if (steps.length === 0) return <p className="log-empty mono">No steps recorded.</p>;
   const maxLatency = Math.max(...steps.map((s) => s.latency_ms || 0));
   return (
     <ol className="log">
       {steps.map((s, i) => (
-        <StepRow key={`${s.index}-${s.kind}-${s.name}-${i}`} step={s} maxLatency={maxLatency} order={i} />
+        <StepRow key={`${s.index}-${s.kind}-${s.name}-${i}`} step={s} maxLatency={maxLatency} order={i} id={idPrefix ? `${idPrefix}-${i}` : undefined} />
       ))}
     </ol>
   );

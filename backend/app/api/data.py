@@ -11,6 +11,7 @@ from app.data import editor
 from app.data.loaders import DataError, load_cases, load_drugs
 from app.data.models import CASE_ID_RE, PREFIX_SPECIES, QUESTION_TYPES, WEIGHT_RANGES, Case, DrugRow
 from app.retrieval.service import svtg_index
+from app.tools.drugs import lookup_drug_safety
 
 router = APIRouter(prefix="/api")
 
@@ -85,6 +86,21 @@ def get_case(case_id: str) -> Case:
         if case.case_id == case_id:
             return case
     raise HTTPException(status_code=404, detail=f"No case with id {case_id}")
+
+
+@router.get("/cases/{case_id}/dose")
+def case_dose(case_id: str) -> dict[str, Any]:
+    """Dose-dial data for a case's drug: the drug-table status and, when the table has a sourced
+    mg/kg range, the total band for this animal's weight. Computed here (Python), never in the UI;
+    no row or no range means no band."""
+    case = next((c for c in _cases() if c.case_id == case_id), None)
+    if case is None:
+        raise HTTPException(status_code=404, detail=f"No case with id {case_id}")
+    drug = case.gold_answer.drug
+    if not drug:
+        return {"case_id": case_id, "drug": None}
+    info = lookup_drug_safety(load_drugs(), drug, case.species, case.signalment.weight_kg)
+    return {"case_id": case_id, "weight_kg": case.signalment.weight_kg, **info}
 
 
 @router.put("/cases/{case_id}", response_model=Case)

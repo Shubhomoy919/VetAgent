@@ -11,6 +11,7 @@ import { useKeyPressFeedback } from "../lib/useKeyPressFeedback";
 import { CoachMarks } from "./CoachMarks";
 import { CommandPalette } from "./CommandPalette";
 import { NAV } from "./nav";
+import { resultKey } from "../api/runs";
 import { useRun } from "./runState";
 import { usePersistentFlag } from "./theme";
 import "./Shell.css";
@@ -76,13 +77,14 @@ function TopBar() {
       <h1 className="topbar-title serif">{routeTitle(pathname)}</h1>
       <div className="topbar-meta">
         <ModePill />
-        <span className="topbar-field">
-          <span className="eyebrow">Model</span>
-          <span className="mono topbar-value" data-testid="model-id">
+        <span className="readout">
+          <span className="readout-label">Model</span>
+          <span className="readout-value mono topbar-value" data-testid="model-id">
             {data?.model ?? "—"}
           </span>
         </span>
         <RunStatus />
+        <RunReadouts />
         <button
           type="button"
           className="kbd-button mono"
@@ -108,13 +110,46 @@ function RunStatus() {
       ? `Running ${run.n_done}/${run.n_total}`
       : { done: "Done", done_with_errors: "Done (errors)", cancelled: "Cancelled", failed: "Failed", quota_exhausted: "Quota stop" }[run.status] +
         ` ${run.n_done}/${run.n_total}`;
+  const led = !run ? undefined : run.status === "running" ? "running" : run.status === "done" ? "done" : "error";
   return (
-    <span className="topbar-field">
-      <span className="eyebrow">Run</span>
-      <span className="mono topbar-value" data-testid="run-status" data-running={run?.status === "running"}>
+    <span className="readout">
+      <span className="readout-label">
+        <span className="led" data-state={led} aria-hidden="true" /> Run
+      </span>
+      <span className="readout-value mono topbar-value" data-testid="run-status" data-running={run?.status === "running"}>
         {text}
       </span>
     </span>
+  );
+}
+
+/** Instrument readouts for the current (or last) run: tokens, mean latency per result, cost. */
+function RunReadouts() {
+  const { run, live } = useRun();
+  const results = run
+    ? run.case_ids.flatMap((cid) => run.conditions.map((c) => live[resultKey(cid, c, run.interview)]?.result)).filter((r) => r !== undefined)
+    : [];
+  const tokens = results.reduce((s, r) => s + r.tokens_in + r.tokens_out, 0);
+  const latency = results.length ? results.reduce((s, r) => s + r.latency_ms, 0) / results.length / 1000 : null;
+  const costs = results.map((r) => r.cost_usd);
+  const cost = results.length === 0 || costs.some((c) => c === null) ? null : costs.reduce<number>((s, c) => s + (c ?? 0), 0);
+  return (
+    <>
+      <span className="readout readout-wide">
+        <span className="readout-label">Tokens</span>
+        <span className="readout-value mono">{results.length ? tokens.toLocaleString("en-IN") : "—"}</span>
+      </span>
+      <span className="readout readout-wide">
+        <span className="readout-label">Latency</span>
+        <span className="readout-value mono">{latency === null ? "—" : `${latency.toFixed(1)} s`}</span>
+      </span>
+      <span className="readout readout-wide">
+        <span className="readout-label">Cost</span>
+        <span className="readout-value mono" title={cost === null && results.length ? "Prices not set (Settings)" : undefined}>
+          {cost === null ? "—" : `$${cost.toFixed(4)}`}
+        </span>
+      </span>
+    </>
   );
 }
 

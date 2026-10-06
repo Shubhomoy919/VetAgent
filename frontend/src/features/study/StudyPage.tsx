@@ -166,7 +166,7 @@ export function StudyPage() {
       <section className="st-section">
         <SectionTitle>Question types</SectionTitle>
         <div className="dp-table-wrap">
-          <table className="dp-table">
+          <table className="dp-table ledger">
             <thead>
               <tr>
                 <th scope="col">Type</th>
@@ -190,7 +190,7 @@ export function StudyPage() {
       <section className="st-section">
         <SectionTitle>Metrics</SectionTitle>
         <div className="dp-table-wrap">
-          <table className="dp-table" data-testid="study-metrics">
+          <table className="dp-table ledger" data-testid="study-metrics">
             <thead>
               <tr>
                 <th scope="col">Metric</th>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type UIEvent } from "react";
 import { INTERVIEW_CONDITIONS, resultKey, type ConditionId, type LatestResults } from "../../api/runs";
+import { useCaseDose, type Case } from "../../api/cases";
 import { useRun } from "../../app/runState";
 import { CONDITIONS } from "../../app/conditions";
 import { EmptyLadder } from "../../components/EmptyLadder";
@@ -13,13 +14,15 @@ interface Props {
   onCite: (page: number) => void;
   /** Narrow screens: show one condition at a time, chosen by the tabs. */
   tabs?: boolean;
+  caseData?: Case | undefined;
 }
 
 function isTypingTarget(el: EventTarget | null): boolean {
   return el instanceof HTMLElement && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
 }
 
-export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false }: Props) {
+export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false, caseData }: Props) {
+  const { data: dose } = useCaseDose(caseId);
   const { live } = useRun();
   const [compare, setCompare] = useState(false);
   const [picked, setPicked] = useState<ConditionId[]>(["C0", "C4"]);
@@ -143,6 +146,8 @@ export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false 
               onCite={onCite}
               focused={!compare && active === c.id}
               diffs={compare ? diffs : undefined}
+              caseData={caseData}
+              dose={dose}
             />
           ))}
         </div>

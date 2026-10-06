@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { LADDER_STEPS, type Condition } from "../app/conditions";
-import "./AblationLadder.css";
+import "./Switchboard.css";
 
 interface Props {
   condition: Condition;
@@ -12,9 +12,9 @@ interface Props {
 
 const KNOB_TRAVEL = { sm: 7, lg: 12 } as const;
 
-/** 7. Ablation ladder as a row of hardware toggles: Retrieval / Tools / Verify / Guardrail.
+/** 7. Ablation switchboard: a row of hardware toggles: Retrieval / Tools / Verify / Guardrail.
  *  "On" switches flip across with a short click-like overshoot, one after another. */
-export function AblationLadder({ condition, labelled = false, size = "sm" }: Props) {
+export function Switchboard({ condition, labelled = false, size = "sm" }: Props) {
   const on = LADDER_STEPS.filter((s) => condition.ladder[s]);
   const label = on.length ? `${condition.id} uses ${on.join(", ")}` : `${condition.id} uses no components`;
   const travel = KNOB_TRAVEL[size];

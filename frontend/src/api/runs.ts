@@ -16,10 +16,23 @@ export interface Answer {
   zoonosis_warning: boolean;
   see_vet: boolean;
   advice: string;
-  citations: { source: string; page: number | null }[];
+  citations: Citation[];
 }
 
-export type Stamp = "CORRECT" | "FALSE-SAFE" | "UNDER-TRIAGE" | "MISSED ESCALATION" | "WITHDRAWAL ERROR" | "ESCALATED";
+export interface Citation {
+  source: string;
+  page: number | null;
+}
+
+export type Stamp =
+  | "CORRECT"
+  | "FALSE-SAFE"
+  | "ILLEGAL DRUG"
+  | "UNDER-TRIAGE"
+  | "MISSED ESCALATION"
+  | "WITHDRAWAL ERROR"
+  | "ESCALATED"
+  | "DO NOT GIVE";
 
 export interface Verdict {
   scored: boolean;

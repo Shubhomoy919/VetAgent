@@ -4,7 +4,7 @@ import { useRunList } from "../../api/admin";
 import { pct, useScorecard } from "../../api/scorecard";
 import type { ConditionId } from "../../api/runs";
 import { CONDITIONS } from "../../app/conditions";
-import { AblationLadder } from "../../components/AblationLadder";
+import { Switchboard } from "../../components/Switchboard";
 import { DotWhisker } from "../scorecard/DotWhisker";
 import "../data/data.css";
 import "../scorecard/scorecard.css";
@@ -71,7 +71,7 @@ export function OverviewPage() {
               <div className="ov-cond-head">
                 <span className="mono">{c.id}</span> <strong>{c.name}</strong>
               </div>
-              <AblationLadder condition={c} />
+              <Switchboard condition={c} />
             </div>
           ))}
         </div>

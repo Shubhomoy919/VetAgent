@@ -63,7 +63,7 @@ export function CaseDossier({ c, onClose, onCite }: Props) {
             {error && <p className="error-text" role="alert">{error.message}</p>}
             {past && past.length === 0 && <p className="empty-body">This case has not been run yet.</p>}
             {past && past.length > 0 && (
-              <table className="dossier-table" data-testid="dossier-results">
+              <table className="dossier-table ledger" data-testid="dossier-results">
                 <thead>
                   <tr>
                     <th scope="col">When</th>

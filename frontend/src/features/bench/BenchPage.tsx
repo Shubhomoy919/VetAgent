@@ -29,7 +29,7 @@ function isTypingTarget(el: EventTarget | null): boolean {
   return el instanceof HTMLElement && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
 }
 
-function CasePane({ selected, onOpenDossier }: { selected: Case | undefined; onOpenDossier: () => void }) {
+function CasePane({ selected, plateNo, onOpenDossier }: { selected: Case | undefined; plateNo: number; onOpenDossier: () => void }) {
   return (
     <section className="pane pane-case" aria-labelledby="pane-case">
       <div className="pane-header">
@@ -39,7 +39,7 @@ function CasePane({ selected, onOpenDossier }: { selected: Case | undefined; onO
       </div>
       {selected ? (
         <div className="pane-scroll">
-          <CaseDetail key={selected.case_id} c={selected} onOpenDossier={onOpenDossier} />
+          <CaseDetail key={selected.case_id} c={selected} plateNo={plateNo} onOpenDossier={onOpenDossier} />
         </div>
       ) : (
         <div className="empty">
@@ -73,6 +73,7 @@ export function BenchPage() {
   const { data: latest } = useLatestResults(interview);
   const { live, run, start, starting } = useRun();
   const selected = cases?.find((c) => c.case_id === selectedId);
+  const plateNo = (cases?.findIndex((c) => c.case_id === selectedId) ?? 0) + 1;
 
   // Ground watermark: the case under examination.
   useEffect(() => {
@@ -189,7 +190,7 @@ export function BenchPage() {
     </section>
   );
   const deck = (
-    <ConditionDeck caseId={selected ? selected.case_id : null} interview={interview} latest={latest} onCite={setCitePage} tabs={narrow} />
+    <ConditionDeck caseId={selected ? selected.case_id : null} caseData={selected} interview={interview} latest={latest} onCite={setCitePage} tabs={narrow} />
   );
   const allIds = useMemo(() => (cases ?? []).map((c) => c.case_id), [cases]);
 
@@ -212,7 +213,7 @@ export function BenchPage() {
           </Panel>
           <Separator className="pane-separator" />
           <Panel id="case" defaultSize="31" minSize="300px">
-            <CasePane selected={selected} onOpenDossier={openDossier} />
+            <CasePane selected={selected} plateNo={plateNo} onOpenDossier={openDossier} />
           </Panel>
           <Separator className="pane-separator" />
           <Panel id="conditions" defaultSize="44" minSize="320px">
@@ -232,7 +233,7 @@ export function BenchPage() {
             className="bench-panes"
           >
             <Panel id="case" defaultSize={narrow ? "42" : "42"} minSize={narrow ? "160px" : "300px"}>
-              <CasePane selected={selected} onOpenDossier={openDossier} />
+              <CasePane selected={selected} plateNo={plateNo} onOpenDossier={openDossier} />
             </Panel>
             <Separator className={narrow ? "pane-separator pane-separator-h" : "pane-separator"} />
             <Panel id="conditions" defaultSize="58" minSize={narrow ? "200px" : "320px"}>

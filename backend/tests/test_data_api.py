@@ -56,3 +56,18 @@ def test_health_counts_real_data():
     assert body["counts"]["drugs"] >= 25
     assert body["chunks"] > 1000
     assert body["data_errors"] == []
+
+
+def test_case_dose_band_is_computed_from_the_drug_table():
+    d = client.get("/api/cases/BOV-WD-007/dose").json()
+    assert d["drug"] == "buparvaquone" and d["status"] == "safe"
+    # 2.5 mg/kg (drug table) x 410 kg (case) — computed in Python, not invented
+    assert d["dose_mg_total"] == {"min": 1025.0, "max": 1025.0, "weight_kg": 410.0}
+
+
+def test_case_dose_banned_and_no_drug():
+    d = client.get("/api/cases/BOV-008/dose").json()
+    assert d["status"] == "banned_in_india" and "dose_mg_total" not in d
+    no_drug = client.get("/api/cases/BOV-001/dose").json()
+    assert no_drug["drug"] is None
+    assert client.get("/api/cases/NOPE-1/dose").status_code == 404

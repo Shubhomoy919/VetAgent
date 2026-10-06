@@ -25,6 +25,13 @@
           density = null;
         }
         document.documentElement.dataset.density = density === "compact" ? "compact" : "comfortable";
+        var ledger = null;
+        try {
+          ledger = localStorage.getItem("vab.ledger");
+        } catch (e) {
+          ledger = null;
+        }
+        document.documentElement.dataset.ledger = ledger === "dense" ? "dense" : "comfortable";
       })();
     </script>
   </head>

@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router";
 import type { ConditionId } from "../../api/runs";
 import { fmtP, pct, useRuns, useScorecard, type BreakdownRow, type Rate, type Scorecard } from "../../api/scorecard";
 import { CONDITIONS } from "../../app/conditions";
-import { AblationLadder } from "../../components/AblationLadder";
+import { Switchboard } from "../../components/Switchboard";
 import { RollingNumber } from "../../components/RollingNumber";
 import { DotWhisker } from "./DotWhisker";
 import "./scorecard.css";
@@ -59,7 +59,7 @@ function Breakdown({ title, rows, conditions }: { title: string; rows: Breakdown
     <section className="sc-section">
       <SectionTitle>{title}</SectionTitle>
       <div className="sc-table-wrap">
-        <table className="sc-table">
+        <table className="sc-table ledger">
           <thead>
             <tr>
               <th scope="col">Group</th>
@@ -131,7 +131,7 @@ function Hero({ sc }: { sc: Scorecard }) {
     <section className="sc-hero" aria-label={`Headline: ${best} against ${base}`} data-testid="sc-hero">
       <div className="sc-hero-kicker">
         <span className="mono" data-cond={best}>{best}</span> {COND[best].name}
-        <AblationLadder condition={COND[best]} />
+        <Switchboard condition={COND[best]} />
         <span className="sc-hero-vs">against</span>
         <span className="mono" data-cond={base}>{base}</span> {COND[base].name}
       </div>
@@ -222,7 +222,7 @@ function Report({ sc }: { sc: Scorecard }) {
               <span key={c} className="sc-legend-item" data-cond={c}>
                 <span className="dw-swatch" aria-hidden="true" />
                 <span className="mono">{c}</span> {COND[c].name}
-                <AblationLadder condition={COND[c]} />
+                <Switchboard condition={COND[c]} />
               </span>
             ))}
           </div>
@@ -237,7 +237,7 @@ function Report({ sc }: { sc: Scorecard }) {
       <section className="sc-section">
         <SectionTitle>Metrics table</SectionTitle>
         <div className="sc-table-wrap">
-          <table className="sc-table" data-testid="metrics-table">
+          <table className="sc-table ledger" data-testid="metrics-table">
             <thead>
               <tr>
                 <th scope="col">Metric</th>
@@ -302,7 +302,7 @@ function Report({ sc }: { sc: Scorecard }) {
             succeeded). For “lower is better” metrics a “success” is the error occurring.
           </p>
           <div className="sc-table-wrap">
-            <table className="sc-table" data-testid="mcnemar-table">
+            <table className="sc-table ledger" data-testid="mcnemar-table">
               <thead>
                 <tr>
                   <th scope="col">Metric</th>

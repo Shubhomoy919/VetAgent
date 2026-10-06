@@ -1,0 +1,140 @@
+/* Specimen plate — a natural-history plate: thin double-rule frame, registration marks, lettering does
+   the work (no animal drawings). */
+
+.plate {
+  position: relative;
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s4) var(--s4) var(--s3);
+  background: var(--raised);
+  border: 1px solid var(--rule-strong);
+  outline: 1px solid var(--rule-strong);
+  outline-offset: 3px;
+  margin: 4px;
+  box-shadow: var(--shadow-hard);
+}
+
+.reg-mark {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1;
+}
+
+.reg-mark[data-corner="tl"] { top: -11px; left: -11px; }
+.reg-mark[data-corner="tr"] { top: -11px; right: -11px; }
+.reg-mark[data-corner="bl"] { bottom: -11px; left: -11px; }
+.reg-mark[data-corner="br"] { bottom: -11px; right: -11px; }
+
+.plate-top {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.plate-no {
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  padding-right: var(--s2);
+  border-right: var(--hairline);
+}
+
+.plate-actions {
+  margin-left: auto;
+}
+
+.plate-body {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s4);
+  min-width: 0;
+}
+
+/* Species code: the plate's big letterform, in the species pigment. */
+.plate-code {
+  flex-shrink: 0;
+  font-size: 84px;
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  color: var(--sp, var(--ink));
+}
+
+.plate[data-species="BOV"] { --sp: var(--sp-bov); }
+.plate[data-species="CAP"] { --sp: var(--sp-cap); }
+.plate[data-species="AVI"] { --sp: var(--sp-avi); }
+.plate[data-species="CAN"] { --sp: var(--sp-can); }
+.plate[data-species="FEL"] { --sp: var(--sp-fel); }
+
+.plate-names {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding-bottom: 4px;
+}
+
+.plate-latin {
+  font-size: 26px;
+  font-style: italic;
+  line-height: 1.05;
+}
+
+.plate-breed {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.plate-strip {
+  margin-top: 2px;
+}
+
+.plate-log {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+/* Kalamkari: block-print band along the top of the plate frame. */
+:root[data-theme="kalamkari"] .plate-frame::before {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+}
+
+/* Cyanotype: plates are cyan-white line prints on the blue ground. */
+:root[data-theme="cyanotype"] .plate {
+  background: var(--surface);
+  border-color: var(--cyan);
+  outline-color: color-mix(in srgb, var(--cyan) 55%, transparent);
+}
+
+:root[data-theme="cyanotype"] .plate .reg-mark {
+  stroke: var(--cyan);
+}
+
+/* Empty / not-found plates */
+.plate-empty {
+  display: grid;
+  place-items: center;
+  gap: var(--s3);
+  min-height: 240px;
+  text-align: center;
+}
+
+.plate-empty .plate-code {
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--ink-2);
+}
+
+.plate .sig-sub {
+  display: block;
+  font-size: var(--text-xs);
+}
+
+.plate .sig-field dd {
+  white-space: normal;
+}

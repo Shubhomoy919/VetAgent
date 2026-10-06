@@ -17,7 +17,7 @@
 
 .topbar {
   --ink: var(--topbar-ink);
-  --ink-2: color-mix(in srgb, var(--topbar-ink) 72%, var(--topbar-bg));
+  --ink-2: var(--topbar-ink-2);
   --rule: color-mix(in srgb, var(--topbar-ink) 18%, var(--topbar-bg));
   --rule-strong: color-mix(in srgb, var(--topbar-ink) 30%, var(--topbar-bg));
   --raised: color-mix(in srgb, var(--topbar-ink) 8%, var(--topbar-bg));

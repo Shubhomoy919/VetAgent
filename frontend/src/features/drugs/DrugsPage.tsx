@@ -9,6 +9,7 @@ import { useSort } from "../../components/useSort";
 import "../data/data.css";
 import { DrugEditor } from "./DrugEditor";
 import { PageTitle } from "../../components/PageHeader";
+import { LedgerToggle } from "../../components/LedgerToggle";
 
 const SORT = {
   species: (r: DrugRow) => r.species,
@@ -75,6 +76,7 @@ export function DrugsPage() {
           </p>
         </div>
         <div className="dp-actions">
+          <LedgerToggle />
           <button type="button" className="btn btn-primary" onClick={() => setEditing("new")}>
             New row
           </button>
@@ -128,7 +130,7 @@ export function DrugsPage() {
 
       {rows && (
         <div className="dp-table-wrap">
-          <table className="dp-table" data-testid="drugs-table">
+          <table className="dp-table ledger" data-testid="drugs-table">
             <thead>
               <tr>
                 <SortTh label="Species" k="species" sortKey={key} dir={dir} onSort={toggle} />

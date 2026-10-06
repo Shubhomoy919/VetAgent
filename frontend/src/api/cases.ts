@@ -87,6 +87,28 @@ async function getJson<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** Dose-dial data for a case's drug (GET /api/cases/{id}/dose; computed in Python from the drug table). */
+export interface CaseDose {
+  case_id: string;
+  drug: string | null;
+  species?: string;
+  weight_kg?: number;
+  status?: "safe" | "contraindicated" | "banned_in_india" | "unknown";
+  dose_mg_per_kg?: { min: number; max: number } | null;
+  dose_mg_total?: { min: number; max: number; weight_kg: number } | null;
+  verified?: boolean;
+  source?: string;
+}
+
+export function useCaseDose(caseId: string | null) {
+  return useQuery({
+    queryKey: ["case-dose", caseId],
+    queryFn: () => getJson<CaseDose>(`/api/cases/${encodeURIComponent(caseId as string)}/dose`),
+    enabled: caseId !== null,
+    staleTime: Infinity,
+  });
+}
+
 export function useCases() {
   return useQuery({ queryKey: ["cases"], queryFn: () => getJson<Case[]>("/api/cases") });
 }

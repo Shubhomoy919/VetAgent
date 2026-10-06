@@ -50,7 +50,10 @@ const TEXT = [
 // Text drawn on filled areas: buttons, the sidebar and top bar, condition blocks (Bone & Block).
 const ON_FILL = [
   ["on-accent", "indigo"], ["on-accent", "ink"], ["on-accent", "vermilion-text"], ["on-marigold", "marigold"],
+  ["on-leaf", "leaf"], ["on-vermilion", "vermilion"], ["on-peacock", "peacock"], ["on-indigo", "indigo"], ["on-cyan", "cyan"],
+  ["meter-ink", "meter-off"],
   ["sidebar-ink", "sidebar"], ["sidebar-ink-2", "sidebar"], ["topbar-ink", "topbar-bg"], ["topbar-accent", "topbar-bg"],
+  ["topbar-ink", "readout-bg"], ["topbar-accent", "readout-bg"], ["topbar-ink-2", "readout-bg"], ["topbar-ink-2", "topbar-bg"],
 ];
 const BLOCKS = ["c0-block", "c1-block", "c2-block", "c3-block", "c4-block"];
 

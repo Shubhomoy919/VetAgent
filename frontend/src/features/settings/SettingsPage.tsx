@@ -207,7 +207,7 @@ function Usage() {
         <p className="empty-body">No results stored yet.</p>
       ) : (
         <div className="dp-table-wrap">
-          <table className="dp-table">
+          <table className="dp-table ledger">
             <thead>
               <tr>
                 <th scope="col">Provider</th>

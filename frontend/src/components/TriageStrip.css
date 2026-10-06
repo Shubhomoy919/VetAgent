@@ -1,0 +1,56 @@
+.triage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  background: var(--meter-face);
+  border-radius: var(--radius-sm);
+}
+
+.triage-seg {
+  position: relative;
+  padding: 3px 0 2px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--meter-ink);
+  background: var(--meter-off);
+}
+
+.triage-seg[data-on="true"] {
+  font-weight: 500;
+}
+
+.triage-seg[data-on="true"][data-level="routine"] {
+  background: var(--leaf);
+  color: var(--on-leaf);
+}
+
+.triage-seg[data-on="true"][data-level="urgent"] {
+  background: var(--marigold);
+  color: var(--on-marigold);
+}
+
+.triage-seg[data-on="true"][data-level="emergency"] {
+  background: var(--vermilion);
+  color: var(--on-vermilion);
+}
+
+/* Under-triage: a madder notch over the gold level. */
+.triage-notch {
+  position: absolute;
+  left: 50%;
+  top: -7px;
+  width: 0;
+  height: 0;
+  margin-left: -5px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid var(--madder);
+}
+
+.triage[data-diff] {
+  box-shadow: inset 0 -2px 0 var(--marigold);
+}

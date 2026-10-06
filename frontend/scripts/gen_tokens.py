@@ -158,8 +158,11 @@ for name, t in THEMES.items():
                                         lighter=cr(ch["sidebar_ink"], "#000000") > cr(ch["sidebar_ink"], "#ffffff"))
     vals["topbar-bg"] = ch["topbar_bg"]
     vals["topbar-ink"] = ch["topbar_ink"]
-    vals["topbar-accent"] = shift_until(ch["topbar_accent"], lambda c: cr(c, ch["topbar_bg"]) >= 4.6,
-                                        lighter=lum(ch["topbar_bg"]) < 0.2)
+    readout_bg = mix("#000000", ch["topbar_bg"], 0.25 if lum(ch["topbar_bg"]) < 0.2 else 0.07)
+    vals["readout-bg"] = readout_bg
+    on_bar = lambda c: min(cr(c, ch["topbar_bg"]), cr(c, readout_bg)) >= 4.6
+    vals["topbar-accent"] = shift_until(ch["topbar_accent"], on_bar, lighter=lum(ch["topbar_bg"]) < 0.2)
+    vals["topbar-ink-2"] = shift_until(mix(ch["topbar_ink"], ch["topbar_bg"], 0.72), on_bar, lighter=lum(ch["topbar_bg"]) < 0.2)
     bone = b["bg"]
     for i in range(5):
         c = p[f"c{i}"]
@@ -168,6 +171,15 @@ for name, t in THEMES.items():
         else:
             vals[f"c{i}-block"] = c
     vals["scrim-base"] = t["derived_ink"]
+    # Text on solid pigment fills (lit triage segments, chips): whichever ink reads best, must be AA.
+    cands = [b["ink"], b["bg"], "#FFFFFF", "#111111"]
+    for k in ("leaf", "vermilion", "marigold", "peacock", "indigo", "cyan"):
+        best = max(cands, key=lambda c, k=k: cr(c, p[k]))
+        vals[f"on-{k}"] = best
+    # Instrument face (meter, triage strip): face, unlit segment, and the ink for labels on unlit segments.
+    face = b["sidebar"] if dark else b["ink"]
+    off = mix(b["ink-2"], face, 0.30)
+    vals["meter-ink"] = max([b["ink"], b["bg"], "#FFFFFF", b["ink-2"]], key=lambda c: cr(c, off))
     vals["shadow"] = shift_until(mix(t["derived_ink"], b["bg"], 0.55), lambda x: True, lighter=False)
 
     sel = f':root[data-theme="{name}"]' if name != DEFAULT else f':root,\n:root[data-theme="{name}"]'
@@ -181,7 +193,6 @@ for name, t in THEMES.items():
         "  --on-accent: var(--surface);",
         f"  --on-block: {'var(--bg)' if name == 'bone-block' else 'var(--ink)'};",
         "  --focus: var(--riso-text);",
-        f"  --on-marigold: var(--{'bg' if dark else 'ink'});",
         "  --scrim: color-mix(in srgb, var(--scrim-base) 45%, transparent);",
         "  --selection: color-mix(in srgb, var(--marigold) 35%, transparent);",
         "  --grid-minor: color-mix(in srgb, var(--grid) 60%, transparent);",

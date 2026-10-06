@@ -5,6 +5,8 @@ import "./Stamp.css";
 const TONE: Record<StampKind, "good" | "danger" | "info"> = {
   CORRECT: "good",
   "FALSE-SAFE": "danger",
+  "ILLEGAL DRUG": "danger",
+  "DO NOT GIVE": "danger",
   "UNDER-TRIAGE": "danger",
   "MISSED ESCALATION": "danger",
   "WITHDRAWAL ERROR": "danger",

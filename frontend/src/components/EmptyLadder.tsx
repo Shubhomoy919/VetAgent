@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { CONDITIONS } from "../app/conditions";
-import { AblationLadder } from "./AblationLadder";
+import { Switchboard } from "./Switchboard";
 import "./EmptyLadder.css";
 
 /** Empty-state illustration built from the real components: the five conditions as rows of
@@ -12,7 +12,7 @@ export function EmptyLadder({ title, children }: { title: string; children?: Rea
         {CONDITIONS.map((c) => (
           <div key={c.id} className="empty-ladder-row" data-cond={c.id}>
             <span className="empty-ladder-id mono">{c.id}</span>
-            <AblationLadder condition={c} size="lg" />
+            <Switchboard condition={c} size="lg" />
           </div>
         ))}
       </div>

@@ -49,6 +49,19 @@ export function applyTheme(theme: Theme): void {
   window.dispatchEvent(new Event(EVENT));
 }
 
+const LEDGER_KEY = "vab.ledger";
+
+export function readLedgerDense(): boolean {
+  return document.documentElement.dataset.ledger === "dense";
+}
+
+/** Ledger density (dense / comfortable) for all ledger tables; remembered per browser. */
+export function applyLedgerDense(dense: boolean): void {
+  document.documentElement.dataset.ledger = dense ? "dense" : "comfortable";
+  store(LEDGER_KEY, dense ? "dense" : null);
+  window.dispatchEvent(new Event(EVENT));
+}
+
 export function readDensity(): Density {
   return document.documentElement.dataset.density === "compact" ? "compact" : "comfortable";
 }

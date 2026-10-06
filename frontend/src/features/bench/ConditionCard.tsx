@@ -1,9 +1,14 @@
 import { useState } from "react";
+import type { Case, CaseDose } from "../../api/cases";
+import { DoseDial } from "../../components/DoseDial";
+import { SidenoteList, SidenoteRefs } from "../../components/Sidenotes";
+import { TriageStrip } from "../../components/TriageStrip";
+import { VitalTrace } from "../../components/VitalTrace";
 import { useResultTrace, type ResultSummary } from "../../api/runs";
 import type { LiveEntry } from "../../app/runState";
 import { pickResult, type DiffField } from "./answerDiff";
 import type { Condition } from "../../app/conditions";
-import { AblationLadder } from "../../components/AblationLadder";
+import { Switchboard } from "../../components/Switchboard";
 import { Stamp } from "../../components/Stamp";
 import { TraceLog } from "./TraceLog";
 
@@ -17,6 +22,10 @@ interface Props {
   focused?: boolean;
   /** Compare mode: fields that differ between the compared conditions. */
   diffs?: Set<DiffField> | undefined;
+  /** The case under examination (gold triage for the under-triage notch, stamp seeds). */
+  caseData?: Case | undefined;
+  /** Dose-dial data when the case concerns a drug. */
+  dose?: CaseDose | undefined;
 }
 
 type CardStatus = "idle" | "queued" | "running" | "done" | "error";
@@ -53,14 +62,17 @@ function fmtNum(n: number | null): string {
   return n === null ? "—" : Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 }
 
-export function ConditionCard({ condition, available, live, latest, onCite, focused = false, diffs }: Props) {
+export function ConditionCard({ condition, available, live, latest, onCite, focused = false, diffs, caseData, dose }: Props) {
+  const [note, setNote] = useState<number | null>(null);
   const [traceOpen, setTraceOpen] = useState(false);
   const result = pickResult(live, latest);
   const status: CardStatus = live?.status ?? (result ? (result.status === "ok" ? "done" : "error") : "idle");
   const running = status === "running";
-  const fetched = useResultTrace(result?.id, traceOpen && !live?.steps.length && !result?.trace);
+  // Fetch the stored trace whenever a result is shown: the vital-signs trace needs it (cached).
+  const fetched = useResultTrace(result?.id, !!result && !live?.steps.length && !result?.trace);
   const steps = live?.steps.length ? live.steps : result?.trace ?? fetched.data?.trace ?? [];
   const a = result?.answer ?? null;
+  const cites = (a?.citations ?? []).filter((c) => c.page !== null);
   const v = result?.verdict;
   const showTrace = traceOpen || running;
 
@@ -78,8 +90,18 @@ export function ConditionCard({ condition, available, live, latest, onCite, focu
         <span className="led" data-state={status === "idle" ? undefined : status} aria-hidden="true" />
         <span className="ccard-id mono">{condition.id}</span>
         <span className="ccard-name">{condition.name}</span>
-        <AblationLadder condition={condition} />
+        <Switchboard condition={condition} />
       </header>
+      <VitalTrace
+        steps={steps}
+        status={status}
+        onStep={(i) => {
+          setTraceOpen(true);
+          requestAnimationFrame(() =>
+            document.getElementById(`step-${condition.id}-${i}`)?.scrollIntoView({ behavior: "smooth", block: "center" }),
+          );
+        }}
+      />
       <div className="ccard-statusline">
         <span className="ccard-status mono" data-status={status} aria-live="polite">
           {STATUS_LABEL[status]}
@@ -103,7 +125,7 @@ export function ConditionCard({ condition, available, live, latest, onCite, focu
       {v && v.stamps.length > 0 && (
         <div className="ccard-stamps" data-testid={`stamps-${condition.id}`}>
           {v.stamps.map((s, i) => (
-            <Stamp key={`${result?.id}-${s}`} kind={s} seed={String(result?.id ?? "")} delay={i * 0.06} />
+            <Stamp key={`${result?.id}-${s}`} kind={s} seed={`${caseData?.case_id ?? ""}-${condition.id}`} delay={i * 0.12} />
           ))}
         </div>
       )}
@@ -123,8 +145,10 @@ export function ConditionCard({ condition, available, live, latest, onCite, focu
             </span>
             {a.differentials.length > 0 && <span className="ccard-diff">{a.differentials.slice(0, 4).join(" · ")}</span>}
           </div>
+          <TriageStrip value={a.triage} gold={caseData?.gold_answer.triage} under={v?.under_triage === true} diff={diffs?.has("triage")} />
+          {dose?.drug && <DoseDial dose={dose} modelDose={a.dose_mg} seed={`${caseData?.case_id ?? ""}-${condition.id}`} />}
           <div className="ans-pills">
-            <Pill label="Triage" value={a.triage} diff={diffs?.has("triage")} tone={v?.under_triage ? "danger" : a.triage === "emergency" ? "warn" : undefined} />
+            
             <Pill
               label="Drug"
               value={a.drug_status}
@@ -142,24 +166,13 @@ export function ConditionCard({ condition, available, live, latest, onCite, focu
             <Pill label="Zoonosis" value={a.zoonosis_warning ? "warn" : "no"} diff={diffs?.has("zoonosis")} tone={a.zoonosis_warning ? "warn" : undefined} />
             <Pill label="See vet" value={a.see_vet ? "yes" : "no"} diff={diffs?.has("see_vet")} />
           </div>
-          <p className="ccard-advice">{a.advice}</p>
-          {a.citations.length > 0 && (
-            <div className="ccard-cites">
-              {a.citations
-                .filter((c) => c.page !== null)
-                .map((c, i) => (
-                  <button
-                    key={`${c.page}-${i}`}
-                    type="button"
-                    className="cite-chip mono"
-                    onClick={() => onCite(c.page as number)}
-                    title="Open the SVTG passage"
-                  >
-                    SVTG p.{c.page}
-                  </button>
-                ))}
-            </div>
-          )}
+          <div className="ccard-prose">
+            <p className="ccard-advice">
+              {a.advice}
+              <SidenoteRefs citations={cites} active={note} onToggle={(i) => setNote(note === i ? null : i)} />
+            </p>
+            <SidenoteList citations={cites} active={note} onCite={onCite} />
+          </div>
         </div>
       )}
 
@@ -192,7 +205,7 @@ export function ConditionCard({ condition, available, live, latest, onCite, focu
           <button type="button" className="trace-toggle mono" aria-expanded={showTrace} onClick={() => setTraceOpen(!traceOpen)} disabled={running}>
             {showTrace ? "▾" : "▸"} Trace{steps.length ? ` (${steps.length} steps)` : ""}
           </button>
-          {showTrace && (fetched.isFetching ? <p className="log-empty mono">Loading trace…</p> : <TraceLog steps={steps} />)}
+          {showTrace && (fetched.isFetching ? <p className="log-empty mono">Loading trace…</p> : <TraceLog steps={steps} idPrefix={`step-${condition.id}`} />)}
           {fetched.error && <p className="error-text">{fetched.error.message}</p>}
         </div>
       )}

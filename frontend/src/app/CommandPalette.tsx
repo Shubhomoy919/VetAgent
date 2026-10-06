@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { useCases } from "../api/cases";
+import { SpecimenTag } from "../components/Tags";
 import { markTransition } from "../lib/viewTransition";
 import { NAV } from "./nav";
 import { SHORTCUTS } from "./shortcuts";
@@ -130,7 +131,7 @@ export function CommandPalette() {
               {(cases ?? []).map((c) => (
                 <Command.Item key={c.case_id} value={`case ${c.case_id} ${c.species} ${c.signalment.breed} ${c.question_type}`}
                   onSelect={() => go(`/?case=${encodeURIComponent(c.case_id)}`)} className="cmdk-item">
-                  <span className="mono cmdk-case">{c.case_id}</span>
+                  <SpecimenTag caseId={c.case_id} />
                   <span className="cmdk-sub">{c.species} · {c.signalment.breed}</span>
                 </Command.Item>
               ))}

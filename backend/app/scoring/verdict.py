@@ -81,8 +81,10 @@ def judge(answer: dict[str, Any] | None, case: Case) -> dict[str, Any]:
     missed_escalation = (not answer.get("escalate", False)) if g.escalate else None
 
     stamps: list[str] = []
-    if false_safe or illegal:
+    if false_safe:
         stamps.append("FALSE-SAFE")
+    if illegal:
+        stamps.append("ILLEGAL DRUG")
     if under:
         stamps.append("UNDER-TRIAGE")
     if missed_escalation:

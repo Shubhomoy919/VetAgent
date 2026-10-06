@@ -378,29 +378,29 @@ select.ff-input,
   background-position: right 10px center;
 }
 
-/* ---------- Table rows: ink bar slides in on hover ---------- */
+/* ---------- Ledger rows: marigold bar slides in on hover ---------- */
 
-.dp-table tbody tr {
+.ledger tbody tr {
   position: relative;
 }
 
-.dp-table tbody tr td:first-child {
+.ledger tbody tr td:first-child {
   position: relative;
 }
 
-.dp-table tbody tr td:first-child::before {
+.ledger tbody tr td:first-child::before {
   content: "";
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   width: 2px;
-  background: var(--indigo);
+  background: var(--marigold);
   transform: scaleY(0);
   transition: transform var(--dur) var(--ease);
 }
 
-.dp-table tbody tr:not(.nohover):hover td:first-child::before {
+.ledger tbody tr:not(.nohover):hover td:first-child::before {
   transform: scaleY(1);
 }
 
@@ -421,4 +421,70 @@ select.ff-input,
   width: 0;
   height: 0;
   overflow: hidden;
+}
+
+/* ===== 11. Registration marks draw in on hover / focus =====
+   Print crop marks at two corners of cards; they scale out from the corner when the card is
+   hovered or holds focus (drawn just inside the corner, as some cards clip their overflow). */
+.ccard,
+.dw,
+.st-cond,
+.rv-case,
+.rv-answer,
+.sc-hero {
+  position: relative;
+}
+
+.ccard::before,
+.ccard::after,
+.dw::before,
+.dw::after,
+.st-cond::before,
+.st-cond::after,
+.rv-case::before,
+.rv-case::after,
+.rv-answer::before,
+.rv-answer::after,
+.sc-hero::before,
+.sc-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  border: 0 solid var(--riso);
+  transform: scale(0);
+  transition: transform var(--dur) var(--ease);
+}
+
+.ccard::before,
+.dw::before,
+.st-cond::before,
+.rv-case::before,
+.rv-answer::before,
+.sc-hero::before {
+  top: 3px;
+  left: 3px;
+  border-top-width: 1.5px;
+  border-left-width: 1.5px;
+  transform-origin: top left;
+}
+
+.ccard::after,
+.dw::after,
+.st-cond::after,
+.rv-case::after,
+.rv-answer::after,
+.sc-hero::after {
+  bottom: 3px;
+  right: 3px;
+  border-bottom-width: 1.5px;
+  border-right-width: 1.5px;
+  transform-origin: bottom right;
+}
+
+:is(.ccard, .dw, .st-cond, .rv-case, .rv-answer, .sc-hero):is(:hover, :focus-within)::before,
+:is(.ccard, .dw, .st-cond, .rv-case, .rv-answer, .sc-hero):is(:hover, :focus-within)::after {
+  transform: scale(1);
 }
