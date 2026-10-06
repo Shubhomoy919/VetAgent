@@ -36,7 +36,7 @@ test("/ opens the Bench shell with zero console errors", async ({ page }) => {
 
   // All five conditions render with their ablation ladders.
   for (const id of ["C0", "C1", "C2", "C3", "C4"]) {
-    await expect(page.locator(`[data-cond="${id}"]`)).toBeVisible();
+    await expect(page.locator(`.deck-tab[data-cond="${id}"]`)).toBeVisible();
   }
 
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");

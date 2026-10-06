@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, type MotionStyle } from "motion/react";
 import { useState } from "react";
 import type { TraceStep } from "../../api/runs";
 
@@ -18,16 +18,17 @@ function show(v: unknown): string {
   return JSON.stringify(v, null, 1);
 }
 
-function StepRow({ step, maxLatency }: { step: TraceStep; maxLatency: number }) {
+function StepRow({ step, maxLatency, order }: { step: TraceStep; maxLatency: number; order: number }) {
   const [open, setOpen] = useState(false);
   const tokens = step.tokens_in || step.tokens_out ? `${step.tokens_in}→${step.tokens_out} tok` : "";
   return (
     <motion.li
       className="log-step"
       data-kind={step.kind}
-      initial={{ opacity: 0, x: -6 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}
+      style={{ "--i": Math.min(order, 12) } as unknown as MotionStyle}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.12, delay: Math.min(order, 12) * 0.05 }}
     >
       <span className="log-index mono" aria-hidden="true">
         {step.index || "·"}
@@ -79,7 +80,7 @@ export function TraceLog({ steps }: { steps: TraceStep[] }) {
   return (
     <ol className="log">
       {steps.map((s, i) => (
-        <StepRow key={`${s.index}-${s.kind}-${s.name}-${i}`} step={s} maxLatency={maxLatency} />
+        <StepRow key={`${s.index}-${s.kind}-${s.name}-${i}`} step={s} maxLatency={maxLatency} order={i} />
       ))}
     </ol>
   );

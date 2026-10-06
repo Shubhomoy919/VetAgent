@@ -7,6 +7,7 @@ import { CONDITIONS, LADDER_STEPS } from "../../app/conditions";
 import "../data/data.css";
 import "./study.css";
 import { PageTitle } from "../../components/PageHeader";
+import { SectionTitle } from "../../components/Ink";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
@@ -66,15 +67,18 @@ function Ladder() {
               )}
               {on.map((v, j) => (
                 <g key={j}>
-                  {j === isNew && <circle cx={colX(i)} cy={rowY(j)} r={20} className="lf-new" />}
+                  {j === isNew && (
+                    <rect x={colX(i) - 31} y={rowY(j) - 19} width={62} height={38} rx={19} className="lf-new" />
+                  )}
+                  {/* Hardware toggle: track + knob; "on" knobs flip right with a click-like overshoot. */}
+                  <rect x={colX(i) - 22} y={rowY(j) - 11} width={44} height={22} rx={11} className={v ? "lf-track on" : "lf-track"} />
                   <motion.circle
-                    cx={colX(i)}
                     cy={rowY(j)}
-                    r={12}
-                    className={v ? "lf-dot on" : "lf-dot"}
-                    initial={{ scale: 0.4, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.2, ease: EASE, delay: i * 0.06 + j * 0.03 }}
+                    r={7.5}
+                    className={v ? "lf-knob on" : "lf-knob"}
+                    initial={{ cx: colX(i) - 11 }}
+                    animate={{ cx: v ? [colX(i) - 11, colX(i) + 13, colX(i) + 11] : colX(i) - 11 }}
+                    transition={{ duration: 0.22, times: [0, 0.7, 1], ease: EASE, delay: 0.15 + i * 0.08 + j * 0.05 }}
                   />
                 </g>
               ))}
@@ -124,7 +128,7 @@ export function StudyPage() {
       </header>
 
       <section className="st-section">
-        <h2 className="sc-h2">The ablation ladder</h2>
+        <SectionTitle>The ablation ladder</SectionTitle>
         <Ladder />
         <div className="st-conds">
           {CONDITIONS.map((c) => (
@@ -138,7 +142,7 @@ export function StudyPage() {
 
       <div className="st-two">
         <section className="st-section">
-          <h2 className="sc-h2">Procedure</h2>
+          <SectionTitle>Procedure</SectionTitle>
           <ol className="st-list">
             <li>Every case runs under all five conditions with the same model, prompt version and temperature 0.</li>
             <li>The model sees the case (signalment, history, owner’s words, signs, question) — never the gold answer, red-flag annotations or question type.</li>
@@ -149,7 +153,7 @@ export function StudyPage() {
           </ol>
         </section>
         <section className="st-section">
-          <h2 className="sc-h2">Statistics</h2>
+          <SectionTitle>Statistics</SectionTitle>
           <ul className="st-list">
             <li><strong>Rates</strong> with 95% Wilson score intervals (good coverage at small n).</li>
             <li><strong>Exact McNemar test</strong> (two-sided) between adjacent conditions, on cases both answered.</li>
@@ -160,7 +164,7 @@ export function StudyPage() {
       </div>
 
       <section className="st-section">
-        <h2 className="sc-h2">Question types</h2>
+        <SectionTitle>Question types</SectionTitle>
         <div className="dp-table-wrap">
           <table className="dp-table">
             <thead>
@@ -184,7 +188,7 @@ export function StudyPage() {
       </section>
 
       <section className="st-section">
-        <h2 className="sc-h2">Metrics</h2>
+        <SectionTitle>Metrics</SectionTitle>
         <div className="dp-table-wrap">
           <table className="dp-table" data-testid="study-metrics">
             <thead>
@@ -217,7 +221,7 @@ export function StudyPage() {
 
       <div className="st-two">
         <section className="st-section">
-          <h2 className="sc-h2">Data</h2>
+          <SectionTitle>Data</SectionTitle>
           <ul className="st-list">
             <li>Knowledge source: India’s <em>Standard Veterinary Treatment Guidelines for Livestock and Poultry</em> (DAHD, 2024), chunked with page numbers.</li>
             <li>
@@ -229,7 +233,7 @@ export function StudyPage() {
           </ul>
         </section>
         <section className="st-section">
-          <h2 className="sc-h2">Limitations</h2>
+          <SectionTitle>Limitations</SectionTitle>
           <ul className="st-list">
             <li>The SVTG has no dog or cat content; companion-animal cases test what retrieval cannot answer.</li>
             <li>Withdrawal periods are rarely stated in the SVTG; most withdrawal cases test refusal to invent a number.</li>

@@ -5,8 +5,9 @@ import { useCases, type Case } from "../../api/cases";
 import { CONDITION_IDS, resultKey, useLatestResults } from "../../api/runs";
 import { useRun } from "../../app/runState";
 import { NARROW, WIDE, useMediaQuery } from "../../app/useMediaQuery";
-import { GraphPaper } from "../../components/GraphPaper";
+import { withViewTransition } from "../../lib/viewTransition";
 import { CaseDetail } from "./CaseDetail";
+import { CaseDossier } from "./CaseDossier";
 import { CaseList, type DotState } from "./CaseList";
 import { ConditionDeck } from "./ConditionDeck";
 import { PassageDrawer } from "./PassageDrawer";
@@ -28,7 +29,7 @@ function isTypingTarget(el: EventTarget | null): boolean {
   return el instanceof HTMLElement && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
 }
 
-function CasePane({ selected }: { selected: Case | undefined }) {
+function CasePane({ selected, onOpenDossier }: { selected: Case | undefined; onOpenDossier: () => void }) {
   return (
     <section className="pane pane-case" aria-labelledby="pane-case">
       <div className="pane-header">
@@ -38,7 +39,7 @@ function CasePane({ selected }: { selected: Case | undefined }) {
       </div>
       {selected ? (
         <div className="pane-scroll">
-          <CaseDetail key={selected.case_id} c={selected} />
+          <CaseDetail key={selected.case_id} c={selected} onOpenDossier={onOpenDossier} />
         </div>
       ) : (
         <div className="empty">
@@ -62,6 +63,9 @@ export function BenchPage() {
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [citePage, setCitePage] = useState<number | null>(null);
   const [casesOpen, setCasesOpen] = useState(false);
+  const [dossierOpen, setDossierOpen] = useState(false);
+  const openDossier = useCallback(() => setDossierOpen(true), []);
+  const closeDossier = useCallback(() => setDossierOpen(false), []);
   const wide = useMediaQuery(WIDE);
   const narrow = useMediaQuery(NARROW);
 
@@ -92,7 +96,8 @@ export function BenchPage() {
   );
   const onSelectFromList = useCallback(
     (id: string) => {
-      onSelect(id);
+      // Case switching slides the case pane through a view transition (plain update if unsupported).
+      withViewTransition("case", () => onSelect(id));
       if (!wide) setCasesOpen(false);
     },
     [onSelect, wide],
@@ -185,7 +190,7 @@ export function BenchPage() {
 
   return (
     <div className="bench" data-testid="bench">
-      <GraphPaper />
+      <div className="graph-paper" aria-hidden="true" />
       <RunBar
         caseId={selectedId}
         selected={[...checked]}
@@ -203,7 +208,7 @@ export function BenchPage() {
           </Panel>
           <Separator className="pane-separator" />
           <Panel id="case" defaultSize="31" minSize="300px">
-            <CasePane selected={selected} />
+            <CasePane selected={selected} onOpenDossier={openDossier} />
           </Panel>
           <Separator className="pane-separator" />
           <Panel id="conditions" defaultSize="44" minSize="320px">
@@ -223,7 +228,7 @@ export function BenchPage() {
             className="bench-panes"
           >
             <Panel id="case" defaultSize={narrow ? "42" : "42"} minSize={narrow ? "160px" : "300px"}>
-              <CasePane selected={selected} />
+              <CasePane selected={selected} onOpenDossier={openDossier} />
             </Panel>
             <Separator className={narrow ? "pane-separator pane-separator-h" : "pane-separator"} />
             <Panel id="conditions" defaultSize="58" minSize={narrow ? "200px" : "320px"}>
@@ -232,6 +237,7 @@ export function BenchPage() {
           </Group>
         </>
       )}
+      <CaseDossier c={dossierOpen && selected ? selected : null} onClose={closeDossier} onCite={setCitePage} />
       <PassageDrawer page={citePage} onClose={closeDrawer} />
     </div>
   );

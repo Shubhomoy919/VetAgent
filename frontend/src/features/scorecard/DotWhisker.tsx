@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import type { ConditionId } from "../../api/runs";
 import { pct, type MetricRow } from "../../api/scorecard";
 import { CONDITIONS } from "../../app/conditions";
@@ -30,6 +30,7 @@ export function DotWhisker({ metric, conditions }: { metric: MetricRow; conditio
   const [hover, setHover] = useState<ConditionId | null>(null);
   const x = (v: number) => PAD + v * Math.max(0, width - 2 * PAD);
   const ticks = [0, 0.25, 0.5, 0.75, 1];
+  const htId = `ht-${useId().replace(/:/g, "")}`;
 
   return (
     <figure className="dw" data-testid={`chart-${metric.key}`}>
@@ -68,8 +69,25 @@ export function DotWhisker({ metric, conditions }: { metric: MetricRow; conditio
                     {ticks.map((t) => (
                       <line key={t} x1={x(t)} x2={x(t)} y1={2} y2={ROW_H - 2} className="dw-tick" />
                     ))}
+                    <defs>
+                      {/* Halftone screen for the interval band, in this row's condition pigment. */}
+                      <pattern id={`${htId}-${cond}`} width="4" height="4" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="0.75" className="dw-ht-dot" />
+                      </pattern>
+                    </defs>
                     {has && (
                       <>
+                        <motion.rect
+                          x={x(r.lo as number)}
+                          width={Math.max(1, x(r.hi as number) - x(r.lo as number))}
+                          y={ROW_H / 2 - 7}
+                          height={14}
+                          fill={`url(#${htId}-${cond})`}
+                          className="dw-band"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.32, ease: EASE, delay: 0.1 + i * 0.04 }}
+                        />
                         <motion.line
                           x1={x(r.lo as number)}
                           x2={x(r.hi as number)}

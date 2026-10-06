@@ -1,17 +1,22 @@
-/* ---------- Specimen tag ---------- */
+/* ---------- 4. Specimen tag ----------
+   Luggage-tag shape: chamfered left corners (clip-path), a species-colour stripe, a punched hole
+   through the stripe (radial mask in patterns.css), mono ID. */
 
 .specimen-tag {
   --sp: var(--ink-2);
+  --hole-x: 5px;
+  --hole-r: 2.2px;
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   height: 22px;
-  padding: 0 8px 0 10px;
-  background: var(--surface);
+  padding: 0 8px 0 7px;
+  background: var(--raised);
   border: 1px solid var(--rule-strong);
-  border-left: 4px solid var(--sp);
-  border-radius: 2px var(--radius-sm) var(--radius-sm) 2px;
+  border-left: 10px solid var(--sp);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  clip-path: polygon(5px 0, 100% 0, 100% 100%, 5px 100%, 0 calc(100% - 5px), 0 5px);
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: 500;
@@ -21,19 +26,14 @@
 }
 
 .specimen-tag[data-size="lg"] {
-  height: 30px;
-  padding: 0 12px 0 13px;
+  --hole-x: 7px;
+  --hole-r: 3px;
+  height: 32px;
+  padding: 0 12px 0 10px;
+  gap: 7px;
   font-size: var(--text-lg);
-  border-left-width: 6px;
-}
-
-.specimen-hole {
-  width: 6px;
-  height: 6px;
-  border: 1px solid var(--rule-strong);
-  border-radius: 50%;
-  background: var(--bg);
-  flex-shrink: 0;
+  border-left-width: 14px;
+  clip-path: polygon(7px 0, 100% 0, 100% 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);
 }
 
 .specimen-tag[data-species="CAN"] { --sp: var(--sp-can); }
@@ -47,11 +47,6 @@
   width: 13px;
   height: 13px;
   color: var(--sp);
-}
-
-/* Small tags: the glyph takes the punch hole's place so list rows keep their width. */
-.specimen-tag[data-size="md"] .specimen-hole {
-  display: none;
 }
 
 .specimen-tag[data-size="lg"] .specimen-glyph {
@@ -79,13 +74,13 @@
 
 .type-pill[data-type="drug_safety"],
 .type-pill[data-type="withdrawal_legal"] {
-  color: var(--terracotta);
+  color: var(--terracotta-text);
   border-color: currentColor;
 }
 
 .type-pill[data-type="escalation"],
 .type-pill[data-type="triage"] {
-  color: var(--indigo);
+  color: var(--indigo-text);
   border-color: currentColor;
 }
 
@@ -96,13 +91,13 @@
   align-items: center;
   height: 16px;
   padding: 0 4px;
-  border: 1px dashed var(--turmeric);
+  border: 1px dashed var(--marigold);
   border-radius: 2px;
   font-family: var(--font-mono);
   font-size: 9.5px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--turmeric-ink);
+  color: var(--marigold-text);
   white-space: nowrap;
 }

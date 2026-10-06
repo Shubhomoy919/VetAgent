@@ -5,7 +5,7 @@ import { MotionConfig } from "motion/react";
 import { RouterProvider } from "react-router";
 import { RunProvider } from "./app/RunContext";
 import { router } from "./app/routes";
-import "./app/global.css";
+import "./styles/global.css";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false } },

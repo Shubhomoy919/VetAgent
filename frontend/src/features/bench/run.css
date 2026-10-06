@@ -44,66 +44,24 @@
   text-align: right;
 }
 
-.progress {
-  position: relative;
-  width: 160px;
-  height: 4px;
-  background: var(--surface-sunk);
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  overflow: hidden;
+.meter-readout {
+  min-width: 4ch;
+  font-size: var(--text-xs);
+  color: var(--marigold-text);
 }
 
-.progress.tally {
-  display: flex;
-  width: 180px;
-  height: 10px;
-  padding: 1px;
-  background: var(--surface);
-  border-color: var(--rule-strong);
-}
-
-.tally-tick {
-  flex: 1;
-  min-width: 0;
-  background: var(--surface-sunk);
-  transform-origin: bottom center;
-  transition:
-    background-color var(--dur) var(--ease),
-    transform var(--dur) var(--ease);
-}
-
-.tally-tick[data-gap="true"] + .tally-tick {
-  margin-left: 1px;
-}
-
-.tally-tick[data-state="running"] {
-  background: var(--turmeric);
-}
-
-.tally-tick[data-state="done"] {
-  background: var(--leaf);
-}
-
-.tally-tick[data-state="error"] {
-  background: var(--vermilion);
-}
-
-.tally-tick[data-state="queued"] {
-  transform: scaleY(0.4);
-}
-
-/* Turmeric scan line, only while running; static under reduced motion. */
+/* Running marker: a static marigold rule across the running card / run bar (no looping sweep). */
 .scanline {
   position: absolute;
   top: 0;
   left: 0;
-  width: 30%;
+  right: 0;
   height: 2px;
-  background: var(--turmeric);
-  animation: scan 1.4s var(--ease) infinite;
+  background: var(--marigold);
   pointer-events: none;
   z-index: 2;
+  transform-origin: left center;
+  animation: scan-in var(--dur-xslow) var(--ease) both;
 }
 
 .scanline-bar {
@@ -111,19 +69,9 @@
   bottom: 0;
 }
 
-@keyframes scan {
+@keyframes scan-in {
   from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(340%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scanline {
-    width: 100%;
-    animation: none;
+    transform: scaleX(0);
   }
 }
 
@@ -160,8 +108,8 @@
 }
 
 .result-dot[data-state="running"] {
-  background: var(--turmeric);
-  border-color: var(--turmeric);
+  background: var(--marigold);
+  border-color: var(--marigold);
 }
 
 /* ---------- Condition deck ---------- */
@@ -199,30 +147,6 @@
 .deck-tab[aria-pressed="true"] {
   border-color: var(--ink);
   color: var(--ink);
-}
-
-.deck-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  border: 1.5px solid var(--cond);
-}
-
-.deck-dot[data-state="ok"],
-.deck-dot[data-state="done"] {
-  background: var(--cond);
-}
-
-.deck-dot[data-state="danger"],
-.deck-dot[data-state="error"] {
-  background: var(--vermilion);
-  border-color: var(--vermilion);
-}
-
-.deck-dot[data-state="running"],
-.deck-dot[data-state="queued"] {
-  background: var(--turmeric);
-  border-color: var(--turmeric);
 }
 
 .deck-compare {
@@ -327,11 +251,11 @@
 
 .ccard-status[data-status="running"],
 .ccard-status[data-status="queued"] {
-  color: var(--turmeric-ink);
+  color: var(--marigold-text);
 }
 
 .ccard-status[data-status="error"] {
-  color: var(--vermilion);
+  color: var(--vermilion-text);
 }
 
 .ccard-meta {
@@ -356,7 +280,7 @@
   padding: var(--s2) var(--s3);
   border: 1px solid var(--vermilion);
   border-radius: var(--radius-sm);
-  color: var(--vermilion);
+  color: var(--vermilion-text);
   font-size: var(--text-xs);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -406,6 +330,7 @@
 
 .ans-pill-value {
   padding: 2px 6px;
+  white-space: nowrap;
 }
 
 .ans-pill[data-tone="danger"] {
@@ -413,16 +338,16 @@
 }
 
 .ans-pill[data-tone="danger"] .ans-pill-value {
-  color: var(--vermilion);
+  color: var(--vermilion-text);
   font-weight: 500;
 }
 
 .ans-pill[data-tone="warn"] .ans-pill-value {
-  color: var(--terracotta);
+  color: var(--terracotta-text);
 }
 
 .ans-pill[data-tone="info"] .ans-pill-value {
-  color: var(--indigo);
+  color: var(--indigo-text);
 }
 
 .ccard-advice {
@@ -462,7 +387,7 @@ button.cite-chip:hover {
 }
 
 .rule-name {
-  color: var(--c4);
+  color: var(--c4-text);
   font-weight: 500;
 }
 
@@ -569,12 +494,12 @@ button.cite-chip:hover {
 
 .log-step[data-kind="rule"] .log-index {
   border-color: var(--c4);
-  color: var(--c4);
+  color: var(--c4-text);
 }
 
 .log-step[data-kind="retry"] .log-index {
   border-color: var(--vermilion);
-  color: var(--vermilion);
+  color: var(--vermilion-text);
 }
 
 .log-head {
@@ -673,7 +598,7 @@ button.cite-chip:hover {
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: rgba(20, 22, 26, 0.18);
+  background: var(--scrim);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--dur) var(--ease);
@@ -727,4 +652,116 @@ button.cite-chip:hover {
 .case-row-line:not(.case-row-meta) {
   flex-wrap: wrap;
   row-gap: 4px;
+}
+
+/* ---------- v2: lit headers, diffs, container queries, :has() ---------- */
+
+.ccard {
+  container: ccard / inline-size;
+}
+
+.ccard-head {
+  margin: calc(var(--s4) * -1) calc(var(--s4) * -1) 0;
+  padding: calc(var(--s4) + 2px) var(--s4) var(--s2);
+}
+
+/* Running: the header lights up in marigold halftone, LED pulsing. */
+.ccard-head[data-lit] {
+  --ht-color: color-mix(in srgb, var(--marigold) 45%, transparent);
+}
+
+/* Compare: answers that differ between compared conditions get a marigold underline. */
+.ans-pill[data-diff] .ans-pill-value,
+.ccard-dx-value[data-diff] {
+  text-decoration: underline 2px var(--marigold);
+  text-underline-offset: 4px;
+  text-decoration-skip-ink: none;
+}
+
+/* Compare mode: each card scrolls on its own; ConditionDeck keeps them in step. */
+.deck[data-mode="compare"] {
+  height: 100%;
+  overflow: hidden;
+}
+
+.deck[data-mode="compare"] .ccard {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+/* :has() — a card carrying a danger stamp gets a vermilion left edge. */
+.ccard:has(.stamp[data-tone="danger"]) {
+  border-left: 3px solid var(--vermilion);
+}
+
+/* :has() — while any card is running, the deck tabs show it. */
+.pane:has(.ccard[data-status="running"]) .deck-header {
+  border-bottom-color: var(--marigold);
+}
+
+/* Narrow cards (container query): stack the status line, tighten the answer pills. */
+@container ccard (max-width: 330px) {
+  .ccard-statusline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .ans-pills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ans-pill-value {
+    margin-left: auto;
+  }
+
+  .ccard-dx-value {
+    font-size: 19px;
+  }
+}
+
+/* Wide cards: show the full advice text. */
+@container ccard (min-width: 520px) {
+  .ccard-advice {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+  }
+
+  .ccard-dx-value {
+    font-size: 28px;
+  }
+}
+
+/* Lab log: each line types in left to right (stepped clip), one line after another. */
+.log-head .log-kind,
+.log-head .log-name,
+.log-head .log-meta {
+  animation: type-in var(--dur-xslow) steps(18, end) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+
+.log-head .log-name {
+  animation-delay: calc(var(--i, 0) * 50ms + 60ms);
+}
+
+.log-head .log-meta {
+  animation-delay: calc(var(--i, 0) * 50ms + 140ms);
+}
+
+@keyframes type-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .log-head .log-kind,
+  .log-head .log-name,
+  .log-head .log-meta {
+    animation: none;
+  }
 }

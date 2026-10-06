@@ -1,12 +1,17 @@
 import { AnimatePresence, motion } from "motion/react";
 import { NavLink, Outlet, useLocation } from "react-router";
+import type { MouseEvent } from "react";
 import { Toaster } from "sonner";
 import { useHealth } from "../api/health";
 import { CollapseIcon, ExpandIcon, MoonIcon, SunIcon } from "../components/icons";
+import { InkDefs, InkUnderline } from "../components/Ink";
+import { canViewTransition, markTransition, withViewTransition } from "../lib/viewTransition";
+import { useKeyPressFeedback } from "../lib/useKeyPressFeedback";
+import { CoachMarks } from "./CoachMarks";
 import { CommandPalette } from "./CommandPalette";
 import { NAV } from "./nav";
 import { useRun } from "./runState";
-import { usePersistentFlag, useTheme } from "./theme";
+import { applyThemePref, usePersistentFlag, useTheme } from "./theme";
 import "./Shell.css";
 import "./toast.css";
 
@@ -55,8 +60,13 @@ function ModePill() {
 function TopBar() {
   const { pathname } = useLocation();
   const { data } = useHealth();
-  const { theme, toggle } = useTheme();
+  const { theme } = useTheme();
   const next = theme === "dark" ? "light" : "dark";
+  // Theme change as a circular reveal from the toggle button (View Transitions; plain swap otherwise).
+  const toggle = (e: MouseEvent<HTMLButtonElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    withViewTransition("theme", () => applyThemePref(next), { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+  };
 
   return (
     <header className="topbar">
@@ -77,6 +87,7 @@ function TopBar() {
           aria-label="Open command palette (Ctrl+K)"
           title="Command palette (Ctrl+K) · shortcuts (?)"
           data-testid="open-palette"
+          data-coach="palette"
         >
           Ctrl K
         </button>
@@ -139,7 +150,14 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
             <ul>
               {group.items.map(({ to, label, icon: Icon }) => (
                 <li key={to}>
-                  <NavLink to={to} end className="nav-link" title={collapsed ? label : undefined}>
+                  <NavLink
+                    to={to}
+                    end
+                    viewTransition
+                    onClick={() => markTransition("route")}
+                    className="nav-link"
+                    title={collapsed ? label : undefined}
+                  >
                     {({ isActive }) => (
                       <>
                         {isActive && (
@@ -150,7 +168,10 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
                           />
                         )}
                         <Icon className="nav-icon" />
-                        <span className={collapsed ? "visually-hidden" : "nav-label"}>{label}</span>
+                        <span className={collapsed ? "visually-hidden" : "nav-label"}>
+                          {label}
+                          {isActive && !collapsed && <InkUnderline key={to} variant={label.length} />}
+                        </span>
                       </>
                     )}
                   </NavLink>
@@ -176,6 +197,9 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
 
 export function Shell() {
   const location = useLocation();
+  useKeyPressFeedback();
+  // View Transitions animate route changes where supported; motion is the fallback.
+  const vt = canViewTransition();
   const [collapsed, setCollapsed] = usePersistentFlag(
     "vab.sidebarCollapsed",
     () => window.innerWidth < 1280,
@@ -191,24 +215,33 @@ export function Shell() {
         <TopBar />
         <DemoBanner />
         <main id="content" className="content" tabIndex={-1}>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={location.pathname}
-              className="route"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.22, ease: EASE }}
-            >
+          {vt ? (
+            // View Transitions animate the swap (motion.css); the route mounts synchronously.
+            <div key={location.pathname} className="route">
               <Outlet />
-            </motion.div>
-          </AnimatePresence>
+            </div>
+          ) : (
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={location.pathname}
+                className="route"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.22, ease: EASE }}
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
+          )}
         </main>
         <CommandPalette />
         <Toaster
           position="bottom-right"
-          toastOptions={{ unstyled: true, classNames: { toast: "toast", error: "toast-error" } }}
+          toastOptions={{ unstyled: true, classNames: { toast: "toast paper-slip", error: "toast-error" } }}
         />
+        <CoachMarks />
+        <InkDefs />
         <footer className="footer">
           Research prototype — not for clinical use. Consult a registered veterinarian.
         </footer>

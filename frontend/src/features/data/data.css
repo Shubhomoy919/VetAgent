@@ -162,7 +162,7 @@ a.btn {
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--leaf);
+  color: var(--leaf-text);
 }
 
 .status-pill {
@@ -180,23 +180,23 @@ a.btn {
 }
 
 .status-pill[data-status="safe"] {
-  color: var(--leaf);
+  color: var(--leaf-text);
 }
 
 .status-pill[data-status="contraindicated"] {
-  color: var(--terracotta);
+  color: var(--terracotta-text);
 }
 
 .status-pill[data-status="banned_in_india"] {
-  color: var(--vermilion);
+  color: var(--vermilion-text);
 }
 
 [data-triage="emergency"] {
-  color: var(--vermilion);
+  color: var(--vermilion-text);
 }
 
 [data-triage="urgent"] {
-  color: var(--terracotta);
+  color: var(--terracotta-text);
 }
 
 /* ---------- Editor form ---------- */
@@ -254,7 +254,7 @@ a.btn {
 }
 
 [data-bad="true"] {
-  color: var(--vermilion);
+  color: var(--vermilion-text);
   font-weight: 500;
 }
 

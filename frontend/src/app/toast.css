@@ -1,26 +1,30 @@
-/* Toasts (sonner, unstyled): flat surface, hairline, turmeric or vermilion edge. */
+/* Toasts as small paper slips (sonner, unstyled): torn-off receipt with a perforated bottom
+   edge (mask in patterns.css), mono type, a pigment tab on the left, set slightly askew. */
 
 .toast {
   display: flex;
   align-items: center;
   gap: var(--s2);
-  width: 340px;
-  padding: var(--s3) var(--s4);
-  background: var(--surface);
+  width: 320px;
+  padding: var(--s3) var(--s4) calc(var(--s3) + 4px);
+  background: var(--raised);
   border: 1px solid var(--rule-strong);
-  border-left: 3px solid var(--turmeric);
-  border-radius: var(--radius);
+  border-left: 4px solid var(--marigold);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   color: var(--ink);
   font-family: var(--font-mono);
   font-size: var(--text-xs);
+  line-height: 1.4;
+  transform: rotate(-0.6deg);
 }
 
 .toast-error {
   border-left-color: var(--vermilion);
-  color: var(--vermilion);
+  color: var(--vermilion-text);
   overflow-wrap: anywhere;
+  transform: rotate(0.5deg);
 }
 
 .topbar-value[data-running="true"] {
-  color: var(--turmeric-ink);
+  color: var(--marigold-text);
 }

@@ -11,7 +11,8 @@
     "dev:web": "npm --prefix frontend run dev",
     "test": "cd backend && ..\\.venv\\Scripts\\python.exe -m pytest -q",
     "typecheck": "npm --prefix frontend run typecheck",
-    "lint": "npm --prefix frontend run lint"
+    "lint": "npm --prefix frontend run lint",
+    "check": "npm --prefix frontend run check"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"

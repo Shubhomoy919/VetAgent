@@ -1,0 +1,157 @@
+/* Specimen v2 motion: View Transitions, scroll-driven reveals, section heads.
+   Durations 120–320 ms, one easing. Reduced motion: the duration tokens drop to 0, and
+   lib/viewTransition.ts skips view transitions entirely. */
+
+/* ---------- View Transitions ----------
+   html[data-vt] names the kind of change: route | case | theme (set by lib/viewTransition.ts
+   and by nav links). Only the named region animates; the rest of the shell stays put. */
+.route {
+  view-transition-name: page;
+}
+
+.pane-case {
+  view-transition-name: case-pane;
+}
+
+::view-transition-group(*) {
+  animation-duration: var(--dur-slow);
+  animation-timing-function: var(--ease);
+}
+
+/* Default (and theme): no cross-fade of the whole window. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(page),
+::view-transition-old(case-pane) {
+  animation: vt-out var(--dur-fast) var(--ease) both;
+}
+
+::view-transition-new(page) {
+  animation: vt-rise var(--dur-slow) var(--ease) both;
+}
+
+::view-transition-new(case-pane) {
+  animation: vt-slide var(--dur-slow) var(--ease) both;
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes vt-slide {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+}
+
+/* Theme toggle: the new theme is revealed as a circle growing from the toggle button. */
+html[data-vt="theme"]::view-transition-new(root) {
+  animation: vt-theme var(--dur-xslow) var(--ease) both;
+}
+
+html[data-vt="theme"] .route,
+html[data-vt="theme"] .pane-case {
+  view-transition-name: none;
+}
+
+@keyframes vt-theme {
+  from {
+    clip-path: circle(0 at var(--vt-x, 100%) var(--vt-y, 0));
+  }
+  to {
+    clip-path: circle(var(--vt-r, 150vmax) at var(--vt-x, 100%) var(--vt-y, 0));
+  }
+}
+
+/* ---------- Section heads ----------
+   Numbered § via a CSS counter; the riso hand-drawn underline is an SVG in <SectionTitle>. */
+.datapage,
+.scorecard {
+  counter-reset: sec;
+}
+
+.sc-h2 {
+  position: relative;
+  display: flex;
+  width: fit-content;
+  align-self: flex-start;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-bottom: var(--s3);
+  counter-increment: sec;
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  font-variant-caps: all-small-caps;
+  letter-spacing: var(--tracking-label);
+  text-transform: none;
+}
+
+.sc-h2-text::before {
+  content: "\00a7" counter(sec, decimal-leading-zero) "\2003";
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-variant-caps: normal;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+}
+
+.sc-h2 .ink-underline {
+  width: calc(100% + 6px);
+  margin-left: -3px;
+}
+
+/* ---------- Scroll-driven reveals (progressive enhancement; Overview and Study) ---------- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ov-section,
+    .st-section {
+      animation: sec-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+
+    .ov-section .ink-underline path,
+    .st-section .ink-underline path {
+      animation: ink-draw linear forwards;
+      animation-timeline: view();
+      animation-range: entry 10% entry 70%;
+    }
+  }
+}
+
+@keyframes sec-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sc-h3 {
+  margin-bottom: var(--s2);
+  font-size: var(--text-md);
+  font-weight: 600;
+  font-variant-caps: all-small-caps;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-2);
+}

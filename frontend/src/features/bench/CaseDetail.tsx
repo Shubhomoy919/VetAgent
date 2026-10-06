@@ -5,7 +5,7 @@ import { SpecimenTag, TypePill, UnverifiedTag } from "../../components/Tags";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="sig-field">
       <dt className="eyebrow">{label}</dt>
@@ -18,7 +18,7 @@ function yesNo(v: boolean | null): string {
   return v === null ? "not stated" : v ? "yes" : "no";
 }
 
-function GoldPanel({ c }: { c: Case }) {
+export function GoldPanel({ c, onCite }: { c: Case; onCite?: (page: number) => void }) {
   const g = c.gold_answer;
   return (
     <motion.div
@@ -73,18 +73,30 @@ function GoldPanel({ c }: { c: Case }) {
         ))}
       </ul>
       <div className="gold-sources">
-        {g.citations.map((cit) => (
-          <span className="cite-chip mono" key={`${cit.source}-${cit.page}`} title={cit.source}>
-            SVTG p.{cit.page}
-          </span>
-        ))}
+        {g.citations.map((cit) =>
+          onCite && cit.page !== null ? (
+            <button
+              type="button"
+              className="cite-chip mono"
+              key={`${cit.source}-${cit.page}`}
+              title={cit.source}
+              onClick={() => onCite(cit.page as number)}
+            >
+              SVTG p.{cit.page}
+            </button>
+          ) : (
+            <span className="cite-chip mono" key={`${cit.source}-${cit.page}`} title={cit.source}>
+              SVTG p.{cit.page}
+            </span>
+          ),
+        )}
         <span className="gold-source-text">{c.source}</span>
       </div>
     </motion.div>
   );
 }
 
-export function CaseDetail({ c }: { c: Case }) {
+export function CaseDetail({ c, onOpenDossier }: { c: Case; onOpenDossier?: () => void }) {
   const [revealed, setRevealed] = useState(false);
   const s = c.signalment;
 
@@ -104,27 +116,36 @@ export function CaseDetail({ c }: { c: Case }) {
   return (
     <article className="case-detail" aria-labelledby="case-detail-id" data-testid="case-detail">
       <header className="case-detail-head">
-        <h3 id="case-detail-id" className="visually-hidden">
-          Case {c.case_id}
+        <div className="case-head-tags">
+          <SpecimenTag caseId={c.case_id} size="lg" />
+          <TypePill type={c.question_type} />
+          {!c.vet_verified && <UnverifiedTag />}
+          {onOpenDossier && (
+            <button type="button" className="btn case-dossier-btn" onClick={onOpenDossier} data-testid="open-dossier">
+              Dossier
+            </button>
+          )}
+        </div>
+        <h3 id="case-detail-id" className="case-title serif misreg">
+          <span className="visually-hidden">Case {c.case_id}: </span>
+          {s.breed}
         </h3>
-        <SpecimenTag caseId={c.case_id} size="lg" />
-        <TypePill type={c.question_type} />
-        {!c.vet_verified && <UnverifiedTag />}
       </header>
 
       <dl className="sig-strip" aria-label="Signalment">
         <Field label="Species">
           <span data-testid="case-species">{c.species}</span>
         </Field>
-        <Field label="Breed">{s.breed}</Field>
         <Field label="Age">
           <span className="mono">{formatAge(s.age_months)}</span>
         </Field>
-        <Field label="Sex">{formatSex(s.sex)}</Field>
+        <Field label="Sex">
+          {formatSex(s.sex)}
+          {s.sex === "female" && s.lactating && <span className="sig-sub"> · lactating</span>}
+        </Field>
         <Field label="Weight">
           <span className="mono">{s.weight_kg} kg</span>
         </Field>
-        {s.sex === "female" && <Field label="Lactating">{s.lactating ? "yes" : "no"}</Field>}
       </dl>
 
       <section className="case-block">

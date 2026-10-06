@@ -55,7 +55,7 @@ a.btn {
 
 .sc-warnings {
   padding: var(--s3) var(--s4);
-  border: 1px solid var(--turmeric);
+  border: 1px solid var(--marigold);
   border-left-width: 3px;
   border-radius: var(--radius);
   background: var(--surface);
@@ -73,21 +73,37 @@ a.btn {
 
 /* ---------- Tiles ---------- */
 
+/* Secondary readings as instrument plates: open, an inked top rule, a numbered plate index,
+   hairline dividers between plates — not boxed dashboard cards. */
 .sc-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: var(--s3);
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  counter-reset: plate;
+  border-top: 2px solid var(--ink);
+  border-bottom: var(--hairline);
+}
+
+.sc-tiles > div + div .sc-tile {
+  border-left: var(--hairline);
 }
 
 .sc-tile {
+  position: relative;
   display: grid;
   gap: var(--s2);
   align-content: start;
   height: 100%;
-  padding: var(--s3) var(--s4);
-  background: var(--surface);
-  border: var(--hairline);
-  border-radius: var(--radius);
+  padding: var(--s3) var(--s4) var(--s4);
+  counter-increment: plate;
+}
+
+.sc-tile > .eyebrow::before {
+  content: "R" counter(plate, decimal-leading-zero) " · ";
+  font-family: var(--font-mono);
+  font-variant-caps: normal;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  font-weight: 400;
 }
 
 .sc-tile-nums {
@@ -138,13 +154,6 @@ a.btn {
   flex-wrap: wrap;
 }
 
-.sc-h2 {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 
 .sc-note {
   font-size: var(--text-xs);
@@ -382,13 +391,13 @@ a.btn {
 }
 
 [data-bad="true"] {
-  color: var(--vermilion);
+  color: var(--vermilion-text);
   font-weight: 500;
 }
 
 [data-sig="true"] {
   font-weight: 500;
-  color: var(--indigo);
+  color: var(--indigo-text);
 }
 
 .sc-two {
@@ -397,35 +406,93 @@ a.btn {
   gap: var(--s5);
 }
 
-/* ---------- Print ---------- */
+/* ---------- v2: halftone interval bands ---------- */
+.dw-ht-dot {
+  fill: var(--cond);
+}
 
-@media print {
-  .sidebar,
-  .topbar,
-  .footer,
-  .sc-controls,
-  .skip-link {
-    display: none !important;
-  }
+.dw-band {
+  opacity: 0.55;
+}
 
-  .shell {
-    display: block !important;
-  }
+/* ---------- v2: hero ---------- */
+.sc-hero {
+  display: grid;
+  gap: var(--s3);
+  margin-bottom: var(--s5);
+  padding: var(--s4) var(--s5) var(--s5);
+  background: var(--raised);
+  border: var(--hairline);
+  border-top: 3px solid var(--ink);
+  border-radius: var(--radius);
+}
 
-  .content,
-  .scorecard,
-  .route {
-    height: auto !important;
-    overflow: visible !important;
-  }
+.sc-hero-kicker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
 
-  body::before {
-    display: none;
-  }
+.sc-hero-kicker .mono {
+  color: var(--cond-text);
+  font-weight: 500;
+}
 
-  .dw,
-  .sc-table-wrap,
-  .sc-tile {
-    break-inside: avoid;
+.sc-hero-vs {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: var(--text-lg);
+  color: var(--ink-2);
+}
+
+.sc-hero-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sc-hero-item {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 0 var(--s5);
+  border-left: var(--hairline);
+}
+
+.sc-hero-item:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.sc-hero-num {
+  font-size: var(--display-lg);
+  line-height: 0.95;
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.sc-hero-base {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.sc-hero-delta[data-good="true"] {
+  color: var(--leaf-text);
+}
+
+.sc-hero-delta[data-good="false"] {
+  color: var(--vermilion-text);
+}
+
+.sc-hero-note {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+@media (max-width: 1100px) {
+  .sc-hero-num {
+    font-size: var(--display);
   }
 }

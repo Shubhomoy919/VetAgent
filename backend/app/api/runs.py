@@ -157,6 +157,20 @@ def get_run(run_id: str) -> dict:
     return {**run, "results": results}
 
 
+@router.get("/results")
+def case_results(case_id: str = Query(min_length=1), limit: int = Query(default=100, ge=1, le=500)) -> list[dict]:
+    """All stored results for one case across runs (newest first), with verdicts, without traces."""
+    case = next((c for c in load_cases() if c.case_id == case_id), None)
+    if case is None:
+        raise HTTPException(status_code=404, detail=f"No case {case_id}")
+    out = []
+    for r in manager.store.case_results(case_id, limit):
+        p = result_payload(r, case, r["id"])
+        p.update(run_id=r["run_id"], provider=r["provider"], model=r["model"], created_at=r["created_at"])
+        out.append(p)
+    return out
+
+
 @router.get("/results/latest")
 def latest_results(interview: bool = False) -> dict[str, dict[str, dict]]:
     """{case_id: {condition: result summary with verdict}} — no traces."""

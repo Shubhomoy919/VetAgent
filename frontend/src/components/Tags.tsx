@@ -7,7 +7,6 @@ export function SpecimenTag({ caseId, size = "md" }: { caseId: string; size?: "m
   const code = speciesCode(caseId);
   return (
     <span className="specimen-tag" data-species={code} data-size={size}>
-      <span className="specimen-hole" aria-hidden="true" />
       <SpeciesGlyph code={code} className="specimen-glyph" />
       <span className="specimen-id">{caseId}</span>
     </span>

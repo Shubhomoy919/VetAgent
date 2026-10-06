@@ -107,7 +107,7 @@ export function CaseList({ cases, selectedId, onSelect, checked, onCheck, dots }
   const filtered = visible.length !== cases.length;
 
   return (
-    <section className="pane" aria-labelledby="pane-cases">
+    <section data-coach="cases" className="pane" aria-labelledby="pane-cases">
       <div className="pane-header">
         <h2 className="pane-title" id="pane-cases">
           Cases

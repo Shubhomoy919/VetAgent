@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { useCases } from "../api/cases";
+import { markTransition } from "../lib/viewTransition";
 import { NAV } from "./nav";
 import { SHORTCUTS } from "./shortcuts";
 import { applyDensity, applyThemePref, readDensity } from "./theme";
@@ -91,7 +92,8 @@ export function CommandPalette() {
 
   const go = (to: string) => {
     setOpen(false);
-    navigate(to);
+    markTransition("route");
+    void navigate(to, { viewTransition: true });
   };
 
   return (

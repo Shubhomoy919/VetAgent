@@ -32,11 +32,11 @@
 }
 
 .ov-val[data-mode="demo"] {
-  color: var(--turmeric-ink);
+  color: var(--marigold-text);
 }
 
 .ov-val[data-mode="live"] {
-  color: var(--leaf);
+  color: var(--leaf-text);
 }
 
 .ov-section {

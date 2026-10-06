@@ -100,6 +100,18 @@ def test_latest_results(client):
     assert client.get("/api/results/latest", params={"interview": True}).json() == {}
 
 
+def test_case_results_lists_history_newest_first(client):
+    for _ in range(2):
+        run_id = client.post("/api/runs", json={"case_ids": ["BOV-009"], "conditions": ["C0"], "force": True}).json()["run_id"]
+        wait_done(client, run_id)
+    rows = client.get("/api/results", params={"case_id": "BOV-009"}).json()
+    c0 = [r for r in rows if r["condition"] == "C0"]
+    assert len(c0) >= 2
+    assert [r["id"] for r in rows] == sorted((r["id"] for r in rows), reverse=True)
+    assert all(r["case_id"] == "BOV-009" and "verdict" in r and "trace" not in r and r["run_id"] for r in rows)
+    assert client.get("/api/results", params={"case_id": "NOPE-1"}).status_code == 404
+
+
 def test_interview_run(client):
     run_id = client.post("/api/runs", json={"case_ids": ["CAN-013"], "interview": True}).json()["run_id"]
     events = read_sse(client, run_id)

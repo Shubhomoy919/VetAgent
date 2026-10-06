@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type UIEvent } from "react";
 import { INTERVIEW_CONDITIONS, resultKey, type ConditionId, type LatestResults } from "../../api/runs";
 import { useRun } from "../../app/runState";
 import { CONDITIONS } from "../../app/conditions";
+import { EmptyLadder } from "../../components/EmptyLadder";
 import { ConditionCard } from "./ConditionCard";
+import { ANSWER_DIFF_FIELDS, pickResult, type DiffField } from "./answerDiff";
 
 interface Props {
   caseId: string | null;
@@ -46,6 +48,35 @@ export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false 
     return () => window.removeEventListener("keydown", onKey);
   }, [compare]);
 
+  // Compare mode: which answer fields disagree between the compared conditions (marigold underline).
+  const diffs = useMemo(() => {
+    const out = new Set<DiffField>();
+    if (!compare || !caseId) return out;
+    const answers = CONDITIONS.filter((c) => picked.includes(c.id))
+      .map((c) => pickResult(live[resultKey(caseId, c.id, interview)], latest?.[caseId]?.[c.id])?.answer)
+      .filter((a) => a != null);
+    if (answers.length < 2) return out;
+    for (const [field, read] of ANSWER_DIFF_FIELDS) {
+      if (new Set(answers.map(read)).size > 1) out.add(field);
+    }
+    return out;
+  }, [compare, caseId, picked, live, latest, interview]);
+
+  // Compare mode: scrolling one card scrolls the others to the same relative position.
+  const syncing = useRef(false);
+  const onCardScroll = (e: UIEvent<HTMLDivElement>) => {
+    const src = e.target as HTMLElement;
+    if (!compare || syncing.current || !src.classList.contains("ccard")) return;
+    syncing.current = true;
+    const ratio = src.scrollTop / Math.max(1, src.scrollHeight - src.clientHeight);
+    for (const el of scrollRef.current?.querySelectorAll<HTMLElement>(".ccard") ?? []) {
+      if (el !== src) el.scrollTop = ratio * (el.scrollHeight - el.clientHeight);
+    }
+    requestAnimationFrame(() => {
+      syncing.current = false;
+    });
+  };
+
   const togglePick = (id: ConditionId) =>
     setPicked((p) => (p.includes(id) ? (p.length > 2 ? p.filter((x) => x !== id) : p) : p.length < 3 ? [...p, id] : [...p.slice(1), id]));
 
@@ -56,7 +87,7 @@ export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false 
       : CONDITIONS;
 
   return (
-    <section className="pane" aria-labelledby="pane-conditions">
+    <section className="pane" aria-labelledby="pane-conditions" data-coach="deck">
       <div className="pane-header deck-header">
         <h2 className="pane-title" id="pane-conditions">
           Conditions
@@ -76,7 +107,7 @@ export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false 
                 onClick={() => (compare ? togglePick(c.id) : scrollTo(c.id))}
                 title={`${c.id} ${c.name} (key ${i + 1})`}
               >
-                <span className="deck-dot" data-state={st} aria-hidden="true" />
+                <span className="led" data-state={st} aria-hidden="true" />
                 {c.id}
               </button>
             );
@@ -88,19 +119,19 @@ export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false 
       </div>
 
       {caseId === null ? (
-        <div className="empty">
-          <p className="empty-title serif empty-title-lg">Nothing to compare yet</p>
-          <p className="empty-body">
-            Select a case, then press R. Each condition — bare model, retrieval, tools, self-verify, guardrail — answers the
-            same question, and its trace streams in here step by step.
+        <EmptyLadder title="Nothing on the bench yet">
+          <p>
+            Select a case, then press <kbd>R</kbd> to run it. Each condition — bare model, retrieval, tools, self-verify,
+            guardrail — answers the same question, and its trace streams in here step by step.
           </p>
-        </div>
+        </EmptyLadder>
       ) : (
         <div
           ref={scrollRef}
           className="deck"
           data-mode={compare ? "compare" : tabs ? "tabs" : "scroll"}
           style={compare ? { gridTemplateColumns: `repeat(${shown.length}, minmax(0, 1fr))` } : undefined}
+          onScrollCapture={onCardScroll}
         >
           {shown.map((c) => (
             <ConditionCard
@@ -110,6 +141,8 @@ export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false 
               live={live[resultKey(caseId, c.id, interview)]}
               latest={latest?.[caseId]?.[c.id]}
               onCite={onCite}
+              focused={!compare && active === c.id}
+              diffs={compare ? diffs : undefined}
             />
           ))}
         </div>

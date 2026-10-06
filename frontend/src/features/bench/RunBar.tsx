@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useHealth } from "../../api/health";
 import { INTERVIEW_CONDITIONS, resultKey } from "../../api/runs";
 import { useRun } from "../../app/runState";
@@ -32,12 +33,21 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
     void start({ case_ids: ids, interview, force });
   };
 
-  // Tally strip: one tick per result, in the order results started; coloured as each lands.
-  const ticks = run ? run.case_ids.flatMap((cid) => run.conditions.map((c) => live[resultKey(cid, c, run.interview)]?.status ?? "queued")) : [];
-  const total = run?.n_total ?? 0;
+  // Instrument meter: one segment per result (grouped into at most 40 segments for big runs),
+  // lit marigold as results land, vermilion for errors.
+  const states = run ? run.case_ids.flatMap((cid) => run.conditions.map((c) => live[resultKey(cid, c, run.interview)]?.status ?? "queued")) : [];
+  const nSeg = Math.min(states.length, 40);
+  const segments = Array.from({ length: nSeg }, (_, i) => {
+    const group = states.slice(Math.floor((i * states.length) / nSeg), Math.floor(((i + 1) * states.length) / nSeg));
+    if (group.some((s) => s === "error")) return "error";
+    if (group.every((s) => s === "done" || s === "error")) return "done";
+    if (group.some((s) => s === "running" || s === "done")) return "running";
+    return "queued";
+  });
+  const fraction = run && run.n_total ? run.n_done / run.n_total : 0;
 
   return (
-    <div className="runbar" data-running={running} role="toolbar" aria-label="Run controls">
+    <div className="runbar" data-coach="runbar" data-running={running} role="toolbar" aria-label="Run controls">
       <div className="runbar-actions">
         {onOpenCases && (
           <button type="button" className="btn" onClick={onOpenCases} data-testid="open-cases">
@@ -70,17 +80,19 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
               {run.n_done}/{run.n_total}
             </span>
             <span
-              className="progress tally"
+              className="meter"
               role="progressbar"
               aria-label="Run progress"
               aria-valuemin={0}
               aria-valuemax={run.n_total}
               aria-valuenow={run.n_done}
+              style={{ "--fill": fraction } as CSSProperties}
             >
-              {Array.from({ length: total }, (_, i) => (
-                <span key={i} className="tally-tick" data-state={ticks[i] ?? "queued"} data-gap={total <= 60} />
+              {segments.map((st, i) => (
+                <span key={i} className="meter-seg" data-state={st} />
               ))}
             </span>
+            <span className="meter-readout mono count" aria-hidden="true" style={{ "--to": Math.round(fraction * 100), "--suffix": '"%"' } as CSSProperties} />
           </>
         )}
         <button type="button" className="btn btn-danger" disabled={!running} onClick={() => void cancel()}>

@@ -225,6 +225,21 @@ class Store:
             ).fetchone()
         return _result_dict(row) if row else None
 
+    def case_results(self, case_id: str, limit: int = 100) -> list[dict[str, Any]]:
+        """Every stored result for one case across runs, newest first, without traces."""
+        with self._conn() as c:
+            rows = c.execute(
+                """
+                SELECT r.id, r.run_id, r.case_id, r.condition, r.interview, r.status, r.answer, r.error,
+                       r.rules_fired, r.owner_questions, r.steps, r.tokens_in, r.tokens_out, r.cost_usd,
+                       r.latency_ms, r.cached, r.created_at, u.provider, u.model
+                FROM results r JOIN runs u ON u.id = r.run_id
+                WHERE r.case_id=? ORDER BY r.id DESC LIMIT ?
+                """,
+                (case_id, limit),
+            ).fetchall()
+        return [_result_dict(r) for r in rows]
+
     def latest_results(self, interview: bool) -> list[dict[str, Any]]:
         """Most recent result per (case, condition) for the given mode, without traces."""
         with self._conn() as c:

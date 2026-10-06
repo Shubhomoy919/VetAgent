@@ -10,6 +10,7 @@ import { SpecimenTag, TypePill } from "../../components/Tags";
 import "../data/data.css";
 import "./review.css";
 import { PageTitle } from "../../components/PageHeader";
+import { SectionTitle } from "../../components/Ink";
 
 const REVIEWER_KEY = "vab.reviewer";
 const COND_NAME = Object.fromEntries(CONDITIONS.map((c) => [c.id, c.name]));
@@ -108,7 +109,7 @@ function Stats({ runId }: { runId: string | null }) {
   if (!data) return <p className="empty-body">Loading agreement…</p>;
   return (
     <aside className="rv-stats" data-testid="review-stats">
-      <h2 className="sc-h2">Agreement</h2>
+      <SectionTitle>Agreement</SectionTitle>
       <p className="rv-small">
         Reviewer vs the automatic scorer (auto = acceptable when no dangerous error). “Not sure” is excluded.
       </p>
@@ -149,7 +150,7 @@ function Stats({ runId }: { runId: string | null }) {
       })}
       {data.pairs.length > 0 && (
         <>
-          <h3 className="sc-h2">Between reviewers</h3>
+          <h3 className="sc-h3">Between reviewers</h3>
           {data.pairs.map((p) => (
             <p key={p.a + p.b} className="rv-small mono">
               {p.a} × {p.b}: κ {p.kappa === null ? "—" : p.kappa.toFixed(2)} ({kappaLabel(p.kappa)}), {pct(p.percent)} agreement, n={p.n}

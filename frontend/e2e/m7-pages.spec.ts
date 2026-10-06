@@ -91,7 +91,7 @@ test("Study Design: ladder diagram, question types and metrics", async ({ page }
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/study");
   await expect(page.getByRole("img", { name: "Ablation ladder" })).toBeVisible();
-  await expect(page.locator(".lf-dot.on")).toHaveCount(10); // 0+1+2+3+4 components
+  await expect(page.locator(".lf-track.on")).toHaveCount(10); // 0+1+2+3+4 components
   await expect(page.getByTestId("study-metrics").locator("tbody tr")).toHaveCount(10);
   await page.waitForTimeout(500);
   await page.screenshot({ path: path.join(SHOTS, "m7-study-1440-light.png") });

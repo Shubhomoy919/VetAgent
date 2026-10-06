@@ -1,0 +1,6 @@
+{
+  "cookies": [],
+  "origins": [
+    { "origin": "http://localhost:5173", "localStorage": [{ "name": "vab.coach", "value": "done" }] }
+  ]
+}

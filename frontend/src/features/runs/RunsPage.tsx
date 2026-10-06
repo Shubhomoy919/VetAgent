@@ -7,6 +7,8 @@ import { Stamp } from "../../components/Stamp";
 import "../data/data.css";
 import "./runs.css";
 import { PageTitle } from "../../components/PageHeader";
+import { SectionTitle } from "../../components/Ink";
+import { EmptyLadder } from "../../components/EmptyLadder";
 
 const fmtDate = (s: string) => s.replace("T", " ").slice(0, 16);
 const STATUS: Record<string, string> = { running: "running", done: "done", done_with_errors: "done · errors", cancelled: "cancelled", failed: "failed", quota_exhausted: "quota stop" };
@@ -27,7 +29,7 @@ function Compare({ data }: { data: CompareResult }) {
   return (
     <section className="cmp" data-testid="compare">
       <div className="cmp-head">
-        <h2 className="sc-h2">Compare</h2>
+        <SectionTitle>Compare</SectionTitle>
         <p className="dp-sub">
           <strong>A</strong> {fmtDate(data.a.created_at)} · {data.a.provider}/{data.a.model} ·{" "}
           <strong>B</strong> {fmtDate(data.b.created_at)} · {data.b.provider}/{data.b.model} · {data.n_pairs} paired results
@@ -143,10 +145,11 @@ export function RunsPage() {
       {isPending && <p className="empty-body">Loading runs…</p>}
       {error && <p className="error-text" role="alert">{error.message}</p>}
       {runs && runs.length === 0 && (
-        <div className="empty">
-          <p className="empty-title serif empty-title-lg">No runs yet</p>
-          <p className="empty-body">Run cases from the Bench; every run is listed here.</p>
-        </div>
+        <EmptyLadder title="No runs yet">
+          <p>
+            Open the Bench, pick a case and press <kbd>R</kbd>. Every run is listed here.
+          </p>
+        </EmptyLadder>
       )}
 
       {runs && runs.length > 0 && (

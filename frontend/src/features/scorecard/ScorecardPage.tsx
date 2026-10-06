@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type CSSProperties } from "react";
 import { useSearchParams } from "react-router";
 import type { ConditionId } from "../../api/runs";
 import { fmtP, pct, useRuns, useScorecard, type BreakdownRow, type Rate, type Scorecard } from "../../api/scorecard";
@@ -9,6 +9,7 @@ import { RollingNumber } from "../../components/RollingNumber";
 import { DotWhisker } from "./DotWhisker";
 import "./scorecard.css";
 import { PageTitle } from "../../components/PageHeader";
+import { SectionTitle } from "../../components/Ink";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 const COND = Object.fromEntries(CONDITIONS.map((c) => [c.id, c])) as Record<ConditionId, (typeof CONDITIONS)[number]>;
@@ -56,7 +57,7 @@ function Tile({ label, a, b, condA, condB, format, note }: {
 function Breakdown({ title, rows, conditions }: { title: string; rows: BreakdownRow[]; conditions: ConditionId[] }) {
   return (
     <section className="sc-section">
-      <h2 className="sc-h2">{title}</h2>
+      <SectionTitle>{title}</SectionTitle>
       <div className="sc-table-wrap">
         <table className="sc-table">
           <thead>
@@ -99,6 +100,70 @@ function Breakdown({ title, rows, conditions }: { title: string; rows: Breakdown
   );
 }
 
+/** Hero figure: 72px Instrument Serif, misregistered, counting up via the registered --count property. */
+function HeroNumber({ value }: { value: number | null }) {
+  if (value === null) return <span className="sc-hero-num serif">—</span>;
+  const n = Math.round(value * 100);
+  return (
+    <span className="sc-hero-num serif misreg">
+      <span className="visually-hidden">{n}%</span>
+      <span className="count" aria-hidden="true" style={{ "--to": n, "--suffix": '"%"' } as CSSProperties} />
+    </span>
+  );
+}
+
+/** The three headline numbers for the best condition against C0: false-safe, under-triage, top-3.
+ *  "Best" = fewest dangerous errors, then highest top-3 accuracy. */
+function Hero({ sc }: { sc: Scorecard }) {
+  const rate = (key: string, c: ConditionId) => sc.metrics.find((m) => m.key === key)?.by_condition[c]?.rate ?? null;
+  const base = sc.conditions[0] as ConditionId;
+  const others = sc.conditions.slice(1);
+  if (others.length === 0) return null;
+  const best = [...others].sort(
+    (a, b) => (rate("dangerous", a) ?? 1) - (rate("dangerous", b) ?? 1) || (rate("dx_top3", b) ?? 0) - (rate("dx_top3", a) ?? 0),
+  )[0] as ConditionId;
+  const items = [
+    { key: "false_safe", label: "False-safe drug rate", better: "lower" },
+    { key: "under_triage", label: "Under-triage rate", better: "lower" },
+    { key: "dx_top3", label: "Top-3 diagnosis", better: "higher" },
+  ] as const;
+  return (
+    <section className="sc-hero" aria-label={`Headline: ${best} against ${base}`} data-testid="sc-hero">
+      <div className="sc-hero-kicker">
+        <span className="mono" data-cond={best}>{best}</span> {COND[best].name}
+        <AblationLadder condition={COND[best]} />
+        <span className="sc-hero-vs">against</span>
+        <span className="mono" data-cond={base}>{base}</span> {COND[base].name}
+      </div>
+      <div className="sc-hero-grid">
+        {items.map((it) => {
+          const a = rate(it.key, best);
+          const b = rate(it.key, base);
+          const delta = a !== null && b !== null ? Math.round((a - b) * 100) : null;
+          const good = delta !== null && (it.better === "lower" ? delta < 0 : delta > 0);
+          return (
+            <div key={it.key} className="sc-hero-item">
+              <span className="eyebrow">{it.label}</span>
+              <HeroNumber value={a} />
+              <span className="sc-hero-base mono">
+                {base} {b === null ? "n/a" : `${Math.round(b * 100)}%`}
+                {delta !== null && delta !== 0 && (
+                  <span className="sc-hero-delta" data-good={good}>
+                    {" "}
+                    {delta > 0 ? "+" : "−"}
+                    {Math.abs(delta)} pts
+                  </span>
+                )}
+              </span>
+              <span className="sc-hero-note">{it.better} is better</span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function Report({ sc }: { sc: Scorecard }) {
   const conds = sc.conditions;
   const first = conds[0] as ConditionId;
@@ -121,6 +186,15 @@ function Report({ sc }: { sc: Scorecard }) {
         </div>
       )}
 
+      <div className="sc-report-head print-only">
+        <span className="sc-report-title">VetAgentBench-IN · Lab report</span>
+        <span className="sc-report-meta">
+          Run {sc.run.id} · {sc.run.provider}/{sc.run.model} · {sc.n_cases} cases × {conds.length} conditions
+        </span>
+      </div>
+
+      <Hero sc={sc} />
+
       <motion.div
         className="sc-tiles"
         initial="hidden"
@@ -142,7 +216,7 @@ function Report({ sc }: { sc: Scorecard }) {
 
       <section className="sc-section">
         <div className="sc-section-head">
-          <h2 className="sc-h2">Rates with 95% Wilson intervals</h2>
+          <SectionTitle>Rates with 95% Wilson intervals</SectionTitle>
           <div className="sc-legend" aria-label="Conditions">
             {conds.map((c) => (
               <span key={c} className="sc-legend-item" data-cond={c}>
@@ -161,7 +235,7 @@ function Report({ sc }: { sc: Scorecard }) {
       </section>
 
       <section className="sc-section">
-        <h2 className="sc-h2">Metrics table</h2>
+        <SectionTitle>Metrics table</SectionTitle>
         <div className="sc-table-wrap">
           <table className="sc-table" data-testid="metrics-table">
             <thead>
@@ -222,7 +296,7 @@ function Report({ sc }: { sc: Scorecard }) {
 
       {pairs.length > 0 && (
         <section className="sc-section">
-          <h2 className="sc-h2">McNemar tests, adjacent conditions</h2>
+          <SectionTitle>McNemar tests, adjacent conditions</SectionTitle>
           <p className="sc-note">
             Exact two-sided test on paired cases. Cells show p and the discordant counts (only first · only second
             succeeded). For “lower is better” metrics a “success” is the error occurring.
@@ -263,10 +337,15 @@ function Report({ sc }: { sc: Scorecard }) {
         </section>
       )}
 
-      <div className="sc-two">
+      <div className="sc-two sc-breakdowns">
         <Breakdown title="By species" rows={sc.breakdowns.species} conditions={conds} />
         <Breakdown title="By question type" rows={sc.breakdowns.question_type} conditions={conds} />
       </div>
+
+      <p className="sc-report-foot print-only">
+        Research prototype — not for clinical use. Gold answers unverified by a veterinarian. Rates with 95% Wilson
+        intervals; exact McNemar tests between adjacent conditions.
+      </p>
     </>
   );
 }

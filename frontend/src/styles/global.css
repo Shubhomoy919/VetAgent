@@ -1,0 +1,134 @@
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "./tokens.css";
+@import "./patterns.css";
+@import "./controls.css";
+@import "./effects.css";
+@import "./motion.css";
+@import "./print.css";
+
+/* Specimen v2 base: paper, ink, type, focus, selection, scrollbars. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+/* Riso-pink focus ring: the one place the pop colour is guaranteed to appear. */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--selection);
+  color: var(--ink);
+}
+
+/* Thin scrollbars: rule track, graphite thumb. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-2) var(--rule);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--rule);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ink-2);
+  border: 2px solid var(--rule);
+  border-radius: 4px;
+}
+
+/* Condition identity: every [data-cond] element gets its pigment and AA text twin. */
+[data-cond="C0"] { --cond: var(--c0); --cond-text: var(--c0-text); }
+[data-cond="C1"] { --cond: var(--c1); --cond-text: var(--c1-text); }
+[data-cond="C2"] { --cond: var(--c2); --cond-text: var(--c2-text); }
+[data-cond="C3"] { --cond: var(--c3); --cond-text: var(--c3-text); }
+[data-cond="C4"] { --cond: var(--c4); --cond-text: var(--c4-text); }
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: var(--tracking-display);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Section labels: small caps with letter-spacing. */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-variant-caps: all-small-caps;
+  letter-spacing: var(--tracking-label);
+  color: var(--ink-2);
+}

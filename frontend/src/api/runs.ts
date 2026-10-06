@@ -139,6 +139,15 @@ export function useLatestResults(interview: boolean) {
   });
 }
 
+/** Every stored result for one case across runs, newest first (no traces). */
+export function useCaseResults(caseId: string | null) {
+  return useQuery({
+    queryKey: ["case-results", caseId],
+    queryFn: () => request<ResultSummary[]>("GET", `/api/results?case_id=${encodeURIComponent(caseId as string)}`),
+    enabled: caseId !== null,
+  });
+}
+
 export function useResultTrace(id: number | null | undefined, enabled: boolean) {
   return useQuery({
     queryKey: ["result", id],

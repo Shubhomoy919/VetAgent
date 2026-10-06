@@ -1,0 +1,77 @@
+/* First-run coach marks: a paper slip pinned bottom-right; the target gets a dashed riso outline. */
+
+.coach {
+  position: fixed;
+  right: var(--s5);
+  bottom: calc(var(--s7) + var(--s2));
+  z-index: 70;
+  width: 300px;
+  padding: var(--s3) var(--s4) calc(var(--s3) + 4px);
+  background: var(--raised);
+  border: 1px solid var(--rule-strong);
+  border-top: 3px solid var(--riso);
+  color: var(--ink);
+}
+
+.coach-head,
+.coach-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.coach-head {
+  justify-content: space-between;
+  margin-bottom: var(--s2);
+}
+
+.coach-step {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.coach-skip {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.coach-title {
+  font-size: 26px;
+  line-height: 1.05;
+}
+
+.coach-body {
+  margin-top: 6px;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.coach-keys {
+  display: flex;
+  gap: 4px;
+  margin: var(--s2) 0 var(--s3);
+}
+
+.coach-foot {
+  justify-content: flex-end;
+}
+
+.coach-pips {
+  display: inline-flex;
+  gap: 5px;
+  margin-right: auto;
+}
+
+html[data-coach-step="cases"] [data-coach="cases"],
+html[data-coach-step="runbar"] [data-coach="runbar"],
+html[data-coach-step="deck"] [data-coach="deck"],
+html[data-coach-step="palette"] [data-coach="palette"] {
+  outline: 2px dashed var(--focus);
+  outline-offset: 3px;
+}

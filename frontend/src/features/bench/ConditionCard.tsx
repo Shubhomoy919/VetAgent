@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useResultTrace, type ResultSummary } from "../../api/runs";
 import type { LiveEntry } from "../../app/runState";
+import { pickResult, type DiffField } from "./answerDiff";
 import type { Condition } from "../../app/conditions";
 import { AblationLadder } from "../../components/AblationLadder";
 import { Stamp } from "../../components/Stamp";
@@ -12,9 +13,14 @@ interface Props {
   live: LiveEntry | undefined;
   latest: ResultSummary | undefined;
   onCite: (page: number) => void;
+  /** The condition currently in focus (tabs / 1–5): its header gets halftone shading. */
+  focused?: boolean;
+  /** Compare mode: fields that differ between the compared conditions. */
+  diffs?: Set<DiffField> | undefined;
 }
 
 type CardStatus = "idle" | "queued" | "running" | "done" | "error";
+
 
 const STATUS_LABEL: Record<CardStatus, string> = {
   idle: "Not run",
@@ -24,9 +30,19 @@ const STATUS_LABEL: Record<CardStatus, string> = {
   error: "Error",
 };
 
-function Pill({ label, value, tone }: { label: string; value: string; tone?: "danger" | "warn" | "good" | "info" | undefined }) {
+function Pill({
+  label,
+  value,
+  tone,
+  diff,
+}: {
+  label: string;
+  value: string;
+  tone?: "danger" | "warn" | "good" | "info" | undefined;
+  diff?: boolean | undefined;
+}) {
   return (
-    <span className="ans-pill" data-tone={tone}>
+    <span className="ans-pill" data-tone={tone} data-diff={diff || undefined} title={diff ? "Differs between the compared conditions" : undefined}>
       <span className="ans-pill-label">{label}</span>
       <span className="ans-pill-value mono">{value}</span>
     </span>
@@ -37,9 +53,9 @@ function fmtNum(n: number | null): string {
   return n === null ? "—" : Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
 }
 
-export function ConditionCard({ condition, available, live, latest, onCite }: Props) {
+export function ConditionCard({ condition, available, live, latest, onCite, focused = false, diffs }: Props) {
   const [traceOpen, setTraceOpen] = useState(false);
-  const result = live?.result ?? (live && live.status !== "done" && live.status !== "error" ? undefined : latest);
+  const result = pickResult(live, latest);
   const status: CardStatus = live?.status ?? (result ? (result.status === "ok" ? "done" : "error") : "idle");
   const running = status === "running";
   const fetched = useResultTrace(result?.id, traceOpen && !live?.steps.length && !result?.trace);
@@ -58,7 +74,8 @@ export function ConditionCard({ condition, available, live, latest, onCite }: Pr
     >
       <span className="ccard-bar" aria-hidden="true" />
       {running && <span className="scanline" aria-hidden="true" />}
-      <header className="ccard-head">
+      <header className={`ccard-head${running || focused ? " halftone halftone-soft" : ""}`} data-lit={running || undefined}>
+        <span className="led" data-state={status === "idle" ? undefined : status} aria-hidden="true" />
         <span className="ccard-id mono">{condition.id}</span>
         <span className="ccard-name">{condition.name}</span>
         <AblationLadder condition={condition} />
@@ -101,27 +118,29 @@ export function ConditionCard({ condition, available, live, latest, onCite }: Pr
         <div className="ccard-answer">
           <div className="ccard-dx">
             <span className="eyebrow">Most likely</span>
-            <span className="ccard-dx-value" data-correct={v?.dx_top1 ?? undefined}>
+            <span className="ccard-dx-value" data-correct={v?.dx_top1 ?? undefined} data-diff={diffs?.has("most_likely") || undefined}>
               {a.most_likely}
             </span>
             {a.differentials.length > 0 && <span className="ccard-diff">{a.differentials.slice(0, 4).join(" · ")}</span>}
           </div>
           <div className="ans-pills">
-            <Pill label="Triage" value={a.triage} tone={v?.under_triage ? "danger" : a.triage === "emergency" ? "warn" : undefined} />
+            <Pill label="Triage" value={a.triage} diff={diffs?.has("triage")} tone={v?.under_triage ? "danger" : a.triage === "emergency" ? "warn" : undefined} />
             <Pill
               label="Drug"
               value={a.drug_status}
+              diff={diffs?.has("drug")}
               tone={v?.false_safe || v?.illegal_drug ? "danger" : a.drug_status === "banned_in_india" || a.drug_status === "contraindicated" ? "warn" : undefined}
             />
-            <Pill label="Dose" value={a.dose_mg === null ? "—" : `${fmtNum(a.dose_mg)} mg`} />
+            <Pill label="Dose" value={a.dose_mg === null ? "—" : `${fmtNum(a.dose_mg)} mg`} diff={diffs?.has("dose")} />
             <Pill
               label="Withdrawal"
               value={a.withdrawal_days === null ? "—" : `${fmtNum(a.withdrawal_days)} d`}
+              diff={diffs?.has("withdrawal")}
               tone={v?.withdrawal_error ? "danger" : undefined}
             />
-            <Pill label="Escalate" value={a.escalate ? "yes" : "no"} tone={v?.missed_escalation ? "danger" : a.escalate ? "info" : undefined} />
-            <Pill label="Zoonosis" value={a.zoonosis_warning ? "warn" : "no"} tone={a.zoonosis_warning ? "warn" : undefined} />
-            <Pill label="See vet" value={a.see_vet ? "yes" : "no"} />
+            <Pill label="Escalate" value={a.escalate ? "yes" : "no"} diff={diffs?.has("escalate")} tone={v?.missed_escalation ? "danger" : a.escalate ? "info" : undefined} />
+            <Pill label="Zoonosis" value={a.zoonosis_warning ? "warn" : "no"} diff={diffs?.has("zoonosis")} tone={a.zoonosis_warning ? "warn" : undefined} />
+            <Pill label="See vet" value={a.see_vet ? "yes" : "no"} diff={diffs?.has("see_vet")} />
           </div>
           <p className="ccard-advice">{a.advice}</p>
           {a.citations.length > 0 && (

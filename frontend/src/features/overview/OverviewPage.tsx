@@ -10,6 +10,7 @@ import "../data/data.css";
 import "../scorecard/scorecard.css";
 import "./overview.css";
 import { PageTitle } from "../../components/PageHeader";
+import { SectionTitle } from "../../components/Ink";
 
 export function OverviewPage() {
   const { data: health } = useHealth();
@@ -63,7 +64,7 @@ export function OverviewPage() {
       </section>
 
       <section className="ov-section">
-        <h2 className="sc-h2">Five conditions, one answer schema</h2>
+        <SectionTitle>Five conditions, one answer schema</SectionTitle>
         <div className="ov-conds">
           {CONDITIONS.map((c) => (
             <div key={c.id} className="ov-cond" data-cond={c.id}>
@@ -78,7 +79,7 @@ export function OverviewPage() {
 
       <section className="ov-section">
         <div className="sc-section-head">
-          <h2 className="sc-h2">Latest results</h2>
+          <SectionTitle>Latest results</SectionTitle>
           {sc && (
             <Link className="link-button" to={`/scorecard?run=${encodeURIComponent(sc.run.id)}`}>
               Full scorecard
@@ -100,16 +101,16 @@ export function OverviewPage() {
                 </p>
                 <p className="ov-line">
                   <span className="eyebrow">Top-1 diagnosis</span>
-                  <span className="serif ov-big">{pct(rate("dx_top1", first))}</span>
+                  <span className="serif ov-big misreg">{pct(rate("dx_top1", first))}</span>
                   <span className="ov-arrow">→</span>
-                  <span className="serif ov-big">{pct(rate("dx_top1", last))}</span>
+                  <span className="serif ov-big misreg">{pct(rate("dx_top1", last))}</span>
                   <span className="mono rv-small">{first} → {last}</span>
                 </p>
                 <p className="ov-line">
                   <span className="eyebrow">Any dangerous error</span>
-                  <span className="serif ov-big">{pct(rate("dangerous", first))}</span>
+                  <span className="serif ov-big misreg">{pct(rate("dangerous", first))}</span>
                   <span className="ov-arrow">→</span>
-                  <span className="serif ov-big">{pct(rate("dangerous", last))}</span>
+                  <span className="serif ov-big misreg">{pct(rate("dangerous", last))}</span>
                   <span className="mono rv-small">{first} → {last} · lower is better</span>
                 </p>
               </div>
@@ -121,7 +122,7 @@ export function OverviewPage() {
 
       <div className="st-two">
         <section className="ov-section">
-          <h2 className="sc-h2">How to use it</h2>
+          <SectionTitle>How to use it</SectionTitle>
           <ol className="st-list">
             <li><Link to="/">Bench</Link> — pick a case, press R, watch each condition’s trace stream in.</li>
             <li><Link to="/scorecard">Scorecard</Link> — rates with 95% intervals and McNemar tests; export CSV.</li>
@@ -131,7 +132,7 @@ export function OverviewPage() {
           </ol>
         </section>
         <section className="ov-section">
-          <h2 className="sc-h2">Recent runs</h2>
+          <SectionTitle>Recent runs</SectionTitle>
           <ul className="ov-runs">
             {(runs ?? []).slice(0, 5).map((r) => (
               <li key={r.id} className="mono">

@@ -1,39 +1,47 @@
+/* 3. Ink stamps: uppercase mono in a 2px frame, roughened by the #ink-rough SVG filter (feTurbulence +
+   feDisplacementMap) so the edges and fill read as real ink. A faint bleed ring sits just outside the
+   frame. Rotated about −3° (varies per stamp), stamped down with a small overshoot. */
 .stamp {
+  position: relative;
   display: inline-block;
-  padding: 2px 7px 1px;
+  padding: 3px 8px 2px;
   border: 2px solid currentColor;
   border-radius: 3px;
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   line-height: 1.4;
   text-transform: uppercase;
   white-space: nowrap;
-  transform: rotate(-3deg);
   transform-origin: center;
-  /* Inked texture: fractal-noise mask knocks small speckles out of the ink, like a rubber stamp. */
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 1.75'/%3E%3C/filter%3E%3Crect width='120' height='40' filter='url(%23n)'/%3E%3C/svg%3E");
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.2 1.75'/%3E%3C/filter%3E%3Crect width='120' height='40' filter='url(%23n)'/%3E%3C/svg%3E");
-  -webkit-mask-size: 120px 40px;
-  mask-size: 120px 40px;
+  filter: url(#ink-rough);
 }
 
-@media print, (forced-colors: active) {
-  .stamp {
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
+/* Ink bleed: a soft-edged second impression ring, 2px out, at low strength. */
+.stamp::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  opacity: 0.22;
 }
 
 .stamp[data-tone="good"] {
-  color: var(--leaf);
+  color: var(--leaf-text);
 }
 
 .stamp[data-tone="danger"] {
-  color: var(--vermilion);
+  color: var(--vermilion-text);
 }
 
 .stamp[data-tone="info"] {
-  color: var(--indigo);
+  color: var(--indigo-text);
+}
+
+@media (forced-colors: active) {
+  .stamp {
+    filter: none;
+  }
 }

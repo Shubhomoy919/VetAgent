@@ -187,7 +187,7 @@ function Appearance() {
   return (
     <FormSection title="Appearance (this browser only)">
       <SelectField name="theme" label="Theme" value={theme} onChange={(v) => { setTheme(v as ThemePref); applyThemePref(v as ThemePref); }}
-        options={[{ value: "system", label: "Follow system" }, { value: "light", label: "Bone & Indigo (light)" }, { value: "dark", label: "Night Lab (dark)" }]} />
+        options={[{ value: "system", label: "Follow system" }, { value: "light", label: "Bone & Pigment (light)" }, { value: "dark", label: "Night Lab (dark)" }]} />
       <SelectField name="density" label="Density" value={density} onChange={(v) => { setDensity(v as Density); applyDensity(v as Density); }}
         options={[{ value: "comfortable", label: "Comfortable" }, { value: "compact", label: "Compact" }]} />
     </FormSection>

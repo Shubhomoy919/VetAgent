@@ -110,14 +110,39 @@
   font-weight: 500;
 }
 
+/* Active nav: paper plate with a riso-pink marker bar; the label gets a hand-drawn underline. */
 .nav-active {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: var(--bg);
+  background: var(--raised);
   border: var(--hairline);
-  border-left: 2px solid var(--indigo);
   border-radius: var(--radius);
+}
+
+.nav-active::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: var(--riso);
+  border-radius: 0 2px 2px 0;
+}
+
+.nav-link .nav-label {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+}
+
+.nav-label .ink-underline {
+  position: absolute;
+  left: -2px;
+  bottom: -5px;
+  width: calc(100% + 4px);
 }
 
 .nav-icon,
@@ -216,15 +241,15 @@
 }
 
 .pill[data-tone="live"] {
-  --pill-color: var(--leaf);
+  --pill-color: var(--leaf-text);
 }
 
 .pill[data-tone="demo"] {
-  --pill-color: var(--turmeric-ink);
+  --pill-color: var(--marigold-text);
 }
 
 .pill[data-tone="danger"] {
-  --pill-color: var(--vermilion);
+  --pill-color: var(--vermilion-text);
 }
 
 .pill-dot {
@@ -259,7 +284,7 @@
   flex-shrink: 0;
   padding: 3px var(--s5);
   background: var(--surface-sunk);
-  border-bottom: 1px solid var(--turmeric);
+  border-bottom: 1px solid var(--marigold);
   color: var(--ink);
   font-family: var(--font-mono);
   font-size: var(--text-xs);

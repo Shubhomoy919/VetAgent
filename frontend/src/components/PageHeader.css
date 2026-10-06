@@ -14,7 +14,7 @@
   right: 0;
   bottom: 0;
   height: 4px;
-  border-top: 1px solid var(--ink);
+  border-top: 2px solid var(--ink);
   border-bottom: 1px solid var(--rule);
   transform-origin: left center;
   animation: ph-rule var(--dur-slow) var(--ease) 80ms both;
@@ -43,9 +43,9 @@
   margin: 0 4px;
 }
 
-.ph-title {
-  font-size: 44px;
+h1.ph-title {
+  font-size: clamp(var(--display-sm), 4.2vw, var(--display));
   line-height: 0.95;
-  letter-spacing: -0.01em;
-  padding-bottom: 2px;
+  letter-spacing: var(--tracking-display);
+  padding: 0 4px 2px 0;
 }

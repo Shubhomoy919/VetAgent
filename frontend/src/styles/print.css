@@ -1,0 +1,115 @@
+/* Print: plain paper and ink. The Scorecard prints as a one-page A4 lab report. */
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 11mm 12mm;
+  }
+
+  :root,
+  :root[data-theme] {
+    --bg: var(--print-paper);
+    --surface: var(--print-paper);
+    --raised: var(--print-paper);
+    --surface-sunk: var(--print-paper);
+    --ink: var(--print-ink);
+  }
+
+  html,
+  body {
+    background: var(--print-paper);
+    color: var(--print-ink);
+  }
+
+  body::before,
+  .graph-paper,
+  .sidebar,
+  .topbar,
+  .footer,
+  .demo-banner,
+  .skip-link,
+  .coach,
+  .no-print,
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  .shell,
+  .main {
+    display: block !important;
+  }
+
+  .content,
+  .route,
+  .scorecard,
+  .datapage {
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .halftone::after {
+    opacity: 0.6;
+  }
+
+  /* ---- Scorecard lab report ---- */
+  .scorecard {
+    zoom: 0.72;
+  }
+
+  .scorecard .sc-header,
+  .scorecard .sc-controls,
+  .scorecard .sc-breakdowns,
+  .scorecard .sc-export {
+    display: none !important;
+  }
+
+  .sc-report-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 4px 24px;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid var(--print-ink);
+  }
+
+  .sc-report-title {
+    font-family: var(--font-serif);
+    font-size: 30px;
+    line-height: 1;
+  }
+
+  .sc-report-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-align: right;
+  }
+
+  .sc-report-foot {
+    margin-top: 8px;
+    padding-top: 4px;
+    border-top: 1px solid var(--print-ink);
+    font-size: 9px;
+  }
+
+  .dw,
+  .sc-table-wrap,
+  .sc-hero,
+  .sc-tile,
+  .sc-section {
+    break-inside: avoid;
+  }
+
+  .stamp {
+    filter: none;
+  }
+}

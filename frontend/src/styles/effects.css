@@ -1,0 +1,433 @@
+/* Specimen v2 effects library. Each numbered effect is documented in docs/DESIGN.md
+   (what it is, where it is used). Flat pigment only; motion 120–320 ms on --ease;
+   every animation collapses to instant under prefers-reduced-motion via the duration tokens. */
+
+/* ===== 1. Risograph misregistration =====
+   Display type only (page titles, hero numbers, the Bench case title): two crisp ghost layers,
+   riso-pink left and peacock right, offset by --misreg. They settle in on load and drift on hover. */
+.misreg {
+  --mis: var(--misreg);
+  text-shadow:
+    calc(var(--mis) * -1) 0 0 color-mix(in srgb, var(--riso) 75%, transparent),
+    var(--mis) 0 0 color-mix(in srgb, var(--peacock) 70%, transparent);
+  animation: misreg-settle var(--dur-xslow) var(--ease) both;
+  transition: --mis var(--dur) var(--ease);
+}
+
+.misreg:hover {
+  --mis: calc(var(--misreg) * 2);
+}
+
+@keyframes misreg-settle {
+  from {
+    --mis: 6px;
+  }
+  to {
+    --mis: var(--misreg);
+  }
+}
+
+@media print {
+  .misreg {
+    text-shadow: none;
+  }
+}
+
+/* ===== 2. Halftone shading ===== (dot pattern lives in patterns.css; this tunes it per use) */
+.halftone-soft {
+  --ht-size: 5px;
+  --ht-reach: 60%;
+}
+
+/* ===== 3. Ink stamps ===== see components/Stamp.css (SVG roughen filter #ink-rough in InkDefs) */
+
+/* ===== 4. Specimen tags ===== see components/Tags.css (hole mask in patterns.css) */
+
+/* ===== 5. Hand-drawn underline =====
+   An SVG path in riso-pink under the active nav item and section headings; draws in via
+   stroke-dashoffset (path uses pathLength="1"). */
+.ink-underline {
+  display: block;
+  width: 100%;
+  height: 6px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ink-underline path {
+  fill: none;
+  stroke: var(--riso);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ink-draw var(--dur-xslow) var(--ease) 60ms forwards;
+}
+
+@keyframes ink-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ===== 6. Instrument readouts: LED dots and the segmented meter ===== */
+.led {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--meter-off);
+  border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent);
+  transition: background-color var(--dur) var(--ease);
+}
+
+.led[data-state="queued"] {
+  background: color-mix(in srgb, var(--marigold) 35%, var(--meter-off));
+}
+
+.led[data-state="running"] {
+  background: var(--marigold);
+  animation: led-pulse 900ms var(--ease) infinite alternate;
+}
+
+.led[data-state="done"],
+.led[data-state="ok"] {
+  background: var(--leaf);
+}
+
+.led[data-state="error"],
+.led[data-state="danger"] {
+  background: var(--vermilion);
+}
+
+/* Functional busy indicator: runs only while a result is in flight, stops when it lands. */
+@keyframes led-pulse {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.35;
+  }
+}
+
+.meter {
+  --fill: 0;
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  width: 200px;
+  height: 16px;
+  padding: 3px;
+  background: var(--meter-face);
+  border-radius: var(--radius-sm);
+  transition: --fill var(--dur-xslow) var(--ease);
+}
+
+.meter-seg {
+  flex: 1;
+  min-width: 1px;
+  background: var(--meter-off);
+  transition: background-color var(--dur) var(--ease);
+}
+
+.meter-seg[data-state="running"] {
+  background: color-mix(in srgb, var(--marigold) 60%, var(--meter-off));
+}
+
+.meter-seg[data-state="done"] {
+  background: var(--marigold);
+}
+
+.meter-seg[data-state="error"] {
+  background: var(--vermilion);
+}
+
+/* Hairline fill gauge under the segments, animated through the registered --fill property. */
+.meter::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: -4px;
+  height: 1px;
+  background: var(--marigold-text);
+  transform: scaleX(var(--fill));
+  transform-origin: left center;
+}
+
+/* Count-up readout via the registered integer --count (no JS ticking). */
+.count {
+  --count: var(--to, 0);
+  counter-reset: n var(--count);
+  transition: --count var(--dur-xslow) var(--ease);
+}
+
+.count::after {
+  content: counter(n) var(--suffix, "");
+}
+
+/* ===== 7. Ablation-ladder toggles ===== see components/AblationLadder.css */
+
+/* ===== 8. Paper grain (graph paper is in patterns.css) ===== */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ===== 9. Keyboard caps ===== physical keys; .is-pressed is set by useKeyPressFeedback */
+kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.7em;
+  height: 1.6em;
+  padding: 0 0.4em;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink);
+  background: var(--raised);
+  border: 1px solid var(--rule-strong);
+  border-bottom-width: 2px;
+  border-bottom-color: color-mix(in srgb, var(--ink) 45%, var(--rule-strong));
+  border-radius: 3px;
+  vertical-align: 1px;
+  transition:
+    transform var(--dur-fast) var(--ease),
+    border-bottom-width var(--dur-fast) var(--ease);
+}
+
+kbd.is-pressed,
+:active > kbd {
+  transform: translateY(1px);
+  border-bottom-width: 1px;
+}
+
+/* ===== 10. Mechanical buttons ===== see styles/controls.css */
+
+/* ---------- Registration / crop marks on panels ---------- */
+
+.pane,
+.ccard,
+.dw,
+.dp-table-wrap,
+.ladder-fig,
+.rv-case,
+.rv-answer,
+.ov-headline,
+.st-form {
+  position: relative;
+}
+
+.pane::before,
+.pane::after,
+.ladder-fig::before,
+.ladder-fig::after,
+.ov-headline::before,
+.ov-headline::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  pointer-events: none;
+  border-color: var(--rule-strong);
+  border-style: solid;
+  border-width: 0;
+  z-index: 2;
+}
+
+.pane::before,
+.ladder-fig::before,
+.ov-headline::before {
+  top: -5px;
+  left: -5px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+
+.pane::after,
+.ladder-fig::after,
+.ov-headline::after {
+  bottom: -5px;
+  right: -5px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+/* Panes clip their overflow, so their marks sit just inside the corners. */
+.pane::before {
+  top: 4px;
+  left: 4px;
+}
+
+.pane::after {
+  bottom: 4px;
+  right: 4px;
+}
+
+
+/* ---------- Tick boxes: drawn check ---------- */
+
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  flex-shrink: 0;
+  vertical-align: middle;
+  border: 1.5px solid var(--ink-2);
+  border-radius: 2px;
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+
+input[type="checkbox"]::after {
+  content: "";
+  width: 8px;
+  height: 4px;
+  margin-top: -2px;
+  border-left: 2px solid var(--on-accent);
+  border-bottom: 2px solid var(--on-accent);
+  transform: rotate(-45deg) scale(0);
+  transform-origin: center;
+  transition: transform var(--dur) var(--ease);
+}
+
+input[type="checkbox"]:checked {
+  background: var(--indigo);
+  border-color: var(--indigo);
+}
+
+input[type="checkbox"]:checked::after {
+  transform: rotate(-45deg) scale(1);
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--ink);
+}
+
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Toggle switch variant (labels with .toggle.switch) */
+.switch input[type="checkbox"] {
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
+  place-items: center start;
+  padding: 0 2px;
+}
+
+.switch input[type="checkbox"]::after {
+  width: 10px;
+  height: 10px;
+  margin: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink-2);
+  transform: translateX(0);
+  transition:
+    transform var(--dur) var(--ease),
+    background-color var(--dur) var(--ease);
+}
+
+.switch input[type="checkbox"]:checked::after {
+  background: var(--on-accent);
+  transform: translateX(12px);
+}
+
+/* ---------- Inputs: underline draws on focus ---------- */
+
+.ff-input,
+.dp-search,
+.case-search,
+.cmdk-input {
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.ff-input:focus,
+.dp-search:focus,
+.case-search:focus {
+  border-color: var(--ink);
+  outline: none;
+}
+
+.ff-input:focus-visible,
+.dp-search:focus-visible,
+.case-search:focus-visible {
+  outline: none;
+  border-bottom-color: var(--indigo);
+  border-bottom-width: 2px;
+}
+
+select.ff-input,
+.dp-select,
+.case-select,
+.sc-run-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235A5F68' stroke-width='1.4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+
+/* ---------- Table rows: ink bar slides in on hover ---------- */
+
+.dp-table tbody tr {
+  position: relative;
+}
+
+.dp-table tbody tr td:first-child {
+  position: relative;
+}
+
+.dp-table tbody tr td:first-child::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--indigo);
+  transform: scaleY(0);
+  transition: transform var(--dur) var(--ease);
+}
+
+.dp-table tbody tr:not(.nohover):hover td:first-child::before {
+  transform: scaleY(1);
+}
+
+
+/* ---------- Chart rows: hairline reading band on hover / focus ---------- */
+
+.dw-row {
+  transition: background-color var(--dur-fast) var(--ease);
+}
+
+.dw-row:hover,
+.dw-row:focus-visible {
+  background: var(--surface-sunk);
+}
+
+.ink-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}

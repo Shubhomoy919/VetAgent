@@ -70,7 +70,7 @@
 
 .ff-error {
   font-size: var(--text-xs);
-  color: var(--vermilion);
+  color: var(--vermilion-text);
 }
 
 .ff-hint {
@@ -88,7 +88,7 @@
   border: 1px solid var(--vermilion);
   border-left-width: 3px;
   border-radius: var(--radius);
-  color: var(--vermilion);
+  color: var(--vermilion-text);
   font-size: var(--text-sm);
 }
 

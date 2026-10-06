@@ -45,11 +45,11 @@
 }
 
 .set-key[data-present="true"] {
-  color: var(--leaf);
+  color: var(--leaf-text);
 }
 
 .set-key[data-present="false"] {
-  color: var(--turmeric-ink);
+  color: var(--marigold-text);
 }
 
 .set-test-row {
@@ -64,20 +64,20 @@
 }
 
 .set-test-result[data-ok="true"] {
-  color: var(--leaf);
+  color: var(--leaf-text);
 }
 
 .set-test-result[data-ok="false"] {
-  color: var(--vermilion);
+  color: var(--vermilion-text);
 }
 
 .set-pdf[data-ok="true"] {
-  color: var(--leaf);
+  color: var(--leaf-text);
   font-size: var(--text-sm);
 }
 
 .set-pdf[data-ok="false"] {
-  color: var(--vermilion);
+  color: var(--vermilion-text);
   font-size: var(--text-sm);
 }
 
@@ -122,7 +122,7 @@
 }
 
 .settings .pill[data-tone="demo"] {
-  --pill-color: var(--turmeric-ink);
+  --pill-color: var(--marigold-text);
 }
 
 .settings .pill-dot {
