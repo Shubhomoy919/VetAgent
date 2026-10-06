@@ -9,7 +9,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   height: 22px;
   padding: 0 8px 0 7px;
   background: var(--raised);
@@ -30,7 +30,7 @@
   --hole-r: 3px;
   height: 32px;
   padding: 0 12px 0 10px;
-  gap: 7px;
+  gap: 8px;
   font-size: var(--text-lg);
   border-left-width: 14px;
   clip-path: polygon(7px 0, 100% 0, 100% 100%, 7px 100%, 0 calc(100% - 7px), 0 7px);

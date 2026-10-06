@@ -265,7 +265,7 @@
 
 .ff-input {
   width: 100%;
-  padding: 5px var(--s2);
+  padding: 4px var(--s2);
   background: var(--bg);
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius);

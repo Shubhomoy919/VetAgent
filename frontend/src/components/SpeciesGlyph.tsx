@@ -1,4 +1,4 @@
-/* Hand-drawn species glyphs (16px line art, 1.25px stroke) for specimen tags and case headers. */
+/* Hand-drawn species glyphs (16px line art, 1.5px stroke) for specimen tags and case headers. */
 import type { ReactElement, SVGProps } from "react";
 import type { SpeciesCode } from "../api/cases";
 
@@ -10,7 +10,7 @@ const base = {
   viewBox: "0 0 16 16",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 1.25,
+  strokeWidth: 1.5,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
   "aria-hidden": true,

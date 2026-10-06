@@ -318,7 +318,7 @@
 .case-row {
   position: relative;
   display: grid;
-  gap: 5px;
+  gap: 4px;
   padding: var(--s2) var(--s2) var(--s2) var(--s3);
   border-radius: var(--radius);
   cursor: pointer;

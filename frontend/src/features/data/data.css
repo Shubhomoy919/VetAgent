@@ -80,7 +80,7 @@ a.btn {
 
 .dp-table th,
 .dp-table td {
-  padding: 7px var(--s3);
+  padding: 8px var(--s3);
   border-bottom: var(--hairline);
   text-align: left;
   white-space: nowrap;

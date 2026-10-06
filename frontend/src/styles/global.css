@@ -135,3 +135,10 @@ a {
   letter-spacing: var(--tracking-label);
   color: var(--ink-2);
 }
+
+/* Craft: hanging punctuation for running text (where supported). */
+p,
+blockquote,
+li {
+  hanging-punctuation: first last;
+}
