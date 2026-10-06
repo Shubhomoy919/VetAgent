@@ -47,9 +47,9 @@ test("Runs: history and compare two runs", async ({ page, request }) => {
   await expect(cmp).toContainText("Changed verdicts");
   await expect(cmp.locator("tbody tr").first()).toBeVisible();
   await page.waitForTimeout(400);
-  await page.screenshot({ path: path.join(SHOTS, "m7-runs-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-runs-1440-cyanotype.png") });
   await page.locator(".datapage").evaluate((el) => el.scrollTo(0, el.scrollHeight));
-  await page.screenshot({ path: path.join(SHOTS, "m7-runs-compare-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-runs-compare-1440-cyanotype.png") });
   expect(errors).toEqual([]);
 });
 
@@ -82,7 +82,7 @@ test("Review: rate with 1/2/N, agreement and kappa update", async ({ page }) => 
   await page.getByRole("button", { name: "Show gold" }).click();
   await expect(page.getByTestId("review-gold")).toBeVisible();
   await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(SHOTS, "m7-review-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-review-1440-cyanotype.png") });
   expect(errors).toEqual([]);
 });
 
@@ -94,7 +94,7 @@ test("Study Design: ladder diagram, question types and metrics", async ({ page }
   await expect(page.locator(".lf-track.on")).toHaveCount(10); // 0+1+2+3+4 components
   await expect(page.getByTestId("study-metrics").locator("tbody tr")).toHaveCount(10);
   await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(SHOTS, "m7-study-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-study-1440-cyanotype.png") });
   expect(errors).toEqual([]);
 });
 
@@ -105,7 +105,7 @@ test("Overview: status strip and latest results", async ({ page }) => {
   await expect(page.locator(".ov-strip")).toContainText("29");
   await expect(page.getByTestId("chart-dangerous")).toBeVisible();
   await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(SHOTS, "m7-overview-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-overview-1440-cyanotype.png") });
   expect(errors).toEqual([]);
 });
 
@@ -131,7 +131,7 @@ test("Settings: validation, save, reset, test connection, density", async ({ pag
   await page.getByTestId("test-connection").click();
   await expect(page.getByTestId("test-result")).toContainText("OK");
   await expect(page.getByTestId("usage")).toContainText("Total");
-  await page.screenshot({ path: path.join(SHOTS, "m7-settings-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-settings-1440-cyanotype.png") });
 
   page.once("dialog", (d) => void d.accept());
   await page.getByRole("button", { name: "Reset to .env" }).click();
@@ -140,11 +140,12 @@ test("Settings: validation, save, reset, test connection, density", async ({ pag
   await page.getByLabel("Density", { exact: true }).selectOption("compact");
   await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
   await page.getByLabel("Density", { exact: true }).selectOption("comfortable");
-  await page.getByLabel("Theme", { exact: true }).selectOption("dark");
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const settingsSwatches = page.locator(".set-theme").getByTestId("theme-swatches");
+  await settingsSwatches.getByRole("radio", { name: "Kalamkari" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "kalamkari");
   await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(SHOTS, "m7-settings-1440-dark.png") });
-  await page.getByLabel("Theme", { exact: true }).selectOption("system");
+  await page.screenshot({ path: path.join(SHOTS, "m7-settings-1440-kalamkari.png") });
+  await settingsSwatches.getByRole("radio", { name: "Cyanotype" }).click();
   // The only console error allowed is the deliberate 422 from the invalid "99" save above.
   expect(errors.filter((e) => !e.includes("status of 422"))).toEqual([]);
 });

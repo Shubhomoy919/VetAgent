@@ -1,0 +1,111 @@
+/* The Field Station — layered grounds. One of the two files allowed gradient functions
+   (technical patterns only: grid lines, halftone dots, vignette masks). All layers are fixed
+   pseudo-elements: painted once, never re-laid-out while a run streams.
+
+   Stack (bottom → top):
+     html            saturated base colour
+     html::before    zone tint (6–10% of the section pigment) + graph paper, 8px minor / 40px major
+     html::after     halftone edge shading — dots denser toward the edges (a printed vignette, no blur)
+     body::after     oversized outlined Instrument Serif watermark bleeding off the right edge
+     #root           the app (z-index 1)
+     body::before    paper grain (feTurbulence noise, 4–6%), above everything, pointer-events none */
+
+html {
+  background-color: var(--bg);
+  --zone: var(--zone-about);
+}
+
+html[data-zone="bench"] { --zone: var(--zone-bench); }
+html[data-zone="scorecard"] { --zone: var(--zone-scorecard); }
+html[data-zone="data"] { --zone: var(--zone-data); }
+html[data-zone="runs"] { --zone: var(--zone-runs); }
+html[data-zone="about"] { --zone: var(--zone-about); }
+
+body {
+  background: transparent;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* 1–2. Zone tint + graph paper */
+html::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: color-mix(in oklab, var(--zone) 8%, var(--bg));
+  background-image:
+    linear-gradient(to right, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-minor) 1px, transparent 1px);
+  background-size:
+    40px 40px,
+    40px 40px,
+    8px 8px,
+    8px 8px;
+  transition: background-color var(--dur-xslow) var(--ease);
+}
+
+/* 4. Halftone edge shading: two dot screens, masked so they thicken toward the edges. */
+html::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at center, color-mix(in srgb, var(--zone) 40%, var(--shadow)) 0 1.1px, transparent 1.4px),
+    radial-gradient(circle at center, color-mix(in srgb, var(--zone) 40%, var(--shadow)) 0 0.7px, transparent 1px);
+  background-size:
+    7px 7px,
+    7px 7px;
+  background-position:
+    0 0,
+    3.5px 3.5px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 55% 45%, transparent 58%, #000 100%);
+  mask-image: radial-gradient(ellipse 75% 70% at 55% 45%, transparent 58%, #000 100%);
+  opacity: 0.55;
+}
+
+/* 5. Watermark: the case ID on the Bench, the page name elsewhere (body[data-watermark]). */
+body::after {
+  content: attr(data-watermark);
+  position: fixed;
+  right: -0.08em;
+  bottom: -0.14em;
+  z-index: 0;
+  pointer-events: none;
+  font-family: var(--font-serif);
+  font-size: clamp(220px, 19vw, 280px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--zone);
+  opacity: 0.06;
+}
+
+/* 3. Paper grain */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media print {
+  html::before,
+  html::after,
+  body::before,
+  body::after {
+    display: none;
+  }
+}

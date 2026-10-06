@@ -1,4 +1,4 @@
-/* Every page at 1440 and 1024 wide, in light and dark: docs/screenshots/<page>-<width>-<theme>.png */
+/* Every page at 1440 and 1024 wide, in all three themes: docs/screenshots/<page>-<width>-<theme>.png */
 import { expect, test } from "@playwright/test";
 import path from "node:path";
 
@@ -17,10 +17,10 @@ const PAGES: { name: string; url: string; ready: string }[] = [
 ];
 
 for (const width of [1440, 1024]) {
-  for (const theme of ["light", "dark"] as const) {
+  for (const theme of ["cyanotype", "bone-block", "kalamkari"] as const) {
     test(`all pages at ${width} · ${theme}`, async ({ page }) => {
       await page.setViewportSize({ width, height: width === 1440 ? 900 : 768 });
-      await page.emulateMedia({ colorScheme: theme });
+      await page.addInitScript((t) => localStorage.setItem("vab.theme", t), theme);
       for (const p of PAGES) {
         await page.goto(p.url);
         await expect(page.locator(p.ready).first()).toBeVisible();

@@ -32,25 +32,6 @@
   --ht-color: color-mix(in srgb, var(--ink) 9%, transparent);
 }
 
-/* ---------- Graph paper (behind the Bench) ---------- */
-.graph-paper {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(to right, var(--grid-major) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-major) 1px, transparent 1px),
-    linear-gradient(to right, var(--grid-minor) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-minor) 1px, transparent 1px);
-  background-size:
-    40px 40px,
-    40px 40px,
-    8px 8px,
-    8px 8px;
-  opacity: 0.55;
-}
-
 /* ---------- Specimen tag: punched hole ----------
    A transparent circle cut through the tag near its left edge (the stripe side). */
 .specimen-tag {

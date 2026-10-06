@@ -24,7 +24,7 @@ test("run BOV-WD-007 from the Bench: steps stream in, five cards finish with sta
   const runningCard = page.locator('.ccard[data-status="running"]').first();
   await expect(runningCard).toBeVisible({ timeout: 10_000 });
   await expect(runningCard.locator(".log-step").first()).toBeVisible({ timeout: 10_000 });
-  await page.screenshot({ path: path.join(SHOTS, "m4-bench-running-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m4-bench-running-1440-cyanotype.png") });
 
   await expect(page.getByTestId("run-status")).toHaveText("Done 5/5", { timeout: 90_000 });
   for (const c of CONDS) {
@@ -35,14 +35,14 @@ test("run BOV-WD-007 from the Bench: steps stream in, five cards finish with sta
   await expect(page.locator(".stamp").first()).toBeVisible();
   await expect(page.locator('[data-case-id="BOV-WD-007"] .result-dot')).not.toHaveAttribute("data-state", "none");
   await page.waitForTimeout(400);
-  await page.screenshot({ path: path.join(SHOTS, "m4-bench-after-run-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m4-bench-after-run-1440-cyanotype.png") });
 
   // Citation chip opens the SVTG passage drawer.
   await page.getByTestId("card-C2").locator(".cite-chip").first().click();
   const drawer = page.getByTestId("passage-drawer");
   await expect(drawer).toContainText("PDF page");
   await expect(drawer.locator(".drawer-chunk").first()).toBeVisible();
-  await page.screenshot({ path: path.join(SHOTS, "m4-passage-drawer-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m4-passage-drawer-1440-cyanotype.png") });
   await page.keyboard.press("Escape");
   await expect(drawer).toHaveCount(0);
 
@@ -74,12 +74,11 @@ test("owner-interview mode runs only C0 and C3", async ({ page }) => {
   await expect(page.getByTestId("card-C0")).toHaveAttribute("data-status", "done");
 });
 
-test("compare mode shows the chosen conditions side by side; dark theme screenshot", async ({ page }) => {
-  await page.emulateMedia({ colorScheme: "dark" });
+test("compare mode shows the chosen conditions side by side; Cyanotype screenshot", async ({ page }) => {
   await page.goto("/?case=BOV-WD-007");
   await page.getByRole("button", { name: "Compare" }).click();
   await expect(page.locator(".deck")).toHaveAttribute("data-mode", "compare");
   await expect(page.locator(".ccard")).toHaveCount(2); // default C0 vs C4
   await page.waitForTimeout(400);
-  await page.screenshot({ path: path.join(SHOTS, "m4-bench-compare-1440-dark.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m4-bench-compare-1440-cyanotype.png") });
 });

@@ -1,15 +1,28 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type Theme = "light" | "dark";
-export type ThemePref = Theme | "system";
+export type Theme = "cyanotype" | "bone-block" | "kalamkari";
 export type Density = "comfortable" | "compact";
+
+export const THEMES: { id: Theme; label: string; note: string }[] = [
+  { id: "cyanotype", label: "Cyanotype", note: "Prussian-blue print, cyan line work (default)" },
+  { id: "bone-block", label: "Bone & Block", note: "Light, colour-blocked editorial" },
+  { id: "kalamkari", label: "Kalamkari", note: "Warm Indian textile pigments" },
+];
+export const DEFAULT_THEME: Theme = "cyanotype";
 
 const KEY = "vab.theme";
 const DENSITY_KEY = "vab.density";
 const EVENT = "vab-appearance";
 
+/** Earlier builds stored "light" / "dark"; map them onto the new themes. */
+export function normaliseTheme(v: string | null | undefined): Theme {
+  if (v === "cyanotype" || v === "bone-block" || v === "kalamkari") return v;
+  if (v === "light") return "bone-block";
+  return DEFAULT_THEME;
+}
+
 function currentTheme(): Theme {
-  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  return normaliseTheme(document.documentElement.dataset.theme);
 }
 
 function store(key: string, value: string | null): void {
@@ -21,20 +34,18 @@ function store(key: string, value: string | null): void {
   }
 }
 
-export function readThemePref(): ThemePref {
+export function readTheme(): Theme {
   try {
-    const v = localStorage.getItem(KEY);
-    return v === "light" || v === "dark" ? v : "system";
+    return normaliseTheme(localStorage.getItem(KEY));
   } catch {
-    return "system";
+    return DEFAULT_THEME;
   }
 }
 
-/** Apply a theme preference; "system" follows the OS setting and clears the stored choice. */
-export function applyThemePref(pref: ThemePref): void {
-  const theme = pref === "system" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : pref;
+/** Apply and remember a theme. */
+export function applyTheme(theme: Theme): void {
   document.documentElement.dataset.theme = theme;
-  store(KEY, pref === "system" ? null : pref);
+  store(KEY, theme);
   window.dispatchEvent(new Event(EVENT));
 }
 
@@ -57,10 +68,8 @@ export function useTheme() {
     return () => window.removeEventListener(EVENT, sync);
   }, []);
 
-  const setTheme = useCallback((next: Theme) => applyThemePref(next), []);
-  const toggle = useCallback(() => applyThemePref(currentTheme() === "dark" ? "light" : "dark"), []);
-
-  return { theme, setTheme, toggle };
+  const setTheme = useCallback((next: Theme) => applyTheme(next), []);
+  return { theme, setTheme };
 }
 
 export function usePersistentFlag(key: string, initial: () => boolean) {

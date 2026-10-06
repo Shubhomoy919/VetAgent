@@ -43,20 +43,31 @@ const ratio = (a, b) => {
 const BACKGROUNDS = ["bg", "surface", "raised", "surface-sunk"];
 const TEXT = [
   "ink", "ink-2",
-  "indigo-text", "peacock-text", "marigold-text", "riso-text", "vermilion-text", "leaf-text", "terracotta-text",
+  "indigo-text", "cyan-text", "peacock-text", "marigold-text", "riso-text", "vermilion-text", "madder-text",
+  "leaf-text", "terracotta-text", "ochre-text", "forest-text",
   "c0-text", "c1-text", "c2-text", "c3-text", "c4-text",
 ];
-// Text drawn on filled pigments (button labels, stamps-on-fill, active chips).
-const ON_FILL = [["on-accent", "indigo"], ["on-accent", "ink"], ["on-accent", "vermilion-text"], ["on-marigold", "marigold"]];
+// Text drawn on filled areas: buttons, the sidebar and top bar, condition blocks (Bone & Block).
+const ON_FILL = [
+  ["on-accent", "indigo"], ["on-accent", "ink"], ["on-accent", "vermilion-text"], ["on-marigold", "marigold"],
+  ["sidebar-ink", "sidebar"], ["sidebar-ink-2", "sidebar"], ["topbar-ink", "topbar-bg"], ["topbar-accent", "topbar-bg"],
+];
+const BLOCKS = ["c0-block", "c1-block", "c2-block", "c3-block", "c4-block"];
 
 let failures = 0;
-for (const [theme, sel] of [["light", ":root,\n:root[data-theme=\"light\"]"], ["dark", ':root[data-theme="dark"]']]) {
+const THEMES = [
+  ["cyanotype", ':root,\n:root[data-theme="cyanotype"]'],
+  ["bone-block", ':root[data-theme="bone-block"]'],
+  ["kalamkari", ':root[data-theme="kalamkari"]'],
+];
+for (const [theme, sel] of THEMES) {
   const v = block(sel);
   const rows = [];
   for (const fg of TEXT) {
     const worst = Math.min(...BACKGROUNDS.map((bg) => ratio(resolve(v, `var(--${fg})`), resolve(v, `var(--${bg})`))));
     rows.push({ pair: `${fg} on bg/surface/raised/sunk`, need: 4.5, worst });
   }
+  if (theme === "bone-block") for (const bl of BLOCKS) rows.push({ pair: `on-block (bone) on ${bl}`, need: 4.5, worst: ratio(resolve(v, "var(--on-block)"), resolve(v, `var(--${bl})`)) });
   for (const [fg, bg] of ON_FILL) rows.push({ pair: `${fg} on ${bg}`, need: 4.5, worst: ratio(resolve(v, `var(--${fg})`), resolve(v, `var(--${bg})`)) });
   const focus = Math.min(...BACKGROUNDS.map((bg) => ratio(resolve(v, "var(--focus)"), resolve(v, `var(--${bg})`))));
   rows.push({ pair: "focus ring (riso) on backgrounds", need: 3, worst: focus });
@@ -68,5 +79,5 @@ for (const [theme, sel] of [["light", ":root,\n:root[data-theme=\"light\"]"], ["
     console.log(`  ${ok ? "PASS" : "FAIL"}  ${r.worst.toFixed(2).padStart(5)}:1  (needs ${r.need})  ${r.pair}`);
   }
 }
-console.log(failures ? `\n${failures} contrast failure(s)` : "\nAll text and focus pairs pass WCAG AA in both themes.");
+console.log(failures ? `\n${failures} contrast failure(s)` : "\nAll text, chrome and focus pairs pass WCAG AA in all three themes.");
 process.exit(failures ? 1 : 0);

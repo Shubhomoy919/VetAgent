@@ -13,7 +13,8 @@ import {
 } from "../../api/admin";
 import { ApiError } from "../../api/data";
 import { useHealth } from "../../api/health";
-import { applyDensity, applyThemePref, readDensity, readThemePref, type Density, type ThemePref } from "../../app/theme";
+import { applyDensity, readDensity, type Density } from "../../app/theme";
+import { ThemeSwatches } from "../../components/ThemeSwatches";
 import { ErrorSummary, FormSection, SelectField, TextField } from "../../components/form";
 import "../data/data.css";
 import "./settings.css";
@@ -182,12 +183,13 @@ function SettingsForm({ view }: { view: SettingsView }) {
 }
 
 function Appearance() {
-  const [theme, setTheme] = useState<ThemePref>(readThemePref);
   const [density, setDensity] = useState<Density>(readDensity);
   return (
     <FormSection title="Appearance (this browser only)">
-      <SelectField name="theme" label="Theme" value={theme} onChange={(v) => { setTheme(v as ThemePref); applyThemePref(v as ThemePref); }}
-        options={[{ value: "system", label: "Follow system" }, { value: "light", label: "Bone & Pigment (light)" }, { value: "dark", label: "Night Lab (dark)" }]} />
+      <div className="set-theme">
+        <span className="ff-label">Theme</span>
+        <ThemeSwatches size="lg" />
+      </div>
       <SelectField name="density" label="Density" value={density} onChange={(v) => { setDensity(v as Density); applyDensity(v as Density); }}
         options={[{ value: "comfortable", label: "Comfortable" }, { value: "compact", label: "Compact" }]} />
     </FormSection>

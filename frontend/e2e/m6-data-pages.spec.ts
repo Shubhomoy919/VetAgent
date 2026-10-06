@@ -37,7 +37,7 @@ test("Cases table: rows, unverified tags, sort and filter", async ({ page }) => 
   await page.getByRole("button", { name: "All", exact: true }).click();
   await page.getByRole("button", { name: /^Case/ }).click();
   await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(SHOTS, "m6-cases-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m6-cases-1440-cyanotype.png") });
   expect(errors).toEqual([]);
 });
 
@@ -55,7 +55,7 @@ test("Case editor: client and server validation, then a valid save", async ({ pa
   await expect(editor.getByText("Outside the cattle range (250–600 kg)").first()).toBeVisible();
   await expect(editor.getByTestId("error-summary")).toBeVisible();
   await expect(weight).toHaveAttribute("aria-invalid", "true");
-  await page.screenshot({ path: path.join(SHOTS, "m6-case-editor-validation-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m6-case-editor-validation-1440-cyanotype.png") });
   const unchanged = await (await request.get("/api/cases/BOV-WD-007")).json();
   expect(unchanged.signalment.weight_kg).toBe(410);
 
@@ -82,7 +82,7 @@ test("Drug table: banned-drug rule blocks a dose; filter by status", async ({ pa
   const rows = page.getByTestId("drugs-table").locator("tbody tr");
   await expect(rows).toHaveCount(31);
   await expect(rows.locator(".unverified-tag")).toHaveCount(31);
-  await page.screenshot({ path: path.join(SHOTS, "m6-drugs-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m6-drugs-1440-cyanotype.png") });
 
   await page.locator('[data-drug-key="cattle|diclofenac"]').click();
   const editor = page.getByTestId("drug-editor");
@@ -90,19 +90,19 @@ test("Drug table: banned-drug rule blocks a dose; filter by status", async ({ pa
   await editor.getByLabel("Dose max (mg/kg)").fill("2");
   await editor.getByTestId("save-drug").click();
   await expect(editor.getByText("Banned drugs must not carry a dose").first()).toBeVisible();
-  await page.screenshot({ path: path.join(SHOTS, "m6-drug-editor-validation-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m6-drug-editor-validation-1440-cyanotype.png") });
   await page.keyboard.press("Escape");
 
   await page.getByRole("button", { name: "banned in india" }).click();
   await expect(rows).toHaveCount(8);
 });
 
-test("Data pages in dark theme", async ({ page }) => {
-  await page.emulateMedia({ colorScheme: "dark" });
+test("Data pages in Kalamkari", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("vab.theme", "kalamkari"));
   await page.goto("/cases");
   await expect(page.getByTestId("cases-table")).toBeVisible();
-  await page.screenshot({ path: path.join(SHOTS, "m6-cases-1440-dark.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m6-cases-1440-kalamkari.png") });
   await page.goto("/drugs");
   await expect(page.getByTestId("drugs-table")).toBeVisible();
-  await page.screenshot({ path: path.join(SHOTS, "m6-drugs-1440-dark.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m6-drugs-1440-kalamkari.png") });
 });

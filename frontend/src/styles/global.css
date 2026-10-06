@@ -6,6 +6,8 @@
 @import "@fontsource/ibm-plex-mono/500.css";
 @import "./tokens.css";
 @import "./patterns.css";
+@import "./grounds.css";
+@import "./themes.css";
 @import "./controls.css";
 @import "./effects.css";
 @import "./motion.css";
@@ -27,7 +29,6 @@ body,
 
 body {
   margin: 0;
-  background-color: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: var(--text-md);
@@ -95,11 +96,11 @@ a {
 }
 
 /* Condition identity: every [data-cond] element gets its pigment and AA text twin. */
-[data-cond="C0"] { --cond: var(--c0); --cond-text: var(--c0-text); }
-[data-cond="C1"] { --cond: var(--c1); --cond-text: var(--c1-text); }
-[data-cond="C2"] { --cond: var(--c2); --cond-text: var(--c2-text); }
-[data-cond="C3"] { --cond: var(--c3); --cond-text: var(--c3-text); }
-[data-cond="C4"] { --cond: var(--c4); --cond-text: var(--c4-text); }
+[data-cond="C0"] { --cond: var(--c0); --cond-text: var(--c0-text); --cond-block: var(--c0-block); }
+[data-cond="C1"] { --cond: var(--c1); --cond-text: var(--c1-text); --cond-block: var(--c1-block); }
+[data-cond="C2"] { --cond: var(--c2); --cond-text: var(--c2-text); --cond-block: var(--c2-block); }
+[data-cond="C3"] { --cond: var(--c3); --cond-text: var(--c3-text); --cond-block: var(--c3-block); }
+[data-cond="C4"] { --cond: var(--c4); --cond-text: var(--c4-text); --cond-block: var(--c4-block); }
 
 .mono {
   font-family: var(--font-mono);

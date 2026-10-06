@@ -31,7 +31,7 @@ test("case list shows ID, species, weight and type for every case", async ({ pag
     await expect(row.locator(".unverified-tag")).toBeVisible();
   }
   await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(SHOTS, "m2-case-list-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m2-case-list-1440-cyanotype.png") });
   expect(errors).toEqual([]);
 });
 
@@ -49,7 +49,7 @@ test("BOV-WD-007 shows cattle with signalment and a gold answer behind Reveal", 
   await expect(gold).toContainText("2 days");
   await expect(gold).toContainText("SVTG p.175");
   await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(SHOTS, "m2-case-detail-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m2-case-detail-1440-cyanotype.png") });
 });
 
 test("filters and J/K navigation", async ({ page }) => {
@@ -73,12 +73,12 @@ test("filters and J/K navigation", async ({ page }) => {
   await expect(page).toHaveURL(new RegExp(`case=${first}`));
 });
 
-test("dark theme case detail screenshot", async ({ page }) => {
-  await page.emulateMedia({ colorScheme: "dark" });
+test("Kalamkari theme case detail screenshot", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("vab.theme", "kalamkari"));
   await page.goto("/?case=FEL-SAFE-004");
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "kalamkari");
   await page.getByTestId("reveal-gold").click();
   await expect(page.getByTestId("gold-answer")).toContainText("contraindicated");
   await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(SHOTS, "m2-case-detail-1440-dark.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m2-case-detail-1440-kalamkari.png") });
 });

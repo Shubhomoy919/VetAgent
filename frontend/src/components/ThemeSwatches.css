@@ -1,0 +1,85 @@
+/* Theme swatches: tiny printed colour chips — ground, sidebar block, marigold dot. */
+.swatches {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.swatches[data-size="lg"] {
+  display: grid;
+  gap: var(--s2);
+}
+
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: 3px;
+  background: none;
+  border: 1px solid var(--topbar-rule, var(--rule-strong));
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+
+.swatch[aria-checked="true"] {
+  border-color: var(--marigold);
+  box-shadow: inset 0 0 0 1px var(--marigold);
+}
+
+.swatch-chip {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+}
+
+.swatch[data-size="lg"] .swatch-chip,
+.swatches[data-size="lg"] .swatch-chip {
+  width: 44px;
+  height: 30px;
+}
+
+.swatch-side {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 38%;
+}
+
+.swatch-dot {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2.5px;
+  border-radius: 50%;
+}
+
+.swatch[data-swatch="cyanotype"] .swatch-chip { background: var(--sw-cyanotype-ground); }
+.swatch[data-swatch="cyanotype"] .swatch-side { background: var(--sw-cyanotype-side); }
+.swatch[data-swatch="cyanotype"] .swatch-dot { background: var(--sw-cyanotype-accent); }
+.swatch[data-swatch="bone-block"] .swatch-chip { background: var(--sw-bone-block-ground); }
+.swatch[data-swatch="bone-block"] .swatch-side { background: var(--sw-bone-block-side); }
+.swatch[data-swatch="bone-block"] .swatch-dot { background: var(--sw-bone-block-accent); }
+.swatch[data-swatch="kalamkari"] .swatch-chip { background: var(--sw-kalamkari-ground); }
+.swatch[data-swatch="kalamkari"] .swatch-side { background: var(--sw-kalamkari-side); }
+.swatch[data-swatch="kalamkari"] .swatch-dot { background: var(--sw-kalamkari-accent); }
+
+.swatch-text {
+  display: grid;
+  gap: 1px;
+}
+
+.swatch-name {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.swatch-note {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}

@@ -1,21 +1,31 @@
 import { AnimatePresence, motion } from "motion/react";
 import { NavLink, Outlet, useLocation } from "react-router";
-import type { MouseEvent } from "react";
+import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { useHealth } from "../api/health";
-import { CollapseIcon, ExpandIcon, MoonIcon, SunIcon } from "../components/icons";
+import { CollapseIcon, ExpandIcon } from "../components/icons";
+import { ThemeSwatches } from "../components/ThemeSwatches";
 import { InkDefs, InkUnderline } from "../components/Ink";
-import { canViewTransition, markTransition, withViewTransition } from "../lib/viewTransition";
+import { canViewTransition, markTransition } from "../lib/viewTransition";
 import { useKeyPressFeedback } from "../lib/useKeyPressFeedback";
 import { CoachMarks } from "./CoachMarks";
 import { CommandPalette } from "./CommandPalette";
 import { NAV } from "./nav";
 import { useRun } from "./runState";
-import { applyThemePref, usePersistentFlag, useTheme } from "./theme";
+import { usePersistentFlag } from "./theme";
 import "./Shell.css";
 import "./toast.css";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
+
+/** Page colour zone: each section tints the ground with its own pigment. */
+function routeZone(pathname: string): "bench" | "scorecard" | "data" | "runs" | "about" {
+  if (pathname === "/") return "bench";
+  if (pathname.startsWith("/scorecard")) return "scorecard";
+  if (pathname.startsWith("/cases") || pathname.startsWith("/drugs")) return "data";
+  if (pathname.startsWith("/runs") || pathname.startsWith("/review")) return "runs";
+  return "about";
+}
 
 function routeTitle(pathname: string): string {
   for (const group of NAV) {
@@ -60,13 +70,6 @@ function ModePill() {
 function TopBar() {
   const { pathname } = useLocation();
   const { data } = useHealth();
-  const { theme } = useTheme();
-  const next = theme === "dark" ? "light" : "dark";
-  // Theme change as a circular reveal from the toggle button (View Transitions; plain swap otherwise).
-  const toggle = (e: MouseEvent<HTMLButtonElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    withViewTransition("theme", () => applyThemePref(next), { x: r.left + r.width / 2, y: r.top + r.height / 2 });
-  };
 
   return (
     <header className="topbar">
@@ -91,16 +94,7 @@ function TopBar() {
         >
           Ctrl K
         </button>
-        <button
-          type="button"
-          className="icon-button"
-          onClick={toggle}
-          aria-label={`Switch to ${next} theme`}
-          title={`Switch to ${next} theme`}
-          data-testid="theme-toggle"
-        >
-          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-        </button>
+        <ThemeSwatches />
       </div>
     </header>
   );
@@ -198,6 +192,11 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
 export function Shell() {
   const location = useLocation();
   useKeyPressFeedback();
+  // Ground: zone tint + oversized outlined watermark (page name; the Bench sets the case ID itself).
+  useEffect(() => {
+    document.documentElement.dataset.zone = routeZone(location.pathname);
+    if (location.pathname !== "/") document.body.dataset.watermark = routeTitle(location.pathname) || "Specimen";
+  }, [location.pathname]);
   // View Transitions animate route changes where supported; motion is the fallback.
   const vt = canViewTransition();
   const [collapsed, setCollapsed] = usePersistentFlag(

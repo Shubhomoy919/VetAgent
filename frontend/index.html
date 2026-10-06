@@ -7,7 +7,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>VetAgentBench-IN</title>
     <script>
-      // Apply the saved or system theme before first paint to avoid a flash.
+      // Apply the saved theme (default Cyanotype) before first paint to avoid a flash.
       (function () {
         var theme;
         try {
@@ -15,9 +15,8 @@
         } catch (e) {
           theme = null;
         }
-        if (theme !== "light" && theme !== "dark") {
-          theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        }
+        if (theme === "light") theme = "bone-block";
+        if (theme !== "cyanotype" && theme !== "bone-block" && theme !== "kalamkari") theme = "cyanotype";
         document.documentElement.dataset.theme = theme;
         var density = null;
         try {

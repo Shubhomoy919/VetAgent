@@ -1,13 +1,14 @@
 // Banned-style check (Specimen v2 anti-AI rules). Scans src/ and index.html; exit 1 on any hit.
-// The ONE exception: src/styles/patterns.css may use gradient functions for technical patterns
-// (halftone dots, grid lines, punched-hole mask), so it is skipped entirely.
+// The exception: src/styles/patterns.css and src/styles/grounds.css may use gradient functions for
+// technical patterns (halftone dots, grid lines, vignette and punched-hole masks). Only the gradient
+// rule (and colour literals inside those gradient lines) is relaxed there; every other rule applies.
 // text-shadow is allowed only in src/styles/effects.css (crisp, zero-blur misregistration).
 // Run: npm run check:style
 import fs from "node:fs";
 import path from "node:path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const ALLOW_GRADIENTS = new Set(["src/styles/patterns.css"]);
+const ALLOW_GRADIENTS = new Set(["src/styles/patterns.css", "src/styles/grounds.css"]);
 const ALLOW_TEXT_SHADOW = new Set(["src/styles/effects.css"]);
 // Colour literals live only in the generated tokens.
 const ALLOW_COLOURS = new Set(["src/styles/tokens.css"]);
@@ -18,7 +19,8 @@ const RULES = [
   { name: "gradient function", re: /(?:linear|radial|conic|repeating-linear|repeating-radial)-gradient\s*\(/i, gradient: true },
   { name: "gradient text", re: /background-clip:\s*text/i },
   { name: "neon / glow", re: /\bneon\b|\bglow\b(?!-)/i, cssOnly: true },
-  { name: "large soft shadow (blur >= 8px)", re: /box-shadow:[^;]*\b\d+px\s+\d+px\s+(?:[89]|\d{2,})px/i },
+  // Shadows must be hard print offsets: any non-zero blur radius (x y BLUR …) fails.
+  { name: "soft (blurred) shadow", re: /box-shadow:\s*(?:inset\s+)?-?[\d.]+(?:px)?\s+-?[\d.]+(?:px)?\s+0*[1-9][\d.]*px/i },
   { name: "drop-shadow filter", re: /drop-shadow\(/i },
   { name: "text-shadow outside effects.css", re: /text-shadow\s*:/i, textShadow: true },
   { name: "Inter font", re: /font-family:[^;]*["']?\bInter\b|fontsource\/inter/i },
@@ -42,11 +44,12 @@ const files = [...walk(path.join(ROOT, "src")), path.join(ROOT, "index.html")];
 let hits = 0;
 for (const file of files) {
   const rel = path.relative(ROOT, file).replaceAll("\\", "/");
-  if (ALLOW_GRADIENTS.has(rel)) continue;
+  const gradientFile = ALLOW_GRADIENTS.has(rel);
   const lines = fs.readFileSync(file, "utf8").split("\n");
   lines.forEach((line, i) => {
     for (const r of RULES) {
       if (!r.re.test(line)) continue;
+      if (gradientFile && (r.gradient || (r.colour && /gradient\(/.test(line)))) continue;
       if (r.cssOnly && !rel.endsWith(".css")) continue;
       if (r.textShadow && ALLOW_TEXT_SHADOW.has(rel)) continue;
       if (r.colour && (ALLOW_COLOURS.has(rel) || /url\(["']?data:/.test(line) || /^\s*(\/\/|\*|\/\*)/.test(line))) continue;
@@ -57,5 +60,5 @@ for (const file of files) {
     }
   });
 }
-console.log(hits ? `\n${hits} banned-style hit(s).` : `banned-style check: clean (${files.length} files; patterns.css exempt for gradients only).`);
+console.log(hits ? `\n${hits} banned-style hit(s).` : `banned-style check: clean (${files.length} files; gradients allowed only in patterns.css and grounds.css).`);
 process.exit(hits ? 1 : 0);

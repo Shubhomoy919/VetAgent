@@ -74,6 +74,11 @@ export function BenchPage() {
   const { live, run, start, starting } = useRun();
   const selected = cases?.find((c) => c.case_id === selectedId);
 
+  // Ground watermark: the case under examination.
+  useEffect(() => {
+    document.body.dataset.watermark = selectedId ?? "Bench";
+  }, [selectedId]);
+
   const setParam = useCallback(
     (key: string, value: string | null) =>
       setParams(
@@ -190,7 +195,6 @@ export function BenchPage() {
 
   return (
     <div className="bench" data-testid="bench">
-      <div className="graph-paper" aria-hidden="true" />
       <RunBar
         caseId={selectedId}
         selected={[...checked]}

@@ -7,7 +7,7 @@ import { useCases } from "../api/cases";
 import { markTransition } from "../lib/viewTransition";
 import { NAV } from "./nav";
 import { SHORTCUTS } from "./shortcuts";
-import { applyDensity, applyThemePref, readDensity } from "./theme";
+import { THEMES, applyDensity, applyTheme, readDensity } from "./theme";
 import "./palette.css";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
@@ -112,10 +112,12 @@ export function CommandPalette() {
               ))}
             </Command.Group>
             <Command.Group heading="Actions" className="cmdk-group">
-              <Command.Item value="action toggle theme dark light" className="cmdk-item"
-                onSelect={() => { applyThemePref(document.documentElement.dataset.theme === "dark" ? "light" : "dark"); setOpen(false); }}>
-                Toggle light / dark theme
-              </Command.Item>
+              {THEMES.map((th) => (
+                <Command.Item key={th.id} value={`action theme ${th.label}`} className="cmdk-item"
+                  onSelect={() => { applyTheme(th.id); setOpen(false); }}>
+                  Theme: {th.label}
+                </Command.Item>
+              ))}
               <Command.Item value="action toggle density compact comfortable" className="cmdk-item"
                 onSelect={() => { applyDensity(readDensity() === "compact" ? "comfortable" : "compact"); setOpen(false); }}>
                 Toggle compact density

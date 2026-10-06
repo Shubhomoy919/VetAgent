@@ -37,10 +37,10 @@ test("Scorecard renders real numbers, charts, tables and exports CSV", async ({ 
 
   await page.mouse.move(0, 0);
   await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-1440-light.png"), fullPage: false });
+  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-1440-cyanotype.png"), fullPage: false });
   await page.locator(".scorecard").evaluate((el) => el.scrollTo(0, el.scrollHeight));
   await page.waitForTimeout(200);
-  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-tables-1440-light.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-tables-1440-cyanotype.png") });
 
   // CSV export through the UI.
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export-csv").click()]);
@@ -56,10 +56,10 @@ test("Scorecard renders real numbers, charts, tables and exports CSV", async ({ 
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
-test("Scorecard dark theme", async ({ page }) => {
-  await page.emulateMedia({ colorScheme: "dark" });
+test("Scorecard in Bone & Block", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("vab.theme", "bone-block"));
   await page.goto("/scorecard");
   await expect(page.getByTestId("chart-dx_top1")).toBeVisible();
   await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-1440-dark.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-1440-bone-block.png") });
 });
