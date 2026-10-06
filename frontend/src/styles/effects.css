@@ -162,6 +162,14 @@
   --count: var(--to, 0);
   counter-reset: n var(--count);
   transition: --count var(--dur-xslow) var(--ease);
+  /* count up from 0 on mount (the transition covers later changes) */
+  animation: count-up var(--dur-xslow) var(--ease) both;
+}
+
+@keyframes count-up {
+  from {
+    --count: 0;
+  }
 }
 
 .count::after {

@@ -34,7 +34,7 @@ test.afterAll(async ({ request }) => cleanup(request));
 
 test("Runs: history and compare two runs", async ({ page, request }) => {
   const errors = trackErrors(page);
-  const runs = (await (await request.get("/api/runs")).json()) as { id: string; case_ids: string[]; interview: boolean; n_done: number }[];
+  const runs = (await (await request.get("/api/runs?limit=200")).json()) as { id: string; case_ids: string[]; interview: boolean; n_done: number }[];
   const full = runs.filter((r) => r.case_ids.length >= 25 && !r.interview && r.n_done > 0).slice(0, 2);
   expect(full.length).toBe(2);
 

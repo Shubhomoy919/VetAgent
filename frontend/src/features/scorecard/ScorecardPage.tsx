@@ -5,7 +5,6 @@ import type { ConditionId } from "../../api/runs";
 import { fmtP, pct, useRuns, useScorecard, type BreakdownRow, type Rate, type Scorecard } from "../../api/scorecard";
 import { CONDITIONS } from "../../app/conditions";
 import { Switchboard } from "../../components/Switchboard";
-import { RollingNumber } from "../../components/RollingNumber";
 import { DotWhisker } from "./DotWhisker";
 import "./scorecard.css";
 import { PageTitle } from "../../components/PageHeader";
@@ -28,6 +27,20 @@ function RateCell({ r }: { r: Rate | undefined }) {
   );
 }
 
+/** A reading that counts up through the registered @property --count (percent or small integer);
+ *  large totals render as formatted text, since a CSS counter cannot group digits. */
+function Reading({ value, format }: { value: number; format: (v: number) => string }) {
+  const pctMode = format === fmtPct;
+  const n = pctMode ? Math.round(value * 100) : Math.round(value);
+  if (!pctMode && n >= 10000) return <>{format(value)}</>;
+  return (
+    <>
+      <span className="visually-hidden">{format(value)}</span>
+      <span className="count" aria-hidden="true" style={{ "--to": n, "--suffix": pctMode ? '"%"' : '""' } as CSSProperties} />
+    </>
+  );
+}
+
 function Tile({ label, a, b, condA, condB, format, note }: {
   label: string; a: number | null; b: number | null; condA: string; condB: string; format: (v: number) => string; note?: string;
 }) {
@@ -37,14 +50,14 @@ function Tile({ label, a, b, condA, condB, format, note }: {
       <div className="sc-tile-nums">
         <span className="sc-tile-pair">
           <span className="sc-tile-cond mono">{condA}</span>
-          <span className="sc-big serif">{a === null ? "—" : <RollingNumber text={format(a)} />}</span>
+          <span className="sc-big serif">{a === null ? "—" : <Reading value={a} format={format} />}</span>
         </span>
         {condB && (
           <>
             <span className="sc-arrow" aria-hidden="true">→</span>
             <span className="sc-tile-pair">
               <span className="sc-tile-cond mono">{condB}</span>
-              <span className="sc-big serif">{b === null ? "—" : <RollingNumber text={format(b)} />}</span>
+              <span className="sc-big serif">{b === null ? "—" : <Reading value={b} format={format} />}</span>
             </span>
           </>
         )}
