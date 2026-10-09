@@ -69,19 +69,6 @@
   initial-value: 0px;
 }
 
-/* Compact density: tighter spacing and slightly smaller text for data-heavy screens. */
-:root[data-density="compact"] {
-  --text-xs: 10.5px;
-  --text-sm: 12px;
-  --text-md: 13px;
-  --s2: 6px;
-  --s3: 9px;
-  --s4: 12px;
-  --s5: 18px;
-  --s6: 24px;
-  --topbar-h: 42px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dur-fast: 0ms;

@@ -13,13 +13,10 @@ import {
 } from "../../api/admin";
 import { ApiError } from "../../api/data";
 import { useHealth } from "../../api/health";
-import { applyDensity, readDensity, type Density } from "../../app/theme";
-import { ThemeSwatches } from "../../components/ThemeSwatches";
 import { ErrorSummary, FormSection, SelectField, TextField } from "../../components/form";
 import "../data/data.css";
 import "./settings.css";
 import { PageTitle } from "../../components/PageHeader";
-import { Palette } from "./Palette";
 
 type Form = Record<keyof SettingsValues, string>;
 
@@ -124,9 +121,15 @@ function SettingsForm({ view }: { view: SettingsView }) {
           </span>
           <span className="ff-hint">{view.key_hint}. Keys are never shown or stored here.</span>
         </div>
-        <TextField name="gemini_model" label="Gemini model" mono value={form.gemini_model} onChange={set("gemini_model")} hint={tag("gemini_model")} error={err("gemini_model")} />
-        <TextField name="openai_model" label="OpenAI-compatible model" mono value={form.openai_model} onChange={set("openai_model")} hint={tag("openai_model")} error={err("openai_model")} />
-        <TextField name="openai_base_url" label="OpenAI-compatible base URL" mono span={2} value={form.openai_base_url} onChange={set("openai_base_url")} hint="e.g. https://api.openai.com/v1" error={err("openai_base_url")} />
+        {form.llm_provider === "gemini" && (
+          <TextField name="gemini_model" label="Model" mono value={form.gemini_model} onChange={set("gemini_model")} hint={tag("gemini_model")} error={err("gemini_model")} />
+        )}
+        {form.llm_provider === "openai_compatible" && (
+          <>
+            <TextField name="openai_model" label="Model" mono value={form.openai_model} onChange={set("openai_model")} hint={tag("openai_model")} error={err("openai_model")} />
+            <TextField name="openai_base_url" label="Base URL" mono span={2} value={form.openai_base_url} onChange={set("openai_base_url")} hint="e.g. https://api.openai.com/v1" error={err("openai_base_url")} />
+          </>
+        )}
         <div className="ff set-test" data-span="2">
           <div className="set-test-row">
             <span className="pill" data-tone={view.mode === "live" ? "live" : "demo"}>
@@ -149,22 +152,20 @@ function SettingsForm({ view }: { view: SettingsView }) {
       <FormSection title="Agent">
         <TextField name="temperature" label="Temperature" type="number" value={form.temperature} onChange={set("temperature")} hint={`0–2 · ${tag("temperature")}`} error={err("temperature")} />
         <TextField name="max_steps" label="Max tool steps (C2–C4)" type="number" value={form.max_steps} onChange={set("max_steps")} hint={`1–12 · ${tag("max_steps")}`} error={err("max_steps")} />
-        <TextField name="max_owner_questions" label="Max owner questions" type="number" value={form.max_owner_questions} onChange={set("max_owner_questions")} hint="1–10 · interview mode" error={err("max_owner_questions")} />
-        <TextField name="demo_delay_ms" label="Demo delay (ms)" type="number" value={form.demo_delay_ms} onChange={set("demo_delay_ms")} hint="demo mode only; makes streaming visible" error={err("demo_delay_ms")} />
       </FormSection>
 
-      <FormSection title="Pricing (USD per million tokens)">
-        <TextField name="price_input_per_mtok" label="Input price" type="number" value={form.price_input_per_mtok} onChange={set("price_input_per_mtok")} hint="blank = cost unknown" error={err("price_input_per_mtok")} />
-        <TextField name="price_output_per_mtok" label="Output price" type="number" value={form.price_output_per_mtok} onChange={set("price_output_per_mtok")} hint="from your provider’s price page" error={err("price_output_per_mtok")} />
-      </FormSection>
 
-      <FormSection title="Knowledge source">
-        <TextField name="svtg_pdf_path" label="SVTG PDF path" mono span={2} value={form.svtg_pdf_path} onChange={set("svtg_pdf_path")} hint={tag("svtg_pdf_path")} error={err("svtg_pdf_path")} />
+      <FormSection title="Knowledge source (SVTG)">
         <div className="ff" data-span="2">
-          <span className="ff-label">Status</span>
-          <span className="mono set-pdf" data-ok={view.pdf.loaded}>
-            {view.pdf.loaded ? `loaded · ${view.pdf.pages} pages · ${health?.chunks ?? "…"} chunks indexed` : view.pdf.exists ? "file found but could not be read" : "file not found"}
+          <span className="ff-label">PDF status</span>
+          <span className="mono set-pdf" data-ok={view.pdf.loaded} data-testid="pdf-status">
+            {view.pdf.loaded
+              ? `loaded · ${view.pdf.pages} pages · ${health?.chunks ?? "…"} passages indexed`
+              : view.pdf.exists
+                ? "file found but could not be read"
+                : "file not found"}
           </span>
+          <span className="ff-hint mono">{form.svtg_pdf_path} · set SVTG_PDF_PATH in .env to change it</span>
         </div>
       </FormSection>
 
@@ -183,19 +184,6 @@ function SettingsForm({ view }: { view: SettingsView }) {
   );
 }
 
-function Appearance() {
-  const [density, setDensity] = useState<Density>(readDensity);
-  return (
-    <FormSection title="Appearance (this browser only)">
-      <div className="set-theme">
-        <span className="ff-label">Theme</span>
-        <ThemeSwatches size="lg" />
-      </div>
-      <SelectField name="density" label="Density" value={density} onChange={(v) => { setDensity(v as Density); applyDensity(v as Density); }}
-        options={[{ value: "comfortable", label: "Comfortable" }, { value: "compact", label: "Compact" }]} />
-    </FormSection>
-  );
-}
 
 function Usage() {
   const { data } = useUsage();
@@ -265,11 +253,9 @@ export function SettingsPage() {
       <div className="set-layout">
         <div className="set-main">{data && <SettingsForm key={JSON.stringify(data.values)} view={data} />}</div>
         <div className="set-side">
-          <Appearance />
           <Usage />
         </div>
       </div>
-      <Palette />
     </div>
   );
 }

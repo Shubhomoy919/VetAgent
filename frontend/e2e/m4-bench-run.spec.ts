@@ -12,7 +12,6 @@ test("run BOV-WD-007 from the Bench: steps stream in, five cards finish with sta
   page.on("console", (m: ConsoleMessage) => m.type() === "error" && errors.push(m.text()));
   page.on("pageerror", (e) => errors.push(e.message));
 
-  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/?case=BOV-WD-007");
   await expect(page.getByTestId("case-species")).toHaveText("cattle");
 
@@ -24,7 +23,7 @@ test("run BOV-WD-007 from the Bench: steps stream in, five cards finish with sta
   const runningCard = page.locator('.ccard[data-status="running"]').first();
   await expect(runningCard).toBeVisible({ timeout: 10_000 });
   await expect(runningCard.locator(".log-step").first()).toBeVisible({ timeout: 10_000 });
-  await page.screenshot({ path: path.join(SHOTS, "m4-bench-running-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m4-bench-running-1440.png") });
 
   await expect(page.getByTestId("run-status")).toHaveText("Done 5/5", { timeout: 90_000 });
   for (const c of CONDS) {
@@ -35,7 +34,7 @@ test("run BOV-WD-007 from the Bench: steps stream in, five cards finish with sta
   await expect(page.locator(".stamp").first()).toBeVisible();
   await expect(page.locator('[data-case-id="BOV-WD-007"] .result-dot')).not.toHaveAttribute("data-state", "none");
   await page.waitForTimeout(400);
-  await page.screenshot({ path: path.join(SHOTS, "m4-bench-after-run-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m4-bench-after-run-1440.png") });
 
   // Citations are superscript sidenotes: the number opens the note, its chip opens the SVTG passage drawer.
   await page.getByTestId("card-C2").locator(".sn-ref").first().click();
@@ -43,7 +42,7 @@ test("run BOV-WD-007 from the Bench: steps stream in, five cards finish with sta
   const drawer = page.getByTestId("passage-drawer");
   await expect(drawer).toContainText("PDF page");
   await expect(drawer.locator(".drawer-chunk").first()).toBeVisible();
-  await page.screenshot({ path: path.join(SHOTS, "m4-passage-drawer-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m4-passage-drawer-1440.png") });
   await page.keyboard.press("Escape");
   await expect(drawer).toHaveCount(0);
 
@@ -66,7 +65,8 @@ test("cards reload from storage after a page refresh", async ({ page }) => {
 test("owner-interview mode runs only C0 and C3", async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto("/?case=CAN-013");
-  await page.getByLabel("Owner interview").check();
+  await page.getByText("Advanced").click();
+  await page.getByLabel("Owner interview (C0 and C3 only)").check();
   await expect(page).toHaveURL(/mode=interview/);
   await expect(page.getByTestId("card-C1")).toContainText("Not part of owner-interview mode");
   await page.getByRole("button", { name: /Run case/ }).click();
@@ -75,11 +75,11 @@ test("owner-interview mode runs only C0 and C3", async ({ page }) => {
   await expect(page.getByTestId("card-C0")).toHaveAttribute("data-status", "done");
 });
 
-test("compare mode shows the chosen conditions side by side; Cyanotype screenshot", async ({ page }) => {
+test("compare mode shows the chosen conditions side by side; screenshot", async ({ page }) => {
   await page.goto("/?case=BOV-WD-007");
   await page.getByRole("button", { name: "Compare" }).click();
   await expect(page.locator(".deck")).toHaveAttribute("data-mode", "compare");
   await expect(page.locator(".ccard")).toHaveCount(2); // default C0 vs C4
   await page.waitForTimeout(400);
-  await page.screenshot({ path: path.join(SHOTS, "m4-bench-compare-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m4-bench-compare-1440.png") });
 });

@@ -4,22 +4,13 @@
 
      html            base colour
      html::before    graph grid, 8px minor / 40px major
-     html::after     ink-bleed cloud: two halftone dot screens in the page's ink pair, top-right
+     html::after     ink-bleed cloud: two pink halftone dot screens, top-right
      #root           the app (z-index 1)
      body::before    paper grain (feTurbulence noise), above everything, pointer-events none */
 
 html {
   background-color: var(--bg);
-  --zone: var(--zone-about);
-  --zone-b: var(--zone-about-b);
 }
-
-html[data-zone="bench"] { --zone: var(--zone-bench); --zone-b: var(--zone-bench-b); }
-html[data-zone="scorecard"] { --zone: var(--zone-scorecard); --zone-b: var(--zone-scorecard-b); }
-html[data-zone="data"] { --zone: var(--zone-data); --zone-b: var(--zone-data-b); }
-html[data-zone="runs"] { --zone: var(--zone-runs); --zone-b: var(--zone-runs-b); }
-html[data-zone="overview"] { --zone: var(--zone-overview); --zone-b: var(--zone-overview-b); }
-html[data-zone="about"] { --zone: var(--zone-about); --zone-b: var(--zone-about-b); }
 
 body {
   background: transparent;
@@ -49,8 +40,8 @@ html::before {
     8px 8px;
 }
 
-/* Ink-bleed cloud: one per page, top-right, in the page's ink pair; overprints (screen on dark
-   grounds, multiply on light) and fades out toward the page so it never sits behind text. */
+/* Ink-bleed cloud: one per page, top-right, pink only; screen-blended, fading out toward the page
+   so it never sits behind text. */
 html::after {
   content: "";
   position: fixed;
@@ -61,8 +52,8 @@ html::after {
   z-index: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at center, var(--zone) 0 1.6px, transparent 2px),
-    radial-gradient(circle at center, var(--zone-b) 0 1.3px, transparent 1.7px);
+    radial-gradient(circle at center, var(--ink-pink) 0 1.6px, transparent 2px),
+    radial-gradient(circle at center, var(--ink-pink-55) 0 1.3px, transparent 1.7px);
   background-size:
     7px 7px,
     9px 9px;
@@ -75,10 +66,6 @@ html::after {
   opacity: 0.55;
 }
 
-:root[data-theme="kalamkari"]::after {
-  mix-blend-mode: multiply;
-  opacity: 0.35;
-}
 
 /* Paper grain */
 body::before {

@@ -1,0 +1,85 @@
+/* "?" keyboard-shortcut help overlay. */
+
+.hl-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 12vh;
+}
+
+.hl-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+}
+
+.hl {
+  position: relative;
+  width: min(560px, 92vw);
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.hl {
+  width: min(720px, 94vw);
+}
+
+.hl-kbd {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 6px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-align: center;
+  background: var(--bg);
+}
+
+.help {
+  padding: var(--s4) var(--s5) var(--s5);
+  overflow-y: auto;
+}
+
+.help-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--s4);
+}
+
+.help-title {
+  font-size: var(--text-xl);
+}
+
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--s5);
+}
+
+.help-grid dl {
+  margin: var(--s2) 0 0;
+  display: grid;
+  gap: var(--s2);
+}
+
+.help-row {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  align-items: center;
+  gap: var(--s2);
+  font-size: var(--text-sm);
+}
+
+.help-row dd {
+  margin: 0;
+}

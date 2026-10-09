@@ -1,4 +1,4 @@
-/* The Field Station — theme structure that goes beyond colour tokens.
+/* Chrome and hero structure.
    Technique: chrome regions RE-SCOPE the core tokens (--text, --text-muted, --rule, --raised …) to their own
    block colours, so every component inside them adapts with no per-component overrides. */
 
@@ -43,18 +43,6 @@
 }
 
 /* Buttons press down 1px (mechanical edge in controls.css); no button shadows. */
-
-/* ---------- Cyanotype: cyan-white line work ---------- */
-:root[data-theme="cyanotype"] .pane,
-:root[data-theme="cyanotype"] .ccard,
-:root[data-theme="cyanotype"] .dw {
-  border-color: var(--rule);
-}
-
-:root[data-theme="cyanotype"] .ph-title,
-:root[data-theme="cyanotype"] .case-title {
-  color: var(--text);
-}
 
 /* ---------- Scorecard hero: a paper ticket on the ground (every theme) ---------- */
 .sc-hero {

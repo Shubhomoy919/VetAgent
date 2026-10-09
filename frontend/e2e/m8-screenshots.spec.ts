@@ -1,4 +1,4 @@
-/* Every page at 1440 and 1024 wide, in all three themes: docs/screenshots/<page>-<width>-<theme>.png */
+/* Every page at 1440 and 1024 wide: docs/screenshots/<page>-<width>.png */
 import { expect, test } from "@playwright/test";
 import path from "node:path";
 
@@ -17,16 +17,14 @@ const PAGES: { name: string; url: string; ready: string }[] = [
 ];
 
 for (const width of [1440, 1024]) {
-  for (const theme of ["riso-black", "cyanotype", "kalamkari"] as const) {
-    test(`all pages at ${width} · ${theme}`, async ({ page }) => {
+  {
+    test(`all pages at ${width}`, async ({ page }) => {
       await page.setViewportSize({ width, height: width === 1440 ? 900 : 768 });
-      await page.addInitScript((t) => localStorage.setItem("vab.theme", t), theme);
       for (const p of PAGES) {
         await page.goto(p.url);
         await expect(page.locator(p.ready).first()).toBeVisible();
-        await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
         await page.waitForTimeout(450); // let entrance motion finish
-        await page.screenshot({ path: path.join(SHOTS, `${p.name}-${width}-${theme}.png`) });
+        await page.screenshot({ path: path.join(SHOTS, `${p.name}-${width}.png`) });
       }
     });
   }

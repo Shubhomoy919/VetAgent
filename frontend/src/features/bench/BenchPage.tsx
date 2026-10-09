@@ -5,7 +5,6 @@ import { useCases, type Case } from "../../api/cases";
 import { CONDITION_IDS, resultKey, useLatestResults } from "../../api/runs";
 import { useRun } from "../../app/runState";
 import { NARROW, WIDE, useMediaQuery } from "../../app/useMediaQuery";
-import { withViewTransition } from "../../lib/viewTransition";
 import { EmptySpecimen } from "../../components/EmptySpecimen";
 import { CaseDetail } from "./CaseDetail";
 import { CaseDossier } from "./CaseDossier";
@@ -30,7 +29,7 @@ function isTypingTarget(el: EventTarget | null): boolean {
   return el instanceof HTMLElement && (el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName));
 }
 
-function CasePane({ selected, plateNo, onOpenDossier }: { selected: Case | undefined; plateNo: number; onOpenDossier: () => void }) {
+function CasePane({ selected, onOpenDossier }: { selected: Case | undefined; onOpenDossier: () => void }) {
   return (
     <section className="pane pane-case" aria-labelledby="pane-case">
       <div className="pane-header">
@@ -40,7 +39,7 @@ function CasePane({ selected, plateNo, onOpenDossier }: { selected: Case | undef
       </div>
       {selected ? (
         <div className="pane-scroll">
-          <CaseDetail key={selected.case_id} c={selected} plateNo={plateNo} onOpenDossier={onOpenDossier} />
+          <CaseDetail key={selected.case_id} c={selected} onOpenDossier={onOpenDossier} />
         </div>
       ) : (
         <EmptySpecimen title="No specimen on the plate">
@@ -73,7 +72,6 @@ export function BenchPage() {
   const { data: latest } = useLatestResults(interview);
   const { live, run, start, starting } = useRun();
   const selected = cases?.find((c) => c.case_id === selectedId);
-  const plateNo = (cases?.findIndex((c) => c.case_id === selectedId) ?? 0) + 1;
 
 
   const setParam = useCallback(
@@ -98,8 +96,7 @@ export function BenchPage() {
   );
   const onSelectFromList = useCallback(
     (id: string) => {
-      // Case switching slides the case pane through a view transition (plain update if unsupported).
-      withViewTransition("case", () => onSelect(id));
+      onSelect(id);
       if (!wide) setCasesOpen(false);
     },
     [onSelect, wide],
@@ -209,7 +206,7 @@ export function BenchPage() {
           </Panel>
           <Separator className="pane-separator" />
           <Panel id="case" defaultSize="31" minSize="300px">
-            <CasePane selected={selected} plateNo={plateNo} onOpenDossier={openDossier} />
+            <CasePane selected={selected} onOpenDossier={openDossier} />
           </Panel>
           <Separator className="pane-separator" />
           <Panel id="conditions" defaultSize="44" minSize="320px">
@@ -229,7 +226,7 @@ export function BenchPage() {
             className="bench-panes"
           >
             <Panel id="case" defaultSize={narrow ? "42" : "42"} minSize={narrow ? "160px" : "300px"}>
-              <CasePane selected={selected} plateNo={plateNo} onOpenDossier={openDossier} />
+              <CasePane selected={selected} onOpenDossier={openDossier} />
             </Panel>
             <Separator className={narrow ? "pane-separator pane-separator-h" : "pane-separator"} />
             <Panel id="conditions" defaultSize="58" minSize={narrow ? "200px" : "320px"}>

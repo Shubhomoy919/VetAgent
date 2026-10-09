@@ -1,9 +1,5 @@
 /* Specimen v2 effects library. Each numbered effect is documented in docs/DESIGN.md
-   (what it is, where it is used). Flat pigment only; motion 120–320 ms on --ease;
-   every animation collapses to instant under prefers-reduced-motion via the duration tokens. */
-
-/* ===== 2. Halftone shading ===== (dot pattern lives in patterns.css; this tunes it per use) */
-.halftone-soft {
+   (what it is {
   --ht-size: 5px;
   --ht-reach: 60%;
 }
@@ -262,8 +258,7 @@ input[type="checkbox"]:focus-visible {
 
 .ff-input,
 .dp-search,
-.case-search,
-.cmdk-input {
+.case-search {
   transition: border-color var(--dur-fast) var(--ease);
 }
 
@@ -319,7 +314,6 @@ select.ff-input,
 .ledger tbody tr:not(.nohover):hover td:first-child::before {
   transform: scaleY(1);
 }
-
 
 /* ---------- Chart rows: hairline reading band on hover / focus ---------- */
 

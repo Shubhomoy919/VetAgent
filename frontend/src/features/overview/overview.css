@@ -11,34 +11,6 @@
   background: var(--surface);
 }
 
-.ov-stat {
-  display: grid;
-  gap: 2px;
-  padding: var(--s3) var(--s4);
-  border-right: var(--hairline);
-}
-
-.ov-stat:last-child {
-  border-right: 0;
-}
-
-.ov-val {
-  font-size: var(--text-sm);
-}
-
-.ov-val.serif {
-  font-size: 28px;
-  line-height: 1;
-}
-
-.ov-val[data-mode="demo"] {
-  color: var(--running-text);
-}
-
-.ov-val[data-mode="live"] {
-  color: var(--safe-text);
-}
-
 .ov-section {
   display: grid;
   gap: var(--s3);
@@ -59,13 +31,6 @@
   border: var(--hairline);
   border-top: 3px solid var(--cond);
   border-radius: var(--radius);
-}
-
-.ov-results {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 1fr);
-  gap: var(--s4);
-  align-items: start;
 }
 
 .ov-headline {
@@ -125,9 +90,7 @@
 }
 
 @media (max-width: 1100px) {
-  .ov-results {
-    grid-template-columns: 1fr;
-  }
+
 }
 
 @media print {
@@ -150,7 +113,7 @@
 }
 
 .ov-lede em {
-  color: var(--safe-text);
+  color: var(--accent-text);
 }
 
 .ov-para {

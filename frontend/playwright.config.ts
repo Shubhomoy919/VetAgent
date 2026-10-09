@@ -8,9 +8,6 @@ export default defineConfig({
   use: {
     baseURL: "http://localhost:5173",
     trace: "retain-on-failure",
-    // First-run coach marks start dismissed so they never cover what a test clicks
-    // (the coach-marks spec opts back in with a fresh storage state).
-    storageState: "e2e/storage.json",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } }],
   webServer: {

@@ -1,6 +1,6 @@
 /* 10. Ledger tables: ruled like a field-station ledger — small-caps sticky headers over a double rule,
    a madder margin rule after the first column, a heavier rule every fifth line, tabular numerals,
-   a marigold bar on row hover. html[data-ledger="dense"] tightens every ledger. */
+   a marigold bar on row hover. */
 
 .ledger {
   font-variant-numeric: tabular-nums;
@@ -35,14 +35,4 @@
 
 .ledger tbody tr:hover {
   background: color-mix(in srgb, var(--running) 7%, transparent);
-}
-
-:root[data-ledger="dense"] .ledger th,
-:root[data-ledger="dense"] .ledger td {
-  padding-top: 3px;
-  padding-bottom: 3px;
-}
-
-.ledger-toggle[aria-pressed="true"] {
-  border-color: var(--running);
 }

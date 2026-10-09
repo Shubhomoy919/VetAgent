@@ -1,6 +1,6 @@
 /** Keyboard shortcuts shown in the "?" sheet. Keep in sync with the handlers. */
 export const SHORTCUTS: { group: string; items: [string, string][] }[] = [
-  { group: "Anywhere", items: [["Ctrl K", "Command palette"], ["?", "This list"], ["Esc", "Close drawer or dialog"]] },
+  { group: "Anywhere", items: [["?", "This list"], ["Esc", "Close drawer or dialog"]] },
   {
     group: "Bench",
     items: [

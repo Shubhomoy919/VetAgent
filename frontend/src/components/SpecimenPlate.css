@@ -82,21 +82,6 @@
   color: var(--text-muted);
 }
 
-/* Kalamkari: block-print band along the top of the plate frame. */
-:root[data-theme="kalamkari"] .plate-frame::before {
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 16px;
-}
-
-/* Cyanotype: plates are cyan-white line prints on the blue ground. */
-:root[data-theme="cyanotype"] .plate {
-  background: var(--surface);
-  border-color: var(--info);
-  outline-color: color-mix(in srgb, var(--info) 55%, transparent);
-}
-
 /* Empty / not-found plates */
 .plate-empty {
   display: grid;

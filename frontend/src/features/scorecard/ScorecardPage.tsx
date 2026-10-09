@@ -287,8 +287,8 @@ function Report({ sc }: { sc: Scorecard }) {
           </div>
           <ol className="marginalia span-3" aria-label="Reading this report">
             <li>
-              <strong>Dot and whisker.</strong> The dot is the observed rate; the whisker its Wilson 95% interval. Hover a
-              chart for a crosshair reading.
+              <strong>Dot and whisker.</strong> The dot is the observed rate; the whisker its Wilson 95% interval. Hover or
+              focus a row for the exact values.
             </li>
             <li>
               <strong>Small n.</strong> {sc.n_cases} cases: intervals are wide, and only McNemar p &lt; 0.05 between adjacent

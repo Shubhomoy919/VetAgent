@@ -44,12 +44,6 @@
   text-align: right;
 }
 
-.meter-readout {
-  min-width: 4ch;
-  font-size: var(--text-xs);
-  color: var(--running-text);
-}
-
 /* Running marker: a static marigold rule across the running card / run bar (no looping sweep). */
 .scanline {
   position: absolute;
@@ -356,12 +350,6 @@
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.ccard-cites {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s1);
 }
 
 button.cite-chip {
@@ -766,7 +754,7 @@ button.cite-chip:hover {
   }
 }
 
-/* ---------- Field Station: the run bar as an instrument panel ---------- */
+/* ---------- Run bar ---------- */
 .runbar {
   padding: var(--s2) var(--s5);
   background: var(--surface-sunk);
@@ -774,27 +762,17 @@ button.cite-chip:hover {
   border-radius: var(--radius);
 }
 
-/* Panel screws in the four corners (slotted heads). */
-.runbar::before,
-.runbar::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 7px;
-  height: 7px;
-  margin-top: -3.5px;
-  border: 1px solid var(--text-muted);
-  border-radius: 50%;
-  background: var(--surface);
-  pointer-events: none;
+.runbar-advanced {
+  position: relative;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
 }
 
-.runbar::before {
-  left: 7px;
-  transform: rotate(35deg);
+.runbar-advanced summary {
+  cursor: pointer;
+  padding: 4px 0;
 }
 
-.runbar::after {
-  right: 7px;
-  transform: rotate(-20deg);
+.runbar-advanced[open] .toggle {
+  margin-top: 4px;
 }

@@ -119,27 +119,6 @@
   letter-spacing: 0.06em;
 }
 
-/* ---------- Conditions ---------- */
-
-.ladder-legend {
-  display: flex;
-  gap: var(--s3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-.ladder-legend li {
-  counter-increment: step;
-}
-
-.ladder-legend li::before {
-  content: counter(step) " ";
-  color: var(--rule-strong);
-}
-
 .conditions {
   flex: 1;
   margin: 0;
@@ -160,44 +139,6 @@
 
 .condition + .condition {
   margin-top: var(--s2);
-}
-
-.condition-bar {
-  position: absolute;
-  top: -1px;
-  bottom: -1px;
-  left: -1px;
-  width: 4px;
-  background: var(--cond);
-  border-radius: var(--radius) 0 0 var(--radius);
-}
-
-.condition-head {
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-}
-
-.condition-id {
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--text);
-}
-
-.condition-name {
-  flex: 1;
-  font-weight: 500;
-}
-
-.condition-summary {
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-}
-
-.condition-status {
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  letter-spacing: 0.02em;
 }
 
 .condition[data-cond="C0"] { --cond: var(--c0); }
@@ -389,30 +330,8 @@
   padding: var(--s4) var(--s5) var(--s6);
 }
 
-.case-detail-head {
-  display: grid;
-  gap: var(--s3);
-}
-
-.case-head-tags {
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-  flex-wrap: wrap;
-}
-
 .case-dossier-btn {
   margin-left: auto;
-}
-
-/* The large serif case title. */
-.case-title {
-  font-family: var(--font-serif);
-  font-size: var(--display-sm);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: var(--tracking-display);
-  padding-right: 4px;
 }
 
 /* Signalment as a precise data strip: inked top rule, hairline cells, mono readings. */

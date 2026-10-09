@@ -20,7 +20,6 @@ test("/ opens the Bench shell with zero console errors", async ({ page }) => {
   });
   page.on("pageerror", (err) => errors.push(err.message));
 
-  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
 
   await expect(page.getByTestId("bench")).toBeVisible();
@@ -39,20 +38,12 @@ test("/ opens the Bench shell with zero console errors", async ({ page }) => {
     await expect(page.locator(`.deck-tab[data-cond="${id}"]`)).toBeVisible();
   }
 
-  // Default theme is Riso Black.
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "riso-black");
+  // One look: black and pink. No theme switcher, no launcher button, no printer strip.
+  await expect(page.getByTestId("theme-swatches")).toHaveCount(0);
+  await expect(page.getByText(/ink check/i)).toHaveCount(0);
+  await expect(page.getByTestId("open-palette")).toHaveCount(0);
   await page.waitForTimeout(400); // let entrance motion settle before the screenshot
-  await page.screenshot({ path: path.join(SHOTS, "m1-bench-1440-riso-black.png") });
-
-  // The 3-way swatch switcher in the top bar.
-  await page.getByTestId("theme-swatches").first().getByRole("radio", { name: "Cyanotype" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "cyanotype");
-  await page.waitForTimeout(400);
-  await page.screenshot({ path: path.join(SHOTS, "m1-bench-1440-cyanotype.png") });
-
-  // Theme choice persists across reload.
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "cyanotype");
+  await page.screenshot({ path: path.join(SHOTS, "m1-bench-1440.png") });
 
   expect(errors, `console errors:\n${errors.join("\n")}`).toEqual([]);
 });

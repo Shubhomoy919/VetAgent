@@ -90,7 +90,7 @@ export function ConditionDeck({ caseId, interview, latest, onCite, tabs = false,
       : CONDITIONS;
 
   return (
-    <section className="pane" aria-labelledby="pane-conditions" data-coach="deck">
+    <section className="pane" aria-labelledby="pane-conditions">
       <div className="pane-header deck-header">
         <h2 className="pane-title" id="pane-conditions">
           Conditions

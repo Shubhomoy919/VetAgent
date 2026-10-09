@@ -138,8 +138,3 @@
   }
 }
 
-.set-theme {
-  display: grid;
-  gap: 6px;
-  grid-column: 1 / -1;
-}

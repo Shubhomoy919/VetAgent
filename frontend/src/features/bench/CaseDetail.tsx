@@ -96,7 +96,7 @@ export function GoldPanel({ c, onCite }: { c: Case; onCite?: (page: number) => v
   );
 }
 
-export function CaseDetail({ c, plateNo = 1, onOpenDossier }: { c: Case; plateNo?: number; onOpenDossier?: () => void }) {
+export function CaseDetail({ c, onOpenDossier }: { c: Case; onOpenDossier?: () => void }) {
   const [revealed, setRevealed] = useState(false);
 
   // G toggles the gold answer.
@@ -116,7 +116,6 @@ export function CaseDetail({ c, plateNo = 1, onOpenDossier }: { c: Case; plateNo
     <article className="case-detail" aria-labelledby="case-detail-id" data-testid="case-detail">
       <SpecimenPlate
         c={c}
-        plateNo={plateNo}
         actions={
           onOpenDossier && (
             <button type="button" className="btn case-dossier-btn" onClick={onOpenDossier} data-testid="open-dossier">

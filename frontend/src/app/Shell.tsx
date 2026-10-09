@@ -1,34 +1,18 @@
 import { AnimatePresence, motion } from "motion/react";
 import { NavLink, Outlet, useLocation } from "react-router";
-import { useEffect } from "react";
 import { Toaster } from "sonner";
 import { useHealth } from "../api/health";
 import { CollapseIcon, ExpandIcon } from "../components/icons";
-import { ThemeSwatches } from "../components/ThemeSwatches";
-import { ColorBar, CropMarks } from "../components/PrintMarks";
-import { InkDefs, InkUnderline } from "../components/Ink";
-import { canViewTransition, markTransition } from "../lib/viewTransition";
+import { InkDefs } from "../components/Ink";
 import { useKeyPressFeedback } from "../lib/useKeyPressFeedback";
-import { CoachMarks } from "./CoachMarks";
-import { CommandPalette } from "./CommandPalette";
 import { NAV } from "./nav";
-import { resultKey } from "../api/runs";
 import { useRun } from "./runState";
+import { ShortcutHelp } from "./ShortcutHelp";
 import { usePersistentFlag } from "./theme";
 import "./Shell.css";
 import "./toast.css";
 
 const EASE = [0.2, 0.8, 0.2, 1] as const;
-
-/** Page colour zone: each section tints the ground with its own pigment. */
-function routeZone(pathname: string): "bench" | "scorecard" | "data" | "runs" | "overview" | "about" {
-  if (pathname === "/") return "bench";
-  if (pathname.startsWith("/overview")) return "overview";
-  if (pathname.startsWith("/scorecard")) return "scorecard";
-  if (pathname.startsWith("/cases") || pathname.startsWith("/drugs")) return "data";
-  if (pathname.startsWith("/runs") || pathname.startsWith("/review")) return "runs";
-  return "about";
-}
 
 function routeTitle(pathname: string): string {
   for (const group of NAV) {
@@ -59,11 +43,7 @@ function ModePill() {
   }
   const live = data.mode === "live";
   return (
-    <span
-      className="pill"
-      data-tone={live ? "live" : "demo"}
-      title={live ? `Live: ${data.provider}` : "No API key configured — sample responses"}
-    >
+    <span className="pill" data-tone={live ? "live" : "demo"} title={live ? `Live: ${data.provider}` : "No API key configured — sample responses"}>
       <span className="pill-dot" aria-hidden="true" />
       {live ? "Live" : "Demo"}
     </span>
@@ -73,7 +53,6 @@ function ModePill() {
 function TopBar() {
   const { pathname } = useLocation();
   const { data } = useHealth();
-
   return (
     <header className="topbar">
       <h1 className="topbar-title serif">{routeTitle(pathname) || "Not found"}</h1>
@@ -86,19 +65,6 @@ function TopBar() {
           </span>
         </span>
         <RunStatus />
-        <RunReadouts />
-        <button
-          type="button"
-          className="kbd-button mono"
-          onClick={() => window.dispatchEvent(new Event("vab:palette"))}
-          aria-label="Open command palette (Ctrl+K)"
-          title="Command palette (Ctrl+K) · shortcuts (?)"
-          data-testid="open-palette"
-          data-coach="palette"
-        >
-          Ctrl K
-        </button>
-        <ThemeSwatches />
       </div>
     </header>
   );
@@ -125,36 +91,6 @@ function RunStatus() {
   );
 }
 
-/** Instrument readouts for the current (or last) run: tokens, mean latency per result, cost. */
-function RunReadouts() {
-  const { run, live } = useRun();
-  const results = run
-    ? run.case_ids.flatMap((cid) => run.conditions.map((c) => live[resultKey(cid, c, run.interview)]?.result)).filter((r) => r !== undefined)
-    : [];
-  const tokens = results.reduce((s, r) => s + r.tokens_in + r.tokens_out, 0);
-  const latency = results.length ? results.reduce((s, r) => s + r.latency_ms, 0) / results.length / 1000 : null;
-  const costs = results.map((r) => r.cost_usd);
-  const cost = results.length === 0 || costs.some((c) => c === null) ? null : costs.reduce<number>((s, c) => s + (c ?? 0), 0);
-  return (
-    <>
-      <span className="readout readout-wide">
-        <span className="readout-label">Tokens</span>
-        <span className="readout-value mono">{results.length ? tokens.toLocaleString("en-IN") : "—"}</span>
-      </span>
-      <span className="readout readout-wide">
-        <span className="readout-label">Latency</span>
-        <span className="readout-value mono">{latency === null ? "—" : `${latency.toFixed(1)} s`}</span>
-      </span>
-      <span className="readout readout-wide">
-        <span className="readout-label">Cost</span>
-        <span className="readout-value mono" title={cost === null && results.length ? "Prices not set (Settings)" : undefined}>
-          {cost === null ? "—" : `$${cost.toFixed(4)}`}
-        </span>
-      </span>
-    </>
-  );
-}
-
 function DemoBanner() {
   const { data } = useHealth();
   if (data?.mode !== "demo") return null;
@@ -165,11 +101,23 @@ function DemoBanner() {
   );
 }
 
+/** Logo: three overlapping pink ink dots at different strengths, overprinting. */
+function InkMark() {
+  return (
+    <svg className="inkmark" viewBox="0 0 30 18" aria-hidden="true" focusable="false">
+      <circle cx="8" cy="9" r="7" opacity="1" />
+      <circle cx="15" cy="9" r="7" opacity="0.6" />
+      <circle cx="22" cy="9" r="7" opacity="0.32" />
+    </svg>
+  );
+}
+
 function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   return (
     <aside className="sidebar" aria-label="Primary">
       <div className="wordmark">
-        <span className="wordmark-name serif">{collapsed ? "V" : "VetAgentBench"}</span>
+        <InkMark />
+        {!collapsed && <span className="wordmark-name serif">VetAgentBench</span>}
         {!collapsed && <span className="wordmark-tag mono">IN</span>}
       </div>
       <nav className="nav">
@@ -181,28 +129,12 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
             <ul>
               {group.items.map(({ to, label, icon: Icon }) => (
                 <li key={to}>
-                  <NavLink
-                    to={to}
-                    end
-                    viewTransition
-                    onClick={() => markTransition("route")}
-                    className="nav-link"
-                    title={collapsed ? label : undefined}
-                  >
+                  <NavLink to={to} end className="nav-link" title={collapsed ? label : undefined}>
                     {({ isActive }) => (
                       <>
-                        {isActive && (
-                          <motion.span
-                            layoutId="nav-active"
-                            className="nav-active"
-                            transition={{ duration: 0.2, ease: EASE }}
-                          />
-                        )}
+                        {isActive && <motion.span layoutId="nav-active" className="nav-active" transition={{ duration: 0.16, ease: EASE }} />}
                         <Icon className="nav-icon" />
-                        <span className={collapsed ? "visually-hidden" : "nav-label"}>
-                          {label}
-                          {isActive && !collapsed && <InkUnderline key={to} variant={label.length} />}
-                        </span>
+                        <span className={collapsed ? "visually-hidden" : "nav-label"}>{label}</span>
                       </>
                     )}
                   </NavLink>
@@ -229,16 +161,7 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
 export function Shell() {
   const location = useLocation();
   useKeyPressFeedback();
-  // Ground: the page's ink pair (the single ink-bleed cloud).
-  useEffect(() => {
-    document.documentElement.dataset.zone = routeZone(location.pathname);
-  }, [location.pathname]);
-  // View Transitions animate route changes where supported; motion is the fallback.
-  const vt = canViewTransition();
-  const [collapsed, setCollapsed] = usePersistentFlag(
-    "vab.sidebarCollapsed",
-    () => window.innerWidth < 1280,
-  );
+  const [collapsed, setCollapsed] = usePersistentFlag("vab.sidebarCollapsed", () => window.innerWidth < 1280);
 
   return (
     <div className="shell" data-collapsed={collapsed}>
@@ -248,40 +171,25 @@ export function Shell() {
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="main">
         <TopBar />
-        <ColorBar />
         <DemoBanner />
         <main id="content" className="content" tabIndex={-1}>
-          <CropMarks />
-          {vt ? (
-            // View Transitions animate the swap (motion.css); the route mounts synchronously.
-            <div key={location.pathname} className="route">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={location.pathname}
+              className="route"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.08 }}
+            >
               <Outlet />
-            </div>
-          ) : (
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={location.pathname}
-                className="route"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.22, ease: EASE }}
-              >
-                <Outlet />
-              </motion.div>
-            </AnimatePresence>
-          )}
+            </motion.div>
+          </AnimatePresence>
         </main>
-        <CommandPalette />
-        <Toaster
-          position="bottom-right"
-          toastOptions={{ unstyled: true, classNames: { toast: "toast paper-slip", error: "toast-error" } }}
-        />
-        <CoachMarks />
+        <ShortcutHelp />
+        <Toaster position="bottom-right" toastOptions={{ unstyled: true, classNames: { toast: "toast", error: "toast-error" } }} />
         <InkDefs />
-        <footer className="footer">
-          Research prototype — not for clinical use. Consult a registered veterinarian.
-        </footer>
+        <footer className="footer">Research prototype — not for clinical use. Consult a registered veterinarian.</footer>
       </div>
     </div>
   );

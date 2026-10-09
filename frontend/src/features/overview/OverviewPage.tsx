@@ -31,9 +31,6 @@ export function OverviewPage() {
           <PageTitle plate="08">VetAgentBench-IN</PageTitle>
           <p className="dp-sub">A field-station notebook on whether agent machinery makes veterinary advice safer.</p>
         </div>
-        <button type="button" className="btn no-print" onClick={() => window.print()}>
-          Print
-        </button>
       </header>
 
       <div className="grid-12 ov-spread">

@@ -1,4 +1,4 @@
-/* Acceptance checks from CLAUDE.md M8, plus shortcuts, command palette and responsive layouts. */
+/* Acceptance checks from CLAUDE.md M8, plus shortcuts and responsive layouts. */
 import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
@@ -68,24 +68,6 @@ test("Shortcuts: G reveals gold, J/K move, 1–5 jump, ? opens the shortcut shee
   await expect(page.getByTestId("shortcuts-help")).toHaveCount(0);
 });
 
-test("Ctrl+K palette navigates to pages and cases", async ({ page }) => {
-  const errors = trackErrors(page);
-  await page.goto("/");
-  await page.keyboard.press("Control+k");
-  const dialog = page.getByRole("dialog", { name: "Command palette" });
-  await expect(dialog).toBeVisible();
-  await page.keyboard.type("drug table");
-  await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/drugs$/);
-  await expect(dialog).toHaveCount(0);
-
-  await page.getByTestId("open-palette").click();
-  await page.keyboard.type("CAN-013");
-  await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/case=CAN-013/);
-  await expect(page.getByTestId("case-species")).toHaveText("dog");
-  expect(errors).toEqual([]);
-});
 
 test("1024–1439px: case list becomes a drawer", async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 800 });

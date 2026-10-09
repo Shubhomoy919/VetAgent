@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { formatAge, formatSex, speciesCode, type Case } from "../api/cases";
 import { useCaseResults } from "../api/runs";
-import { latinName, roman } from "../lib/species";
+import { latinName } from "../lib/species";
 import { TypePill, SpecimenTag, UnverifiedTag } from "./Tags";
 import "./SpecimenPlate.css";
 
@@ -14,16 +14,15 @@ function hhmm(iso: string | undefined): string | null {
 /** Specimen plate: the case header as a natural-history plate — double-rule frame, plate number in
  *  Roman numerals, species code in large serif, Latin binomial in italic, signalment strip,
  *  and a lab-notebook line ("examined 3 times · last run 14:02"). */
-export function SpecimenPlate({ c, plateNo, actions }: { c: Case; plateNo: number; actions?: ReactNode }) {
+export function SpecimenPlate({ c, actions }: { c: Case; actions?: ReactNode }) {
   const s = c.signalment;
   const code = speciesCode(c.case_id);
   const { data: past } = useCaseResults(c.case_id);
   const runs = new Set((past ?? []).map((r) => r.run_id)).size;
   const last = hhmm(past?.[0]?.created_at);
   return (
-    <header className="plate plate-frame" data-species={code} data-testid="specimen-plate">
+    <header className="plate" data-species={code} data-testid="specimen-plate">
       <div className="plate-top">
-        <span className="plate-no mono">Plate {roman(plateNo)}</span>
         <SpecimenTag caseId={c.case_id} />
         <TypePill type={c.question_type} />
         {!c.vet_verified && <UnverifiedTag />}

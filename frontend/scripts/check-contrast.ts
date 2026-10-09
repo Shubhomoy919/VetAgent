@@ -1,4 +1,4 @@
-// WCAG contrast check for every text/background pair the UI uses, in all three themes.
+// WCAG contrast check for every text/background pair the UI uses (Riso Black, the only theme).
 // Normal text >= 4.5:1, large text and graphical marks >= 3:1. Exit 1 on any failure.
 // Run: npm run check:contrast   (Node runs this TypeScript file directly)
 import fs from "node:fs";
@@ -81,11 +81,7 @@ const PAIRS: Pair[] = [
   ...GROUNDS.map((bg) => ({ fg: "focus-ring", bg, need: 3 as const, use: "focus ring" })),
 ];
 
-const THEMES: [string, string][] = [
-  ["riso-black", ':root,\n:root[data-theme="riso-black"]'],
-  ["cyanotype", ':root[data-theme="cyanotype"]'],
-  ["kalamkari", ':root[data-theme="kalamkari"]'],
-];
+const THEMES: [string, string][] = [["riso-black", ":root"]];
 
 let failures = 0;
 let checked = 0;
@@ -104,5 +100,5 @@ for (const [theme, sel] of THEMES) {
   }
   console.log(`  ${PAIRS.length} pairs checked · lowest text ratio ${worstText.toFixed(2)}:1`);
 }
-console.log(failures ? `\n${failures} contrast failure(s) of ${checked}` : `\nAll ${checked} pairs pass (4.5:1 text, 3:1 large text and marks) in all three themes.`);
+console.log(failures ? `\n${failures} contrast failure(s) of ${checked}` : `\nAll ${checked} pairs pass (4.5:1 text, 3:1 large text and marks) in Riso Black.`);
 process.exit(failures ? 1 : 0);

@@ -594,27 +594,3 @@ a.btn {
   cursor: pointer;
 }
 
-/* Crosshair cursor readout */
-.dw-cross {
-  stroke: var(--ink-pink);
-  stroke-width: 1;
-  stroke-dasharray: 2 2;
-  pointer-events: none;
-}
-
-.dw-cross-read {
-  position: absolute;
-  top: -1px;
-  z-index: 2;
-  padding: 0 4px;
-  translate: -50% 0;
-  font-size: 10px;
-  color: var(--text-on-ink);
-  background: var(--accent-text);
-  border-radius: 2px;
-  pointer-events: none;
-}
-
-.dw-track {
-  cursor: crosshair;
-}

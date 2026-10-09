@@ -37,18 +37,27 @@
 
 .wordmark {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
   height: var(--topbar-h);
   padding: 0 var(--s4);
   border-bottom: var(--hairline);
   white-space: nowrap;
 }
 
+/* Logo: three overlapping pink dots + the wordmark, all pink. */
+.inkmark {
+  flex-shrink: 0;
+  width: 30px;
+  height: 18px;
+  fill: var(--ink-pink);
+}
+
 .wordmark-name {
   font-size: 23px;
   line-height: var(--topbar-h);
   letter-spacing: -0.01em;
+  color: var(--accent-text);
 }
 
 .wordmark-tag {
@@ -56,9 +65,9 @@
   font-weight: 500;
   letter-spacing: 0.08em;
   padding: 1px 4px;
-  border: 1px solid var(--text);
+  color: var(--accent-text);
+  border: 1px solid var(--ink-pink);
   border-radius: var(--radius-sm);
-  transform: translateY(-3px);
 }
 
 .shell[data-collapsed="true"] .wordmark {
@@ -138,13 +147,6 @@
   flex-direction: column;
 }
 
-.nav-label .ink-underline {
-  position: absolute;
-  left: -2px;
-  bottom: -5px;
-  width: calc(100% + 4px);
-}
-
 .nav-icon,
 .nav-label {
   position: relative;
@@ -214,12 +216,6 @@
   gap: var(--s5);
 }
 
-.topbar-field {
-  display: flex;
-  align-items: baseline;
-  gap: var(--s2);
-}
-
 .topbar-value {
   font-size: var(--text-sm);
 }
@@ -241,7 +237,7 @@
 }
 
 .pill[data-tone="live"] {
-  --pill-color: var(--safe-text);
+  --pill-color: var(--accent-text);
 }
 
 .pill[data-tone="demo"] {
@@ -316,9 +312,7 @@
 }
 
 @media (max-width: 1023px) {
-  .topbar-field:not(:has([data-testid="model-id"])) {
-    display: none;
-  }
+
 }
 
 /* ---------- 9. Instrument readouts: recessed mono panels in the top bar ---------- */
@@ -352,8 +346,3 @@
   font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 1279px) {
-  .readout-wide {
-    display: none;
-  }
-}

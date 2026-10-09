@@ -9,7 +9,6 @@ import "./runs.css";
 import { PageTitle } from "../../components/PageHeader";
 import { SectionTitle } from "../../components/Ink";
 import { EmptySpecimen } from "../../components/EmptySpecimen";
-import { LedgerToggle } from "../../components/LedgerToggle";
 
 const fmtDate = (s: string) => s.replace("T", " ").slice(0, 16);
 const STATUS: Record<string, string> = { running: "running", done: "done", done_with_errors: "done · errors", cancelled: "cancelled", failed: "failed", quota_exhausted: "quota stop" };
@@ -140,9 +139,6 @@ export function RunsPage() {
           <p className="dp-sub">
             {runs ? `${runs.length} runs stored in data/runs.db` : "Loading"} · tick two runs to compare them
           </p>
-        </div>
-        <div className="dp-actions">
-          <LedgerToggle />
         </div>
       </header>
 

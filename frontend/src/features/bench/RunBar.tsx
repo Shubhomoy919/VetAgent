@@ -47,7 +47,7 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
   const fraction = run && run.n_total ? run.n_done / run.n_total : 0;
 
   return (
-    <div className="runbar" data-coach="runbar" data-running={running} role="toolbar" aria-label="Run controls">
+    <div className="runbar" data-running={running} role="toolbar" aria-label="Run controls">
       <div className="runbar-actions">
         {onOpenCases && (
           <button type="button" className="btn" onClick={onOpenCases} data-testid="open-cases">
@@ -67,10 +67,13 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
           <input type="checkbox" checked={force} onChange={(e) => setForce(e.target.checked)} />
           Force re-run
         </label>
-        <label className="toggle" title="Hide the case behind an owner simulator (C0 and C3 only)">
-          <input type="checkbox" checked={interview} onChange={(e) => setInterview(e.target.checked)} disabled={busy} />
-          Owner interview
-        </label>
+        <details className="runbar-advanced">
+          <summary>Advanced</summary>
+          <label className="toggle" title="Hide the case behind an owner simulator (C0 and C3 only)">
+            <input type="checkbox" checked={interview} onChange={(e) => setInterview(e.target.checked)} disabled={busy} />
+            Owner interview (C0 and C3 only)
+          </label>
+        </details>
       </div>
       <div className="runbar-progress" aria-live="polite">
         {run && (
@@ -92,7 +95,6 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
                 <span key={i} className="meter-seg" data-state={st} />
               ))}
             </span>
-            <span className="meter-readout mono count" aria-hidden="true" style={{ "--to": Math.round(fraction * 100), "--suffix": '"%"' } as CSSProperties} />
           </>
         )}
         <button type="button" className="btn btn-danger" disabled={!running} onClick={() => void cancel()}>

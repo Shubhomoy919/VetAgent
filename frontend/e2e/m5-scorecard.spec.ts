@@ -13,7 +13,6 @@ test("Scorecard renders real numbers, charts, tables and exports CSV", async ({ 
   const sc = await (await request.get("/api/scorecard")).json();
   expect(sc.n_cases).toBeGreaterThanOrEqual(25);
 
-  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
   await page.getByRole("link", { name: "Scorecard" }).click();
   await expect(page).toHaveURL(/\/scorecard/);
@@ -37,10 +36,10 @@ test("Scorecard renders real numbers, charts, tables and exports CSV", async ({ 
 
   await page.mouse.move(0, 0);
   await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-1440-cyanotype.png"), fullPage: false });
+  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-1440.png"), fullPage: false });
   await page.locator(".scorecard").evaluate((el) => el.scrollTo(0, el.scrollHeight));
   await page.waitForTimeout(200);
-  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-tables-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-tables-1440.png") });
 
   // CSV export through the UI.
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export-csv").click()]);
@@ -56,10 +55,3 @@ test("Scorecard renders real numbers, charts, tables and exports CSV", async ({ 
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
-test("Scorecard in Cyanotype", async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem("vab.theme", "cyanotype"));
-  await page.goto("/scorecard");
-  await expect(page.getByTestId("chart-dx_top1")).toBeVisible();
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(SHOTS, "m5-scorecard-1440-cyanotype.png") });
-});

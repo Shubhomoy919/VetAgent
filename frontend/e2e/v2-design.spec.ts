@@ -1,27 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-// Specimen v2 features: coach marks, case dossier, compare diffs, instrument meter, toggles, contrast tokens.
+// Case dossier, compare diffs, instrument meter, switchboards, semantic tokens.
 
-test.describe("coach marks", () => {
-  test.use({ storageState: { cookies: [], origins: [] } });
-
-  test("show on first visit, step through, and stay dismissed", async ({ page }) => {
-    await page.goto("/");
-    const coach = page.getByTestId("coach");
-    await expect(coach).toBeVisible();
-    await expect(coach).toContainText("01 / 04");
-    await expect(page.locator('[data-coach="cases"]')).toHaveCSS("outline-style", "dashed");
-    await coach.getByRole("button", { name: "Next" }).click();
-    await expect(coach).toContainText("02 / 04");
-    await expect(page.locator('[data-coach="runbar"]')).toHaveCSS("outline-style", "dashed");
-    await expect(page.locator('[data-coach="cases"]')).not.toHaveCSS("outline-style", "dashed");
-    await coach.getByRole("button", { name: "Skip" }).click();
-    await expect(coach).toHaveCount(0);
-    await page.reload();
-    await expect(page.getByTestId("bench")).toBeVisible();
-    await expect(page.getByTestId("coach")).toHaveCount(0);
-  });
-});
 
 test("case dossier shows the full case, gold answer and past results", async ({ page, request }) => {
   // make sure the case has at least one stored result
@@ -81,13 +61,12 @@ test("ablation ladder renders as toggles with the right on-states", async ({ pag
   await expect(c4).toHaveCount(4);
 });
 
-test("tokens: pigments, text twins and focus ring are defined in both themes", async ({ page }) => {
+test("tokens: black ground, pink accent and the semantic set are defined", async ({ page }) => {
   await page.goto("/overview");
-  for (const theme of ["riso-black", "cyanotype", "kalamkari"]) {
-    await page.evaluate((t) => (document.documentElement.dataset.theme = t), theme);
+  {
     const v = await page.evaluate(() => {
       const s = getComputedStyle(document.documentElement);
-      return ["--ink-pink", "--running", "--ink-mint", "--unsafe-text", "--c4-text", "--focus-ring"].map((k) => s.getPropertyValue(k).trim());
+      return ["--bg", "--ink-pink", "--accent-text", "--focus-ring", "--safe", "--unsafe-text", "--c0", "--c4-text"].map((k) => s.getPropertyValue(k).trim());
     });
     for (const x of v) expect(x).not.toBe("");
   }

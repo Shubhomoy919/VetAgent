@@ -38,7 +38,6 @@ test("Runs: history and compare two runs", async ({ page, request }) => {
   const full = runs.filter((r) => r.case_ids.length >= 25 && !r.interview && r.n_done > 0).slice(0, 2);
   expect(full.length).toBe(2);
 
-  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
   await page.getByRole("link", { name: "Runs" }).click();
   await expect(page.getByTestId("runs-table").locator("tbody tr")).toHaveCount(runs.length);
@@ -47,15 +46,14 @@ test("Runs: history and compare two runs", async ({ page, request }) => {
   await expect(cmp).toContainText("Changed verdicts");
   await expect(cmp.locator("tbody tr").first()).toBeVisible();
   await page.waitForTimeout(400);
-  await page.screenshot({ path: path.join(SHOTS, "m7-runs-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-runs-1440.png") });
   await page.locator(".datapage").evaluate((el) => el.scrollTo(0, el.scrollHeight));
-  await page.screenshot({ path: path.join(SHOTS, "m7-runs-compare-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-runs-compare-1440.png") });
   expect(errors).toEqual([]);
 });
 
 test("Review: rate with 1/2/N, agreement and kappa update", async ({ page }) => {
   const errors = trackErrors(page);
-  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/review");
   await page.getByLabel("Reviewer").fill(REVIEWER);
   await expect(page.locator(".rv-progress")).toContainText(new RegExp(`0/\\d+ rated by ${REVIEWER}`));
@@ -82,36 +80,33 @@ test("Review: rate with 1/2/N, agreement and kappa update", async ({ page }) => 
   await page.getByRole("button", { name: "Show gold" }).click();
   await expect(page.getByTestId("review-gold")).toBeVisible();
   await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(SHOTS, "m7-review-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-review-1440.png") });
   expect(errors).toEqual([]);
 });
 
 test("Study Design: ladder diagram, question types and metrics", async ({ page }) => {
   const errors = trackErrors(page);
-  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/study");
   await expect(page.getByRole("img", { name: "Ablation ladder" })).toBeVisible();
   await expect(page.locator(".lf-track.on")).toHaveCount(10); // 0+1+2+3+4 components
   await expect(page.getByTestId("study-metrics").locator("tbody tr")).toHaveCount(10);
   await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(SHOTS, "m7-study-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-study-1440.png") });
   expect(errors).toEqual([]);
 });
 
 test("Overview: status strip and latest results", async ({ page }) => {
   const errors = trackErrors(page);
-  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/overview");
   await expect(page.locator(".ov-strip")).toContainText("29");
   await expect(page.getByTestId("chart-dangerous")).toBeVisible();
   await page.waitForTimeout(500);
-  await page.screenshot({ path: path.join(SHOTS, "m7-overview-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-overview-1440.png") });
   expect(errors).toEqual([]);
 });
 
-test("Settings: validation, save, reset, test connection, density", async ({ page, request }) => {
+test("Settings: validation, save, reset, test connection, PDF status", async ({ page, request }) => {
   const errors = trackErrors(page);
-  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/settings");
   await expect(page.getByTestId("key-status")).toBeVisible();
   const body = await (await request.get("/api/settings")).text();
@@ -131,21 +126,18 @@ test("Settings: validation, save, reset, test connection, density", async ({ pag
   await page.getByTestId("test-connection").click();
   await expect(page.getByTestId("test-result")).toContainText("OK");
   await expect(page.getByTestId("usage")).toContainText("Total");
-  await page.screenshot({ path: path.join(SHOTS, "m7-settings-1440-cyanotype.png") });
+  await page.screenshot({ path: path.join(SHOTS, "m7-settings-1440.png") });
 
   page.once("dialog", (d) => void d.accept());
   await page.getByRole("button", { name: "Reset to .env" }).click();
   await expect.poll(async () => (await (await request.get("/api/settings")).json()).overridden.length).toBe(0);
 
-  await page.getByLabel("Density", { exact: true }).selectOption("compact");
-  await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
-  await page.getByLabel("Density", { exact: true }).selectOption("comfortable");
-  const settingsSwatches = page.locator(".set-theme").getByTestId("theme-swatches");
-  await settingsSwatches.getByRole("radio", { name: "Kalamkari" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "kalamkari");
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(SHOTS, "m7-settings-1440-kalamkari.png") });
-  await settingsSwatches.getByRole("radio", { name: "Cyanotype" }).click();
+  // Reduced to what the study needs: no theme, density, palette, demo delay or price inputs.
+  await expect(page.getByTestId("pdf-status")).toBeVisible();
+  await expect(page.getByTestId("theme-swatches")).toHaveCount(0);
+  await expect(page.getByTestId("palette")).toHaveCount(0);
+  await expect(page.getByLabel("Demo delay (ms)")).toHaveCount(0);
+  await expect(page.getByLabel("Input price")).toHaveCount(0);
   // The only console error allowed is the deliberate 422 from the invalid "99" save above.
   expect(errors.filter((e) => !e.includes("status of 422"))).toEqual([]);
 });

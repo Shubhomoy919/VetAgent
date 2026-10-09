@@ -19,7 +19,6 @@ import { useSort } from "../../components/useSort";
 import "../data/data.css";
 import { CaseEditor } from "./CaseEditor";
 import { PageTitle } from "../../components/PageHeader";
-import { LedgerToggle } from "../../components/LedgerToggle";
 
 const SORT = {
   id: (c: Case) => c.case_id,
@@ -89,7 +88,6 @@ export function CasesPage() {
           </p>
         </div>
         <div className="dp-actions">
-          <LedgerToggle />
           <button type="button" className="btn btn-primary" onClick={() => setEditing("new")}>
             New case
           </button>

@@ -6,33 +6,6 @@
     <meta name="description" content="VetAgentBench-IN — research prototype, not for clinical use." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>VetAgentBench-IN</title>
-    <script>
-      // Apply the saved theme (default Riso Black) before first paint to avoid a flash.
-      (function () {
-        var theme;
-        try {
-          theme = localStorage.getItem("vab.theme");
-        } catch (e) {
-          theme = null;
-        }
-        if (theme !== "riso-black" && theme !== "cyanotype" && theme !== "kalamkari") theme = "riso-black";
-        document.documentElement.dataset.theme = theme;
-        var density = null;
-        try {
-          density = localStorage.getItem("vab.density");
-        } catch (e) {
-          density = null;
-        }
-        document.documentElement.dataset.density = density === "compact" ? "compact" : "comfortable";
-        var ledger = null;
-        try {
-          ledger = localStorage.getItem("vab.ledger");
-        } catch (e) {
-          ledger = null;
-        }
-        document.documentElement.dataset.ledger = ledger === "dense" ? "dense" : "comfortable";
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>

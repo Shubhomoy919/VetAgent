@@ -1,32 +1,19 @@
 /* Specimen v2 technical patterns.
-   This is the ONLY file allowed to use gradient functions, and only to draw patterns:
-   halftone dots, graph-paper lines, the punched hole of a specimen tag, perforated slips.
+   This is the ONLY file allowed to use gradient functions,
+and only to draw patterns:
+   halftone dots,
+graph-paper lines,
+the punched hole of a specimen tag,
+perforated slips.
    They are never colour washes. The banned-style check (npm run check:style) skips this file only. */
 
 /* ---------- Halftone shading ----------
-   A dot screen in --halftone-ink, masked by a fade so the dots thin out like printed shading.
-   Usage: add .halftone to a positioned element; tune with --ht-size and --ht-angle. */
-.halftone {
+   A dot screen in --halftone-ink {
   position: relative;
   isolation: isolate;
 }
 
-.halftone::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image: radial-gradient(circle at center, var(--ht-color, var(--halftone-ink)) 0 32%, transparent 34%);
-  background-size: var(--ht-size, 6px) var(--ht-size, 6px);
-  -webkit-mask-image: linear-gradient(var(--ht-angle, 160deg), #000 0%, transparent var(--ht-reach, 75%));
-  mask-image: linear-gradient(var(--ht-angle, 160deg), #000 0%, transparent var(--ht-reach, 75%));
-  opacity: var(--ht-opacity, 1);
-  transition: opacity var(--dur-slow) var(--ease);
-}
-
-/* Even, unfaded dot screen (chart plot areas). */
-.halftone[data-ht="flat"]::after {
+/* Even {
   -webkit-mask-image: none;
   mask-image: none;
   --ht-color: color-mix(in srgb, var(--text) 9%, transparent);
@@ -39,17 +26,3 @@
   mask-image: radial-gradient(circle at var(--hole-x, 13px) 50%, transparent 0 var(--hole-r, 2.5px), #000 calc(var(--hole-r, 2.5px) + 0.5px));
 }
 
-/* ---------- Paper slip: perforated bottom edge (toasts) ---------- */
-.paper-slip {
-  -webkit-mask-image:
-    linear-gradient(#000, #000) top / 100% calc(100% - 4px) no-repeat,
-    radial-gradient(circle at 4px 0, #000 3px, transparent 3.5px) bottom left / 8px 4px repeat-x;
-  mask-image:
-    linear-gradient(#000, #000) top / 100% calc(100% - 4px) no-repeat,
-    radial-gradient(circle at 4px 0, #000 3px, transparent 3.5px) bottom left / 8px 4px repeat-x;
-}
-
-/* ---------- Meter segments: engraved tick marks behind the VU meter ---------- */
-.meter-scale {
-  background-image: repeating-linear-gradient(to right, var(--rule-strong) 0 1px, transparent 1px 10%);
-}

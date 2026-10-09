@@ -8,7 +8,6 @@ import { useResultTrace, type ResultSummary } from "../../api/runs";
 import type { LiveEntry } from "../../app/runState";
 import { pickResult, type DiffField } from "./answerDiff";
 import type { Condition } from "../../app/conditions";
-import { Switchboard } from "../../components/Switchboard";
 import { Stamp } from "../../components/Stamp";
 import { TraceLog } from "./TraceLog";
 
@@ -88,7 +87,6 @@ export function ConditionCard({ condition, available, live, latest, onCite, diff
         <span className="led" data-state={status === "idle" ? undefined : status} aria-hidden="true" />
         <span className="ccard-id mono">{condition.id}</span>
         <span className="ccard-name">{condition.name}</span>
-        <Switchboard condition={condition} />
       </header>
       <VitalTrace
         steps={steps}
