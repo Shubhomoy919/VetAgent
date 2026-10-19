@@ -66,6 +66,18 @@ First public release: a read-only research site with a frozen benchmark and a fr
   0.050 → 0.004).
 - Removed the stale `scripts/peek.mjs` dev helper.
 
+### Fixes
+- Settings can be saved when the SVTG PDF is absent. Only a change of the PDF path is checked against the file.
+
+### Project
+- README rewritten: motivation, research questions, metric definitions, results generated from the snapshot with
+  Wilson intervals, architecture diagram, setup for Windows, macOS and Linux, reproducibility and limitations.
+- `CONTRIBUTING.md`, `SECURITY.md` (private vulnerability reporting), issue and pull-request templates.
+- GitHub Actions CI on every push and pull request: benchmark and snapshot checks, pytest, tsc, ESLint, style,
+  contrast and motion checks, production build.
+- A `commit-msg` hook (`scripts/install-hooks.sh` / `.ps1`) that removes tool-attribution lines from commit
+  messages.
+
 ### Tests
 - `backend/tests/test_security.py` (41 tests): read-only mode, access code, lockout, sessions, rate limit,
   budget, case cap, demo exclusion, headers, body limits, SVTG gating, redaction, run metadata, snapshot

@@ -68,7 +68,8 @@ def update(values: dict[str, Any] = Body(...)) -> Any:
             status_code=422,
             content={"detail": "Settings failed validation", "errors": [{"loc": list(x["loc"]), "msg": x["msg"]} for x in e.errors()]},
         )
-    if not candidate.pdf_path.is_file():
+    # Check the PDF only when its path is being changed, so other settings can still be saved without it.
+    if "svtg_pdf_path" in values and not candidate.pdf_path.is_file():
         return JSONResponse(status_code=422, content={"detail": "PDF not found", "errors": [{"loc": ["svtg_pdf_path"], "msg": f"No file at {candidate.svtg_pdf_path}"}]})
     clean = {k: getattr(candidate, k) for k in merged}
     OVERRIDES_PATH.parent.mkdir(parents=True, exist_ok=True)

@@ -194,6 +194,16 @@ def test_settings_reject_keys_and_bad_values(env):
     assert not overrides.exists()
 
 
+def test_settings_save_without_pdf(env, monkeypatch):
+    # A missing PDF blocks only a change of the PDF path, not other settings.
+    c, _, overrides = env
+    monkeypatch.setenv("SVTG_PDF_PATH", "data/missing.pdf")
+    config.reset_settings_cache()
+    r = c.put("/api/settings", json={"temperature": 0.5})
+    assert r.status_code == 200 and r.json()["overridden"] == ["temperature"]
+    assert overrides.exists()
+
+
 def test_settings_override_roundtrip(env):
     c, _, overrides = env
     r = c.put("/api/settings", json={"max_steps": 4, "llm_provider": "gemini", "price_input_per_mtok": "", "demo_delay_ms": 100})
