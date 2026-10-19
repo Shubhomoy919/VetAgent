@@ -1,5 +1,6 @@
-// Write .br and .gz next to every compressible file in dist/, so the server can send them without
-// compressing on each request (backend/app/main.py prefers .br, then .gz, by Accept-Encoding).
+// Write .br and .gz next to every compressible file in dist/, so the local production server can send them
+// without compressing on each request (backend/app/main.py prefers .br, then .gz, by Accept-Encoding).
+// Skipped on Vercel: its CDN compresses static files itself.
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { brotliCompressSync, constants, gzipSync } from "node:zlib";
@@ -25,6 +26,11 @@ function walk(dir) {
       after += br.length;
     }
   }
+}
+
+if (process.env.VERCEL) {
+  console.log("precompress: skipped on Vercel (the CDN compresses static files)");
+  process.exit(0);
 }
 
 walk(ROOT);

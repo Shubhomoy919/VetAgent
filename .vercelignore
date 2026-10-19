@@ -1,0 +1,20 @@
+# Never uploaded by `vercel deploy` / `vercel build` from this machine (Git deployments use the repository,
+# where these are not committed anyway).
+.env
+.env.*
+!.env.example
+!.env.vercel.example
+data/*.pdf
+data/*.db
+data/*.db-*
+data/cache/
+data/exports/
+data/settings.json
+.venv/
+**/__pycache__/
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/lighthouse/
+node_modules/

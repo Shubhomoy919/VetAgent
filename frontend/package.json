@@ -14,7 +14,8 @@
     "check:style": "node scripts/check-style.mjs",
     "check:contrast": "node scripts/check-contrast.ts",
     "check:motion": "node scripts/check-motion.mjs",
-    "check": "tsc && eslint . --max-warnings 0 && node scripts/check-style.mjs && node scripts/check-contrast.ts && node scripts/check-motion.mjs"
+    "check": "tsc && eslint . --max-warnings 0 && node scripts/check-style.mjs && node scripts/check-contrast.ts && node scripts/check-motion.mjs",
+    "check:secrets": "node scripts/check-secrets.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",

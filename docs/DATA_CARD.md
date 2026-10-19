@@ -34,7 +34,7 @@ and never appear in production.
 
 - File: `data/StandardVeterinaryTreatment.pdf`: *Standard Veterinary Treatment Guidelines for Livestock and
   Poultry*, Department of Animal Husbandry and Dairying (DAHD), Government of India, with FAO; dated October 2024.
-  406 PDF pages. **Not redistributed** (not in the repository or the Docker image). Download it from DAHD:
+  406 PDF pages. **Not redistributed** (not in the repository or the deployment). Download it from DAHD:
   <https://dahd.gov.in/sites/default/files/2024-10/StandardVeterinaryTreatment.pdf>. The deployed site serves only
   the passages that stored answers or gold answers cite, with page numbers and a link to DAHD's copy.
 - **Scope: livestock and poultry only** (ruminants, poultry, pig, camel, equine, mithun, yak). It has **no dog or
@@ -43,6 +43,11 @@ and never appear in production.
 - Ingestion (`backend/app/retrieval/ingest.py`): front matter (PDF pp.1–18) skipped; running header and page
   numbers stripped; text split at section headings (`2.17 …`, `ANNEXURE-7 …`) and packed into ~800-character
   chunks at sentence boundaries. Chunks never cross a page, so each cites exactly one page. ~2,000 chunks.
+- Storage: the seed script (`python -m app.scripts.seed`) runs the ingestion on a local copy of the PDF and stores
+  the page-numbered passages in the database (table `svtg_chunks`), together with the PDF's SHA-256 and page
+  count. The deployed function loads the passages and builds the search index in memory; neither the PDF nor
+  the full passage set is in git or in the deployment bundle. `/api/health` reports `index_loaded`, `chunks` and
+  `source_pages`.
 - Search (`backend/app/retrieval/search.py`): BM25 (rank_bm25) plus a keyword boost — query words that are drug
   names (from the drug table) or disease words (from section titles) score extra when they appear in the chunk's
   section title or text; dose questions favour the drug-dose tables (Annexure-7).
@@ -117,9 +122,12 @@ Used only by the C4 deterministic rules.
 
 ## Editing
 
-The Cases and Drug table pages (behind the access code on a deployed site) edit `data/cases.json` and `data/drug_table.csv` directly. Every save, import
-or delete validates the whole file with the same Pydantic models the tests use, rejects duplicates, and writes
-atomically (temp file + replace); an invalid edit changes nothing. Imports are all-or-nothing, limited to 1,000 records, and every text field has a size limit. Marking a drug row
+`data/cases.json` and `data/drug_table.csv` are the seed files: `python -m app.scripts.seed` validates them and
+loads them into the database, which is what the app reads and what the benchmark hash is computed from. The
+Cases and Drug table pages (behind the access code on a deployed site) edit the database, not the files. Every
+save, import or delete validates the whole set with the same Pydantic models the tests use, rejects duplicates,
+and replaces the set in one transaction; an invalid edit changes nothing. Export the edited data from the pages
+to update the seed files. Imports are all-or-nothing, limited to 1,000 records, and every text field has a size limit. Marking a drug row
 verified requires both a verifier name and a date. Editing a case changes its cache key, so its next run is fresh.
 
 ## Before any real use

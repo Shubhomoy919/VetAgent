@@ -26,7 +26,7 @@ def test_seed_is_safe_to_run_twice(_isolated, tmp_path):
     assert seed.seed_data(store, reset=False) == "loaded 29 cases and 31 drug rows"
     assert seed.seed_data(store, reset=False).startswith("already loaded")
     first = seed.seed_snapshot(store, SNAPSHOT)
-    assert first.startswith("loaded run 20261019-090352-249aa9")
+    assert first == "loaded run 20261019-090352-249aa9; 145 answer(s) added to the cache"
     assert seed.seed_snapshot(store, SNAPSHOT) == "run already present; 0 answer(s) added to the cache"
     assert store.count_runs() == 1 and len(store.results("20261019-090352-249aa9")) == 145
     missing = seed.seed_svtg(store, tmp_path / "missing.pdf")

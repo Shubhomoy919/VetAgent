@@ -14,8 +14,19 @@ concurrency:
 
 jobs:
   backend:
-    name: Backend (pytest)
+    name: Backend (pytest on SQLite and Postgres, migrations, seed)
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: vab_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      LLM_PROVIDER: demo
     steps:
       - uses: actions/checkout@v5
 
@@ -23,44 +34,49 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: backend/requirements-dev.txt
+          cache-dependency-path: |
+            requirements.txt
+            backend/requirements-dev.txt
 
       - name: Install dependencies
         run: pip install -r backend/requirements-dev.txt
 
-      # The SVTG PDF is not in the repository. Tests that need it are skipped when the download fails.
-      - name: Restore SVTG PDF
-        id: svtg
-        uses: actions/cache@v4
-        with:
-          path: data/StandardVeterinaryTreatment.pdf
-          key: svtg-2024-10
+      - name: Vercel entry point imports cleanly
+        run: python -c "import runpy; app = runpy.run_path('api/index.py')['app']; print(type(app).__name__, 'OK')"
 
-      - name: Download SVTG PDF
-        if: steps.svtg.outputs.cache-hit != 'true'
-        continue-on-error: true
-        run: >
-          curl --fail --location --retry 3 --max-time 120
-          -o data/StandardVeterinaryTreatment.pdf
-          https://dahd.gov.in/sites/default/files/2024-10/StandardVeterinaryTreatment.pdf
-          || rm -f data/StandardVeterinaryTreatment.pdf
-
-      - name: Benchmark data matches v1.0.0
+      - name: Seed data matches benchmark v1.0.0
         working-directory: backend
-        run: python -m app.scripts.benchmark --check
+        run: python -m app.scripts.benchmark --files --check
 
       - name: Frozen snapshot reproduces
         working-directory: backend
         run: python -m app.scripts.snapshot verify
 
-      - name: pytest
+      - name: pytest (SQLite)
         working-directory: backend
-        env:
-          LLM_PROVIDER: demo
         run: python -m pytest -q
 
+      - name: pytest (Postgres)
+        working-directory: backend
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/vab_test
+        run: python -m pytest -q
+
+      - name: Migrations and seed on a fresh Postgres database (twice)
+        working-directory: backend
+        env:
+          PGPASSWORD: postgres
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/vab_seed
+          DATABASE_URL_UNPOOLED: postgresql://postgres:postgres@localhost:5432/vab_seed
+        run: |
+          psql -h localhost -U postgres -c "CREATE DATABASE vab_seed"
+          alembic upgrade head
+          python -m app.scripts.seed --skip-svtg
+          python -m app.scripts.seed --skip-svtg
+          python -m app.scripts.benchmark --check
+
   frontend:
-    name: Frontend (tsc, lint, checks, build)
+    name: Frontend (tsc, lint, checks, build, secrets scan)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -91,3 +107,6 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: No secrets in the built frontend
+        run: npm run check:secrets

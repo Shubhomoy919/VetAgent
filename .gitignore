@@ -2,7 +2,7 @@
 .env
 .env.*
 !.env.example
-!.env.production.example
+!.env.vercel.example
 
 # Python
 .venv/
@@ -33,6 +33,5 @@ data/exports/
 data/settings.json
 
 # Production build and local server artefacts
-data/backups/
 frontend/lighthouse/
 data/*.pdf

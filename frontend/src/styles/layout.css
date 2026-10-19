@@ -1,4 +1,4 @@
-/* Asymmetric 12-column page grid and marginalia. Pages compose spreads with uneven spans
+/* Asymmetric 12-column page grid and marginalia. Pages build spreads with uneven spans
    (8 + 4, 7 + 5, 9 + 3) — never rows of identical cards. */
 .grid-12 {
   display: grid;

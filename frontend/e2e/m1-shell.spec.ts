@@ -7,7 +7,7 @@ test("health endpoint through the Vite proxy is this project's backend", async (
   const res = await request.get("/api/health");
   expect(res.ok()).toBe(true);
   const body = await res.json();
-  for (const key of ["configured_provider", "mode", "pdf_loaded", "pages", "chunks", "key_present", "model", "counts"]) {
+  for (const key of ["configured_provider", "mode", "index_loaded", "chunks", "source_pages", "key_present", "model", "counts"]) {
     expect(body).toHaveProperty(key);
   }
   expect(typeof body.key_present).toBe("boolean");

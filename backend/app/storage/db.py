@@ -423,7 +423,9 @@ class Store:
                   "case_id": meta["case_id"], "prompt_version": meta["prompt_version"],
                   "interview": bool(meta["interview"]), "payload": payload, "created_at": now()}
         with self._tx() as c:
-            return c.execute(self._insert(t.cache).values(**values).on_conflict_do_nothing(index_elements=["key"])).rowcount > 0
+            # RETURNING, not rowcount: psycopg reports -1 as the row count of an INSERT.
+            stmt = self._insert(t.cache).values(**values).on_conflict_do_nothing(index_elements=["key"]).returning(t.cache.c.key)
+            return c.execute(stmt).first() is not None
 
     # ---------- budget ----------
     def _add_tokens(self, c: Connection, day: str, tokens: int) -> None:

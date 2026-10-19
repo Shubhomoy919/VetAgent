@@ -1,4 +1,4 @@
-/* v1.0.0 release checks on the production build (see playwright.release.config.ts). */
+/* Release checks on the production build (see playwright.release.config.ts). */
 import { expect, request, test, type ConsoleMessage, type Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
@@ -21,13 +21,17 @@ test.describe.configure({ mode: "serial" });
 test("health reports a production build with the frozen benchmark", async ({ request }) => {
   const h = await (await request.get("/api/health")).json();
   expect(h.environment).toBe("production");
-  expect(h.version).toBe("1.0.0");
+  expect(h.version).toBe("1.1.0");
   expect(h.mode).toBe("public");
   expect(h.database.ok).toBe(true);
+  expect(h.index_loaded).toBe(true);
+  expect(h.chunks).toBeGreaterThan(1000);
+  expect(h.source_pages).toBeGreaterThan(300);
+  expect(h.warnings).toEqual([]);
   expect(h.benchmark.version).toBe("1.0.0");
   expect(h.benchmark.frozen).toBe(true);
   expect(h.counts.runs).toBeGreaterThan(0);
-  expect(JSON.stringify(h)).not.toMatch(/AIza|GEMINI_API_KEY|sk-/);
+  expect(JSON.stringify(h)).not.toMatch(/AIza|GEMINI_API_KEY|sk-|postgres(ql)?:\/\//);
 });
 
 test.describe("public, read-only", () => {
@@ -118,8 +122,15 @@ test("with the access code: run BOV-WD-007 through C0–C4", async ({ page }) =>
   await page.getByLabel("Access code", { exact: true }).fill(CODE);
   await page.getByRole("button", { name: "Unlock", exact: true }).click();
   await expect(page.getByTestId("lock")).toBeVisible();
+  // One request per condition: the browser asks the server for each step in turn.
+  const steps: string[] = [];
+  page.on("request", (r) => {
+    if (r.method() === "POST" && /\/api\/runs\/[^/]+\/step$/.test(new URL(r.url()).pathname))
+      steps.push((JSON.parse(r.postData() ?? "{}") as { condition: string }).condition);
+  });
   await page.getByRole("button", { name: /^Run case/ }).click();
   await expect(page.getByTestId("run-status")).toHaveText(/^Done(?: with errors)? 5\/5$/, { timeout: 200_000 });
+  expect(steps).toEqual(CONDS);
   // A provider failure must show its real error on the card; report it rather than time out.
   const failed = page.locator("[data-testid^='card-'][data-status='error']");
   if ((await failed.count()) > 0) {
