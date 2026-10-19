@@ -2,6 +2,17 @@
 
 All notable changes. Research prototype, not for clinical use. Consult a registered veterinarian.
 
+## [1.1.1] - 2026-10-20
+
+Deployment fix. The benchmark and results are unchanged (benchmark v1.0.0, content hash `b4b15a693070`).
+
+- Vercel's import screen detects two applications (the Vite app in `frontend/` and FastAPI) and only deploys them
+  as declared services. `vercel.json` now defines a `web` service (`frontend/`, Vite, `index.html` for client-side
+  routes) and an `api` service (`backend/`, FastAPI `app.main:app`, `maxDuration` 300), routes `/api/(.*)` to `api`
+  and everything else to `web`, and keeps the security headers at the top level. No service bindings.
+- The runtime `requirements.txt` and `.python-version` (3.12) moved into `backend/`; `api/index.py` is gone.
+- `vercel build` succeeds with this configuration; CI imports `app.main:app`.
+
 ## [1.1.0] - 2026-10-19
 
 Deployment on Vercel. The benchmark is unchanged: still v1.0.0 with content hash

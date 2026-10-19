@@ -83,7 +83,7 @@ def test_public_cannot_write_or_run(prod, method, url, body):
 def test_health_reports_mode_and_release_fields(prod):
     h = prod.get("/api/health").json()
     assert h["mode"] == "public" and h["access_required"] is True and h["environment"] == "production"
-    assert h["version"] == "1.1.0" and h["database"]["ok"] is True
+    assert h["version"] == "1.1.1" and h["database"]["ok"] is True
     assert h["benchmark"]["version"] == "1.0.0" and len(h["benchmark"]["hash"]) == 64 and h["benchmark"]["frozen"]
     raw = prod.get("/api/health").text
     assert "sqlite:" not in raw and "postgresql" not in raw.replace('"engine":"postgresql"', "")  # never the URL

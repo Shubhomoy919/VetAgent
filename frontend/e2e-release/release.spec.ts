@@ -21,7 +21,7 @@ test.describe.configure({ mode: "serial" });
 test("health reports a production build with the frozen benchmark", async ({ request }) => {
   const h = await (await request.get("/api/health")).json();
   expect(h.environment).toBe("production");
-  expect(h.version).toBe("1.1.0");
+  expect(h.version).toBe("1.1.1");
   expect(h.mode).toBe("public");
   expect(h.database.ok).toBe(true);
   expect(h.index_loaded).toBe(true);

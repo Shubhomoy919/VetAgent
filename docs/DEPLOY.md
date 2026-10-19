@@ -164,7 +164,7 @@ so the site must be opened over HTTPS on one domain.
 
 Replace `<url>` with your deployment, e.g. `https://vetagent.vercel.app`.
 
-- [ ] `curl.exe -s <url>/api/health` shows `"version": "1.1.0"`, `"environment": "production"`,
+- [ ] `curl.exe -s <url>/api/health` shows `"version": "1.1.1"`, `"environment": "production"`,
       `"database": {"ok": true, "engine": "postgresql"}`, `"index_loaded": true`, `"chunks": 2022`,
       `"source_pages": 406`, `"benchmark": {"version": "1.0.0", "frozen": true, ...}`, `"counts": {"runs": 1, ...}`,
       `"warnings": []`, `"mode": "public"`.

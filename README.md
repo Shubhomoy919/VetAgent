@@ -4,7 +4,7 @@
 An India-focused benchmark that counts dangerous errors first.**
 
 [![CI](https://github.com/Shubhomoy919/VetAgent/actions/workflows/ci.yml/badge.svg)](https://github.com/Shubhomoy919/VetAgent/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-v1.1.0-FF4F9A)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.1.1-FF4F9A)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](backend/requirements.txt)
 [![React](https://img.shields.io/badge/react-19-61DAFB?logo=react&logoColor=black)](frontend/package.json)
