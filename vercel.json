@@ -7,7 +7,7 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 300,
-      "excludeFiles": "{.env*,*.md,.claude/**,.git*/**,frontend/**,docs/**,data/**,snapshots/**,scripts/**,backend/tests/**,backend/migrations/**,node_modules/**,.venv/**,.vercel/**,**/__pycache__/**,**/*.pdf,**/*.db,pyproject.toml,uv.lock}"
+      "excludeFiles": "{.*/**,.env*,.git*,*.md,frontend/**,docs/**,data/**,snapshots/**,scripts/**,backend/tests/**,backend/migrations/**,node_modules/**,**/__pycache__/**,**/*.pdf,**/*.db,pyproject.toml,uv.lock}"
     }
   },
   "rewrites": [
