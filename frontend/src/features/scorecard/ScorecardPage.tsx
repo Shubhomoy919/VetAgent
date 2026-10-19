@@ -2,7 +2,8 @@ import { motion } from "motion/react";
 import { useCallback, useMemo, useState, type CSSProperties } from "react";
 import { useSearchParams } from "react-router";
 import type { ConditionId } from "../../api/runs";
-import { fmtP, pct, useRuns, useScorecard, type BreakdownRow, type Rate, type Scorecard } from "../../api/scorecard";
+import { fmtP, pct, useRuns, useScorecard, type BreakdownRow, type Provenance, type Rate, type Scorecard } from "../../api/scorecard";
+import { RUN_STATUS_LABEL } from "../../api/runs";
 import { CONDITIONS } from "../../app/conditions";
 import { Switchboard } from "../../components/Switchboard";
 import { DotWhisker } from "./DotWhisker";
@@ -13,7 +14,46 @@ import { SectionTitle } from "../../components/Ink";
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 const COND = Object.fromEntries(CONDITIONS.map((c) => [c.id, c])) as Record<ConditionId, (typeof CONDITIONS)[number]>;
 const fmtPct = (v: number) => `${Math.round(v * 100)}%`;
-const fmtInt = (v: number) => Math.round(v).toLocaleString("en-IN");
+const fmtInt = (v: number) => Math.round(v).toLocaleString("en-US");
+
+/** Model, prompt, temperature, benchmark and date behind these numbers. Printed with the report. */
+function ProvenanceStrip({ p }: { p: Provenance }) {
+  const benchMatches = p.run_benchmark_hash === null || p.run_benchmark_hash === p.benchmark_hash;
+  return (
+    <section className="sc-prov-wrap" aria-label="Provenance" data-testid="provenance">
+    <dl className="sc-prov">
+      <div>
+        <dt>Model</dt>
+        <dd className="mono">{p.provider}/{p.model}</dd>
+      </div>
+      <div>
+        <dt>Prompt version</dt>
+        <dd className="mono">{p.prompt_version}</dd>
+      </div>
+      <div>
+        <dt>Temperature</dt>
+        <dd className="mono">{p.temperature ?? "not recorded"}</dd>
+      </div>
+      <div>
+        <dt>Benchmark</dt>
+        <dd className="mono" title={p.run_benchmark_hash ?? p.benchmark_hash}>
+          v{p.run_benchmark_version ?? p.benchmark_version} · {(p.run_benchmark_hash ?? p.benchmark_hash).slice(0, 12)}
+          {!benchMatches && " (differs from current data)"}
+        </dd>
+      </div>
+      <div>
+        <dt>Run date</dt>
+        <dd className="mono">{p.run_date.replace("T", " ").slice(0, 16)} UTC</dd>
+      </div>
+      <div>
+        <dt>Run</dt>
+        <dd className="mono">{p.run_id}</dd>
+      </div>
+    </dl>
+    <p className="sc-prov-disclaimer">{p.disclaimer}</p>
+    </section>
+  );
+}
 
 function RateCell({ r }: { r: Rate | undefined }) {
   if (!r || r.rate === null) return <span className="sc-na">n/a</span>;
@@ -258,7 +298,7 @@ function Report({ sc }: { sc: Scorecard }) {
           <Tile key="top1" label="Top-1 diagnosis" a={rateOf("dx_top1", first)} b={rateOf("dx_top1", last)} condA={first} condB={last} format={fmtPct} />,
           <Tile key="danger" label="Any dangerous error" a={rateOf("dangerous", first)} b={rateOf("dangerous", last)} condA={first} condB={last} format={fmtPct} note="lower is better" />,
           <Tile key="esc" label="Missed escalation" a={rateOf("missed_escalation", first)} b={rateOf("missed_escalation", last)} condA={first} condB={last} format={fmtPct} note="lower is better" />,
-          <Tile key="tok" label="Tokens" a={totalTokens} b={null} condA="" condB="" format={fmtInt} note={totalCost === null ? "cost unknown — set prices in .env" : `cost $${totalCost.toFixed(4)}`} />,
+          <Tile key="tok" label="Tokens" a={totalTokens} b={null} condA="" condB="" format={fmtInt} note={totalCost === null ? "cost not recorded (no price set)" : `cost $${totalCost.toFixed(4)}`} />,
         ].map((t, i) => (
           <motion.div key={i} variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0, transition: { duration: 0.22, ease: EASE } } }}>
             {t}
@@ -414,7 +454,7 @@ function Report({ sc }: { sc: Scorecard }) {
       </div>
 
       <p className="sc-report-foot print-only">
-        Research prototype — not for clinical use. Gold answers unverified by a veterinarian. Rates with 95% Wilson
+        Research prototype, not for clinical use. Gold answers unverified by a veterinarian. Rates with 95% Wilson
         intervals; exact McNemar tests between adjacent conditions.
       </p>
     </>
@@ -468,18 +508,18 @@ export function ScorecardPage() {
             {runOptions.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.created_at.replace("T", " ").slice(0, 16)} · {r.provider} · {r.case_ids.length} case{r.case_ids.length > 1 ? "s" : ""} × {r.conditions.length}
-                {r.interview ? " · interview" : ""} · {r.status}
+                {r.interview ? " · interview" : ""} · {RUN_STATUS_LABEL[r.status].toLowerCase()}
               </option>
             ))}
           </select>
           <a className="btn" href={`/api/scorecard/export.csv${q}`} download data-testid="export-csv">
-            CSV
+            Export CSV
           </a>
           <a className="btn" href={`/api/scorecard/export.json${q}`} download>
-            JSON
+            Export JSON
           </a>
           <button type="button" className="btn" onClick={() => window.print()}>
-            Print
+            Print report
           </button>
         </div>
       </header>
@@ -493,6 +533,7 @@ export function ScorecardPage() {
           </p>
         </div>
       )}
+      {sc && <ProvenanceStrip p={sc.provenance} />}
       {sc && <Report sc={sc} />}
     </div>
   );

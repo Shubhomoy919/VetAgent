@@ -6,6 +6,7 @@ import {
   cancelRun,
   getActiveRun,
   resultKey,
+  RUN_STATUS_LABEL,
   startRun,
   type ConditionId,
   type ResultSummary,
@@ -72,7 +73,7 @@ export function RunProvider({ children }: { children: ReactNode }) {
       });
       es.addEventListener("run_error", (e) => {
         const d = parse<{ error: string }>(e as MessageEvent);
-        toast.error(`Run failed: ${d.error}`);
+        toast.error(d.error);
       });
       es.addEventListener("run_done", (e) => {
         const s = parse<RunSummary>(e as MessageEvent);
@@ -86,8 +87,9 @@ export function RunProvider({ children }: { children: ReactNode }) {
         });
         void qc.invalidateQueries({ queryKey: ["latest-results"] });
         void qc.invalidateQueries({ queryKey: ["health"] });
-        const label = { done: "Run finished", done_with_errors: "Run finished with errors", cancelled: "Run cancelled", failed: "Run failed", quota_exhausted: "Run stopped: daily quota exhausted", running: "" }[s.status];
-        toast(`${label} · ${s.n_done}/${s.n_total}`);
+        void qc.invalidateQueries({ queryKey: ["budget"] });
+        void qc.invalidateQueries({ queryKey: ["runs"] });
+        toast(`Run ${RUN_STATUS_LABEL[s.status].toLowerCase()} · ${s.n_done}/${s.n_total}`);
       });
       es.onerror = () => {
         // EventSource retries automatically; once the run is done the server closes the stream.

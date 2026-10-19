@@ -1,3 +1,4 @@
+import { AccessGate } from "../../app/Access";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -163,6 +164,14 @@ function Stats({ runId }: { runId: string | null }) {
 }
 
 export function ReviewPage() {
+  return (
+    <AccessGate title="Review" plate="03" purpose="Review is where a veterinarian rates stored answers. Ratings are research data, so the page needs the study's access code.">
+      <ReviewContent />
+    </AccessGate>
+  );
+}
+
+function ReviewContent() {
   const qc = useQueryClient();
   const [reviewer, setReviewer] = useState(readReviewer);
   const [runId, setRunId] = useState<string | null>(null);

@@ -102,7 +102,9 @@ def test_save_roundtrip_keeps_data(client):
 def test_export_and_import_cases(client):
     exported = client.get("/api/cases/export")
     assert exported.headers["content-disposition"].endswith('filename="cases.json"')
-    items = exported.json()
+    body = exported.json()
+    assert body["meta"]["benchmark_version"].startswith("1.0.0") and "not for clinical use" in body["meta"]["disclaimer"]
+    items = body["cases"]
     assert len(items) >= 25
 
     items[0]["history"] = "Imported change."
@@ -115,7 +117,7 @@ def test_export_and_import_cases(client):
 
 
 def test_import_is_all_or_nothing(client):
-    items = client.get("/api/cases/export").json()
+    items = client.get("/api/cases/export").json()["cases"]
     before = loaders.CASES_PATH.read_text(encoding="utf-8")
     items[1]["signalment"]["weight_kg"] = 9999
     r = client.post("/api/cases/import", params={"mode": "replace"}, json=items)

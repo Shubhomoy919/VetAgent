@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "frozen_on": "2026-10-19",
+  "hash": "b4b15a6930708f0976cb2b119f389c6d32ac321f8e2715d1751fed7c721edf07",
+  "cases_sha256": "74c3269b0dcebdad4c67755abff096c409f60b8a3cab3c3f3d9d8e36f6823ae7",
+  "drugs_sha256": "f30711fb9fd11a38006db449a506857f66f4163133a0240e60504237d069b007",
+  "n_cases": 29,
+  "n_drugs": 31,
+  "note": "Frozen benchmark content. Recompute with: python -m app.scripts.benchmark (from backend/)."
+}

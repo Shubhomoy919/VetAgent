@@ -1,6 +1,6 @@
-"""GET /api/health — readiness of the PDF, data files and LLM provider.
+"""GET /api/health — version, benchmark hash, readiness of the PDF, data, database and LLM provider.
 
-Never exposes keys: only `key_present: true/false`.
+Never exposes keys: only `key_present: true/false`. Paths are shown relative and only in development.
 """
 
 import sqlite3
@@ -9,12 +9,16 @@ from pathlib import Path
 from typing import Literal
 
 import pymupdf
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
-from app.config import DATA_DIR, REPO_ROOT, Settings, get_settings
+from app import __version__
+from app.config import REPO_ROOT, Settings, get_settings
+from app.data.benchmark import benchmark_info
 from app.data.loaders import DataError, load_cases, load_drugs
 from app.retrieval.service import svtg_index
+from app.security import is_admin
+from app.storage.db import DB_PATH, Store
 
 router = APIRouter()
 
@@ -25,11 +29,28 @@ class Counts(BaseModel):
     runs: int
 
 
+class Benchmark(BaseModel):
+    version: str
+    hash: str
+    short_hash: str
+    frozen: bool
+    frozen_on: str
+
+
+class Database(BaseModel):
+    ok: bool
+    engine: Literal["sqlite"]
+
+
 class Health(BaseModel):
-    status: Literal["ok"]
+    status: Literal["ok", "degraded"]
+    version: str
+    environment: Literal["development", "production"]
+    mode: Literal["public", "admin"]
+    access_required: bool
+    llm_mode: Literal["live", "demo"]
     provider: str
     configured_provider: str
-    mode: Literal["live", "demo"]
     model: str
     key_present: bool
     pdf_path: str
@@ -37,6 +58,8 @@ class Health(BaseModel):
     pages: int
     chunks: int
     counts: Counts
+    benchmark: Benchmark | None
+    database: Database
     data_errors: list[str]
 
 
@@ -55,16 +78,6 @@ def pdf_status(path: Path) -> tuple[bool, int]:
         return False, 0
 
 
-def count_runs(path: Path) -> int:
-    if not path.is_file():
-        return 0
-    try:
-        with sqlite3.connect(f"file:{path}?mode=ro", uri=True) as conn:
-            return conn.execute("SELECT COUNT(*) FROM runs").fetchone()[0]
-    except sqlite3.Error:
-        return 0
-
-
 def _display_path(path: Path) -> str:
     try:
         return path.relative_to(REPO_ROOT).as_posix()
@@ -73,7 +86,7 @@ def _display_path(path: Path) -> str:
 
 
 @router.get("/api/health", response_model=Health)
-def health(settings: Settings = Depends(get_settings)) -> Health:
+def health(request: Request, settings: Settings = Depends(get_settings)) -> Health:
     pdf_loaded, pages = pdf_status(settings.pdf_path)
     provider = settings.effective_provider
 
@@ -92,19 +105,34 @@ def health(settings: Settings = Depends(get_settings)) -> Health:
         chunks = len(svtg_index(settings)) if pdf_loaded else 0
     except Exception as e:  # a corrupt PDF must not take health down
         chunks = 0
-        errors.append(f"SVTG index could not be built: {e}")
+        errors.append(f"SVTG index could not be built: {type(e).__name__}")
+    try:
+        bench = Benchmark(**{k: v for k, v in benchmark_info().items() if k in Benchmark.model_fields})
+    except DataError:
+        bench = None
+    db_ok = Store(DB_PATH).ping() if DB_PATH.parent.is_dir() else False
+    try:
+        n_runs = Store(DB_PATH).count_runs() if db_ok else 0
+    except sqlite3.Error:
+        n_runs, db_ok = 0, False
 
     return Health(
-        status="ok",
+        status="ok" if db_ok and not errors else "degraded",
+        version=__version__,
+        environment=settings.app_env,
+        mode="admin" if is_admin(request, settings) else "public",
+        access_required=settings.access_required,
+        llm_mode="demo" if provider == "demo" else "live",
         provider=provider,
         configured_provider=settings.llm_provider,
-        mode="demo" if provider == "demo" else "live",
         model=settings.model_id,
         key_present=settings.key_present,
-        pdf_path=_display_path(settings.pdf_path),
+        pdf_path="" if settings.is_production else _display_path(settings.pdf_path),
         pdf_loaded=pdf_loaded,
         pages=pages,
         chunks=chunks,
-        counts=Counts(cases=n_cases, drugs=n_drugs, runs=count_runs(DATA_DIR / "runs.db")),
+        counts=Counts(cases=n_cases, drugs=n_drugs, runs=n_runs),
+        benchmark=bench,
+        database=Database(ok=db_ok, engine="sqlite"),
         data_errors=errors,
     )

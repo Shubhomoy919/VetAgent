@@ -6,7 +6,7 @@ interface Props {
   condition: Condition;
   /** Show step names beside the switches. */
   labelled?: boolean;
-  /** Larger switches (Study Design, empty states). */
+  /** Larger switches (Study design, empty states). */
   size?: "sm" | "lg";
 }
 

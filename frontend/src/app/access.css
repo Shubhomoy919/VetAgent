@@ -1,0 +1,87 @@
+/* Access-code dialog, inline form, page gate and read-only note. */
+
+.access-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 14vh var(--s4) 0;
+}
+
+.access-scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+}
+
+.access-dialog {
+  position: relative;
+  width: min(460px, 100%);
+  padding: var(--s4) var(--s5) var(--s5);
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-lg);
+}
+
+.access-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-bottom: var(--s2);
+}
+
+.access-title {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 400;
+  text-wrap: balance;
+}
+
+.access-body {
+  margin: 0 0 var(--s4);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
+.access-form {
+  display: grid;
+  gap: 6px;
+}
+
+.access-row {
+  display: flex;
+  gap: var(--s2);
+}
+
+.access-row .ff-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.access-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.access-gate {
+  max-width: 520px;
+  margin: var(--s6) auto;
+  padding: var(--s5);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.readonly-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) var(--s3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

@@ -9,7 +9,7 @@ export function PageTitle({ plate, children, className = "dp-title" }: { plate: 
   return (
     <>
       <span className="ph-plate mono" aria-hidden="true">
-        PL. {plate} <span className="ph-plate-sep">/</span> VetAgentBench-IN
+        Plate {plate} <span className="ph-plate-sep">/</span> VetAgentBench-IN
       </span>
       <motion.h1
         className={`${className} serif ph-title`}

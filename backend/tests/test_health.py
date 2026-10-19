@@ -33,7 +33,7 @@ def test_health_without_key_runs_in_demo_mode(client_with):
     assert body["key_present"] is False
     assert body["configured_provider"] == "gemini"
     assert body["provider"] == "demo"
-    assert body["mode"] == "demo"
+    assert body["llm_mode"] == "demo"
     assert body["model"] == "demo"
 
 
@@ -50,7 +50,7 @@ def test_health_with_key_never_exposes_it(client_with):
     ).get("/api/health")
     body = res.json()
     assert body["key_present"] is True
-    assert body["mode"] == "live"
+    assert body["llm_mode"] == "live"
     assert body["model"] == "gemini-2.5-flash"
     assert FAKE_KEY not in res.text
 
@@ -65,7 +65,7 @@ def test_openai_compatible_needs_key_and_base_url(client_with):
         "/api/health"
     ).json()
     assert body["key_present"] is False
-    assert body["mode"] == "demo"
+    assert body["llm_mode"] == "demo"
 
 
 def test_missing_pdf_reported_not_loaded(client_with, tmp_path: Path):

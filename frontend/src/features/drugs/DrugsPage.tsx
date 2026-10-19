@@ -1,3 +1,5 @@
+import { useIsAdmin } from "../../api/auth";
+import { ReadOnlyNote } from "../../app/Access";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -9,6 +11,8 @@ import { useSort } from "../../components/useSort";
 import "../data/data.css";
 import { DrugEditor } from "./DrugEditor";
 import { PageTitle } from "../../components/PageHeader";
+
+const DRUG_STATUS_LABEL = { safe: "Safe", contraindicated: "Contraindicated", banned_in_india: "Banned in India" } as const;
 
 const SORT = {
   species: (r: DrugRow) => r.species,
@@ -32,6 +36,7 @@ export function DrugsPage() {
   const [species, setSpecies] = useState("ALL");
   const [status, setStatus] = useState<DrugStatus | "ALL">("ALL");
   const [editing, setEditing] = useState<DrugRow | null | "new">(null);
+  const admin = useIsAdmin();
   const [importMode, setImportMode] = useState<"merge" | "replace">("merge");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -68,13 +73,16 @@ export function DrugsPage() {
     <div className="datapage" data-testid="drugs-page">
       <header className="dp-header">
         <div>
-          <PageTitle plate="05">Drug Table</PageTitle>
+          <PageTitle plate="05">Drug table</PageTitle>
           <p className="dp-sub">
             {rows ? `${rows.length} rows · ${unverified} unverified` : "Loading"} · doses and withdrawal periods only where a
             source states them · stored in <span className="mono">data/drug_table.csv</span>
           </p>
         </div>
         <div className="dp-actions">
+          {!admin && <ReadOnlyNote what="Edit the drug table" />}
+          {admin && (
+          <>
           <button type="button" className="btn btn-primary" onClick={() => setEditing("new")}>
             New row
           </button>
@@ -89,6 +97,8 @@ export function DrugsPage() {
             Import CSV
           </button>
           <input ref={fileRef} type="file" accept=".csv,text/csv" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) void onImport(f); }} />
+          </>
+          )}
           <a className="btn" href="/api/drugs/export" download>
             Export CSV
           </a>
@@ -114,7 +124,7 @@ export function DrugsPage() {
           </button>
           {STATUSES.map((st) => (
             <button key={st} type="button" className="chip" aria-pressed={status === st} onClick={() => setStatus(status === st ? "ALL" : st)}>
-              {st.replace(/_/g, " ")}
+              {DRUG_STATUS_LABEL[st]}
             </button>
           ))}
         </div>
@@ -133,38 +143,39 @@ export function DrugsPage() {
               <tr>
                 <SortTh label="Species" k="species" sortKey={key} dir={dir} onSort={toggle} />
                 <SortTh label="Drug" k="drug" sortKey={key} dir={dir} onSort={toggle} />
+                <SortTh label="Vet check" k="verified" sortKey={key} dir={dir} onSort={toggle} />
                 <SortTh label="Status" k="status" sortKey={key} dir={dir} onSort={toggle} />
                 <SortTh label="Dose mg/kg" k="dose" sortKey={key} dir={dir} onSort={toggle} className="num" />
                 <SortTh label="Milk wd" k="milk" sortKey={key} dir={dir} onSort={toggle} className="num" />
                 <SortTh label="Meat wd" k="meat" sortKey={key} dir={dir} onSort={toggle} className="num" />
                 <SortTh label="Legal" k="legal" sortKey={key} dir={dir} onSort={toggle} />
                 <SortTh label="Source" k="source" sortKey={key} dir={dir} onSort={toggle} />
-                <SortTh label="Status" k="verified" sortKey={key} dir={dir} onSort={toggle} />
               </tr>
             </thead>
             <tbody>
               {sorted.map((r) => (
                 <tr
                   key={drugKey(r)}
-                  tabIndex={0}
+                  tabIndex={admin ? 0 : undefined}
                   data-drug-key={drugKey(r)}
-                  onClick={() => setEditing(r)}
-                  onKeyDown={(e) => { if (e.key === "Enter") setEditing(r); }}
-                  aria-label={`Edit ${r.drug} for ${r.species}`}
+                  data-editable={admin}
+                  onClick={admin ? () => setEditing(r) : undefined}
+                  onKeyDown={admin ? (e) => { if (e.key === "Enter") setEditing(r); } : undefined}
+                  aria-label={admin ? `Edit ${r.drug} for ${r.species}` : undefined}
                 >
                   <td className="cap">{r.species}</td>
                   <td>{r.drug}</td>
+                  <td>{r.verified ? <span className="verified-tag" title={`${r.verified_by}, ${r.verified_on}`}>Verified</span> : <UnverifiedTag />}</td>
                   <td>
-                    <span className="status-pill" data-status={r.status}>{r.status.replace(/_/g, " ")}</span>
+                    <span className="status-pill" data-status={r.status}>{DRUG_STATUS_LABEL[r.status]}</span>
                   </td>
                   <td className="num mono">
                     {r.dose_min_mg_per_kg === null ? "—" : r.dose_min_mg_per_kg === r.dose_max_mg_per_kg ? fmt(r.dose_min_mg_per_kg) : `${fmt(r.dose_min_mg_per_kg)}–${fmt(r.dose_max_mg_per_kg)}`}
                   </td>
                   <td className="num mono">{r.milk_withdrawal_days === null ? "—" : `${r.milk_withdrawal_days} d`}</td>
                   <td className="num mono">{r.meat_withdrawal_days === null ? "—" : `${r.meat_withdrawal_days} d`}</td>
-                  <td className="mono" data-bad={!r.legal_in_india}>{r.legal_in_india ? "yes" : "no"}</td>
+                  <td className="mono" data-bad={!r.legal_in_india}>{r.legal_in_india ? "Yes" : "No"}</td>
                   <td className="wrap">{r.source}</td>
-                  <td>{r.verified ? <span className="verified-tag" title={`${r.verified_by}, ${r.verified_on}`}>Verified</span> : <UnverifiedTag />}</td>
                 </tr>
               ))}
             </tbody>

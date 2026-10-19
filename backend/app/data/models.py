@@ -5,9 +5,9 @@ days) are only filled in when a source states them; otherwise they stay blank.
 """
 
 import re
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, computed_field, field_validator, model_validator
 
 Species = Literal["dog", "cat", "cattle", "buffalo", "goat", "sheep", "poultry"]
 QuestionType = Literal["diagnosis", "triage", "drug_safety", "withdrawal_legal", "escalation"]
@@ -48,6 +48,12 @@ WEIGHT_RANGES: dict[str, tuple[tuple[float, float], ...]] = {
 }
 
 
+# Size limits for every text field (imports and edits). Generous next to the real data, small enough to stop abuse.
+Short = Annotated[str, StringConstraints(min_length=1, max_length=200)]
+Long = Annotated[str, StringConstraints(min_length=1, max_length=4000)]
+MAX_LIST = 50
+
+
 def weight_in_range(species: str, weight_kg: float) -> bool:
     return any(lo <= weight_kg <= hi for lo, hi in WEIGHT_RANGES[species])
 
@@ -61,12 +67,12 @@ class Strict(BaseModel):
 
 
 class Citation(Strict):
-    source: str = Field(min_length=1)
-    page: int | None = Field(default=None, ge=1, description="PDF page number (1-based)")
+    source: str = Field(min_length=1, max_length=500)
+    page: int | None = Field(default=None, ge=1, le=5000, description="PDF page number (1-based)")
 
 
 class Signalment(Strict):
-    breed: str = Field(min_length=1)
+    breed: str = Field(min_length=1, max_length=120)
     age_months: float = Field(gt=0, le=300)
     sex: Sex
     weight_kg: float = Field(gt=0)
@@ -91,22 +97,22 @@ class DoseRange(Strict):
 
 
 class GoldAnswer(Strict):
-    most_likely: str = Field(min_length=1)
-    acceptable_diagnoses: list[str] = Field(min_length=1, description="Synonyms counted as correct")
-    differentials: list[str] = Field(default_factory=list)
+    most_likely: str = Field(min_length=1, max_length=200)
+    acceptable_diagnoses: list[Short] = Field(min_length=1, max_length=MAX_LIST, description="Synonyms counted as correct")
+    differentials: list[Short] = Field(default_factory=list, max_length=MAX_LIST)
     triage: Triage
-    drug: str | None = None
+    drug: str | None = Field(default=None, max_length=120)
     drug_status: AnswerDrugStatus = "n/a"
     dose_mg: DoseRange | None = None
     withdrawal_known: bool | None = Field(
         default=None, description="True if a source states the withdrawal period; False if no source does"
     )
-    withdrawal_days: float | None = Field(default=None, ge=0)
+    withdrawal_days: float | None = Field(default=None, ge=0, le=3650)
     escalate: bool
     zoonosis_warning: bool
     notifiable: bool | None = Field(default=None, description="None = not stated in the source")
-    key_points: list[str] = Field(min_length=1)
-    citations: list[Citation] = Field(default_factory=list)
+    key_points: list[Long] = Field(min_length=1, max_length=MAX_LIST)
+    citations: list[Citation] = Field(default_factory=list, max_length=MAX_LIST)
 
     @model_validator(mode="after")
     def _consistent(self) -> "GoldAnswer":
@@ -126,17 +132,17 @@ class GoldAnswer(Strict):
 
 
 class Case(Strict):
-    case_id: str
+    case_id: str = Field(max_length=40)
     species: Species
     signalment: Signalment
-    history: str = Field(min_length=1)
-    owner_narrative: str = Field(min_length=1)
-    clinical_signs: list[str] = Field(min_length=1)
+    history: str = Field(min_length=1, max_length=4000)
+    owner_narrative: str = Field(min_length=1, max_length=4000)
+    clinical_signs: list[Short] = Field(min_length=1, max_length=MAX_LIST)
     question_type: QuestionType
-    question: str = Field(min_length=1)
+    question: str = Field(min_length=1, max_length=1000)
     gold_answer: GoldAnswer
-    red_flags: list[str] = Field(default_factory=list)
-    source: str = Field(min_length=1)
+    red_flags: list[Short] = Field(default_factory=list, max_length=MAX_LIST)
+    source: str = Field(min_length=1, max_length=500)
     vet_verified: bool = False
 
     @field_validator("case_id")
@@ -177,17 +183,17 @@ def _blank_to_none(v: object) -> object:
 
 class DrugRow(Strict):
     species: Species
-    drug: str = Field(min_length=1)
+    drug: str = Field(min_length=1, max_length=120)
     status: DrugStatus
     dose_min_mg_per_kg: float | None = Field(default=None, ge=0)
     dose_max_mg_per_kg: float | None = Field(default=None, ge=0)
     milk_withdrawal_days: float | None = Field(default=None, ge=0)
     meat_withdrawal_days: float | None = Field(default=None, ge=0)
     legal_in_india: bool
-    source: str = Field(min_length=1)
-    notes: str = ""
-    verified_by: str = ""
-    verified_on: str = ""
+    source: str = Field(min_length=1, max_length=500)
+    notes: str = Field(default="", max_length=1000)
+    verified_by: str = Field(default="", max_length=120)
+    verified_on: str = Field(default="", max_length=40)
 
     @field_validator(
         "dose_min_mg_per_kg",

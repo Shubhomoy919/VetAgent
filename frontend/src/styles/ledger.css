@@ -13,7 +13,6 @@
   background: var(--surface);
   font-size: var(--text-sm);
   font-weight: 600;
-  font-variant-caps: all-small-caps;
   letter-spacing: var(--tracking-label);
   color: var(--text-muted);
   border-bottom: 3px double var(--rule-strong);

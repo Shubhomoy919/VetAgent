@@ -84,7 +84,7 @@ test("Review: rate with 1/2/N, agreement and kappa update", async ({ page }) => 
   expect(errors).toEqual([]);
 });
 
-test("Study Design: ladder diagram, question types and metrics", async ({ page }) => {
+test("Study design: ladder diagram, question types and metrics", async ({ page }) => {
   const errors = trackErrors(page);
   await page.goto("/study");
   await expect(page.getByRole("img", { name: "Ablation ladder" })).toBeVisible();
@@ -120,7 +120,7 @@ test("Settings: validation, save, reset, test connection, PDF status", async ({ 
   // Valid save, then reset back to .env.
   await page.getByLabel("Max tool steps (C2–C4)").fill("5");
   await page.getByTestId("save-settings").click();
-  await expect(page.getByText("overridden in settings.json").first()).toBeVisible();
+  await expect(page.getByText("overridden here").first()).toBeVisible();
   expect((await (await request.get("/api/settings")).json()).values.max_steps).toBe(5);
 
   await page.getByTestId("test-connection").click();

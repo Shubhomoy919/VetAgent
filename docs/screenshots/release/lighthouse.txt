@@ -1,0 +1,18 @@
+Lighthouse 12, production build (local uvicorn, APP_ENV=production), 2026-10-19.
+Desktop preset:
+bench      performance=99 accessibility=100 best-practices=100 CLS=0.000 LCP=889ms TBT=53ms
+overview   performance=99 accessibility=100 best-practices=100 CLS=0.000 LCP=827ms TBT=0ms
+scorecard  performance=99 accessibility=100 best-practices=100 CLS=0.001 LCP=811ms TBT=12ms
+cases      performance=99 accessibility=100 best-practices=100 CLS=0.000 LCP=796ms TBT=0ms
+drugs      performance=99 accessibility=100 best-practices=100 CLS=0.000 LCP=773ms TBT=0ms
+runs       performance=100 accessibility=100 best-practices=100 CLS=0.000 LCP=774ms TBT=0ms
+study      performance=100 accessibility=100 best-practices=100 CLS=0.004 LCP=817ms TBT=0ms
+
+Mobile (default simulated slow 4G, 4x CPU):
+bench-mobile performance=85 accessibility=100 best-practices=96 CLS=0.021 LCP=3719ms TBT=145ms
+overview-mobile performance=82 accessibility=100 best-practices=100 CLS=0.000 LCP=3490ms TBT=280ms
+scorecard-mobile performance=86 accessibility=100 best-practices=96 CLS=0.013 LCP=3337ms TBT=192ms
+cases-mobile performance=87 accessibility=100 best-practices=100 CLS=0.016 LCP=3569ms TBT=11ms
+drugs-mobile performance=88 accessibility=100 best-practices=96 CLS=0.017 LCP=3350ms TBT=24ms
+runs-mobile performance=90 accessibility=100 best-practices=96 CLS=0.017 LCP=3316ms TBT=6ms
+study-mobile performance=87 accessibility=100 best-practices=100 CLS=0.016 LCP=3750ms TBT=65ms

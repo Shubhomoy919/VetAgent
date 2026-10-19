@@ -1,3 +1,5 @@
+import { useIsAdmin } from "../../api/auth";
+import { ReadOnlyNote } from "../../app/Access";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -19,6 +21,8 @@ import { useSort } from "../../components/useSort";
 import "../data/data.css";
 import { CaseEditor } from "./CaseEditor";
 import { PageTitle } from "../../components/PageHeader";
+
+const TRIAGE_LABEL = { emergency: "Emergency", urgent: "Urgent", routine: "Routine" } as const;
 
 const SORT = {
   id: (c: Case) => c.case_id,
@@ -42,6 +46,7 @@ export function CasesPage() {
   const [type, setType] = useState<QuestionType | "ALL">("ALL");
   const [verified, setVerified] = useState<"all" | "unverified" | "verified">("all");
   const [editing, setEditing] = useState<Case | null | "new">(null);
+  const admin = useIsAdmin();
   const [importMode, setImportMode] = useState<"merge" | "replace">("merge");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -88,6 +93,9 @@ export function CasesPage() {
           </p>
         </div>
         <div className="dp-actions">
+          {!admin && <ReadOnlyNote what="Edit cases" />}
+          {admin && (
+          <>
           <button type="button" className="btn btn-primary" onClick={() => setEditing("new")}>
             New case
           </button>
@@ -111,6 +119,8 @@ export function CasesPage() {
               if (f) void onImport(f);
             }}
           />
+          </>
+          )}
           <a className="btn" href="/api/cases/export" download>
             Export JSON
           </a>
@@ -163,6 +173,7 @@ export function CasesPage() {
             <thead>
               <tr>
                 <SortTh label="Case" k="id" sortKey={key} dir={dir} onSort={toggle} />
+                <SortTh label="Vet check" k="verified" sortKey={key} dir={dir} onSort={toggle} />
                 <SortTh label="Species" k="species" sortKey={key} dir={dir} onSort={toggle} />
                 <SortTh label="Breed" k="breed" sortKey={key} dir={dir} onSort={toggle} />
                 <SortTh label="Weight" k="weight" sortKey={key} dir={dir} onSort={toggle} className="num" />
@@ -170,24 +181,29 @@ export function CasesPage() {
                 <SortTh label="Type" k="type" sortKey={key} dir={dir} onSort={toggle} />
                 <SortTh label="Gold diagnosis" k="dx" sortKey={key} dir={dir} onSort={toggle} />
                 <SortTh label="Triage" k="triage" sortKey={key} dir={dir} onSort={toggle} />
-                <SortTh label="Status" k="verified" sortKey={key} dir={dir} onSort={toggle} />
               </tr>
             </thead>
             <tbody>
               {sorted.map((c) => (
                 <tr
                   key={c.case_id}
-                  tabIndex={0}
+                  tabIndex={admin ? 0 : undefined}
                   data-case-id={c.case_id}
-                  onClick={() => setEditing(c)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") setEditing(c);
-                  }}
-                  aria-label={`Edit ${c.case_id}`}
+                  data-editable={admin}
+                  onClick={admin ? () => setEditing(c) : undefined}
+                  onKeyDown={
+                    admin
+                      ? (e) => {
+                          if (e.key === "Enter") setEditing(c);
+                        }
+                      : undefined
+                  }
+                  aria-label={admin ? `Edit ${c.case_id}` : undefined}
                 >
                   <td>
                     <SpecimenTag caseId={c.case_id} />
                   </td>
+                  <td>{c.vet_verified ? <span className="verified-tag">Verified</span> : <UnverifiedTag />}</td>
                   <td className="cap">{c.species}</td>
                   <td>{c.signalment.breed}</td>
                   <td className="num mono">{c.signalment.weight_kg} kg</td>
@@ -197,9 +213,8 @@ export function CasesPage() {
                   </td>
                   <td>{c.gold_answer.most_likely}</td>
                   <td className="mono" data-triage={c.gold_answer.triage}>
-                    {c.gold_answer.triage}
+                    {TRIAGE_LABEL[c.gold_answer.triage]}
                   </td>
-                  <td>{c.vet_verified ? <span className="verified-tag">Verified</span> : <UnverifiedTag />}</td>
                 </tr>
               ))}
             </tbody>

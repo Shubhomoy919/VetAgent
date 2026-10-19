@@ -3,7 +3,7 @@
 from itertools import combinations
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.agent.manager import manager
@@ -13,7 +13,9 @@ from app.scoring.stats import cohen_kappa, wilson
 from app.scoring.verdict import judge
 from app.tools.registry import case_view
 
-router = APIRouter(prefix="/api/review")
+from app.security import require_admin  # noqa: E402
+
+router = APIRouter(prefix="/api/review", dependencies=[Depends(require_admin)])
 
 
 class ReviewIn(BaseModel):
@@ -41,7 +43,7 @@ def _latest_ok(run_id: str) -> list[dict[str, Any]]:
 
 
 @router.get("/queue")
-def queue(run_id: str | None = Query(default=None), reviewer: str = Query(default="")) -> dict[str, Any]:
+def queue(run_id: str | None = Query(default=None, max_length=64), reviewer: str = Query(default="", max_length=80)) -> dict[str, Any]:
     run = _run_or_404(run_id)
     cases = {c.case_id: c for c in load_cases()}
     mine = {v["result_id"]: v for v in manager.store.reviews_for_run(run["id"]) if v["reviewer"] == reviewer}

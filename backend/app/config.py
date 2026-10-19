@@ -5,6 +5,7 @@ callers should use `key_present` / `effective_provider` instead.
 """
 
 import json
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -13,7 +14,8 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = REPO_ROOT / "data"
+# Writable data (cases, drug table, runs.db, SVTG index cache). In Docker this is the persistent volume.
+DATA_DIR = Path(os.environ.get("DATA_DIR") or REPO_ROOT / "data").resolve()
 
 Provider = Literal["gemini", "openai_compatible", "demo"]
 
@@ -36,6 +38,27 @@ class Settings(BaseSettings):
     openai_model: str = ""
 
     svtg_pdf_path: str = "data/StandardVeterinaryTreatment.pdf"
+
+    # Deployment. In production, demo runs are refused and hidden, API docs are off, and an access code is
+    # always required for runs, edits, Review and Settings (with no ADMIN_ACCESS_CODE set, nobody can unlock).
+    app_env: Literal["development", "production"] = "development"
+    admin_access_code: str = Field(default="", repr=False)
+    session_secret: str = Field(default="", repr=False)
+    session_hours: int = Field(default=12, ge=1, le=168)
+    # Secure cookies need HTTPS. Defaults to on in production; set COOKIE_SECURE=false only for local http tests.
+    cookie_secure: bool | None = None
+    # Comma-separated origins allowed for cross-origin requests and unsafe methods, e.g. https://vab.example.org
+    allowed_origins: str = ""
+    rate_limit_per_minute: int = Field(default=240, ge=10, le=10_000)
+    auth_max_attempts: int = Field(default=5, ge=1, le=50)
+    auth_lockout_minutes: int = Field(default=15, ge=1, le=1440)
+    # Hard cap on live-model tokens (in + out) per UTC day across all runs; 0 = no cap (development only).
+    max_daily_tokens: int = Field(default=1_000_000, ge=0)
+    max_cases_per_run: int = Field(default=30, ge=1, le=500)
+    max_body_bytes: int = Field(default=2_000_000, ge=10_000, le=50_000_000)
+    # Frozen results snapshot, loaded into an empty database at startup (path relative to the repo root).
+    snapshot_path: str = "snapshots/v1.0.0/run.json"
+    autoload_snapshot: bool = True
 
     # Agent
     temperature: float = Field(default=0.0, ge=0.0, le=2.0)
@@ -80,7 +103,39 @@ class Settings(BaseSettings):
     @property
     def pdf_path(self) -> Path:
         path = Path(self.svtg_pdf_path)
+        if path.is_absolute():
+            return path
+        # "data/x.pdf" resolves inside DATA_DIR, so the same setting works locally and on a Docker volume.
+        if path.parts and path.parts[0] == "data":
+            return DATA_DIR.joinpath(*path.parts[1:])
+        return REPO_ROOT / path
+
+    @property
+    def snapshot_file(self) -> Path:
+        path = Path(self.snapshot_path)
         return path if path.is_absolute() else REPO_ROOT / path
+
+    @property
+    def is_production(self) -> bool:
+        return self.app_env == "production"
+
+    @property
+    def secure_cookies(self) -> bool:
+        return self.is_production if self.cookie_secure is None else self.cookie_secure
+
+    @property
+    def access_required(self) -> bool:
+        """Production always needs the code; development only when one is configured."""
+        return self.is_production or bool(self.admin_access_code.strip())
+
+    @property
+    def origins(self) -> list[str]:
+        return [o.strip().rstrip("/") for o in self.allowed_origins.split(",") if o.strip()]
+
+    @property
+    def secrets(self) -> list[str]:
+        """Values that must never appear in logs or responses."""
+        return [v for v in (self.gemini_api_key, self.openai_api_key, self.admin_access_code, self.session_secret) if v.strip()]
 
 
 # Non-secret settings editable from the Settings page. Saved to data/settings.json (gitignored); they override

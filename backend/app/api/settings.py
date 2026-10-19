@@ -8,17 +8,19 @@ import os
 import time
 from typing import Any
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from app.agent.manager import manager
 from app.api.health import pdf_status
-from app.config import EDITABLE_FIELDS, OVERRIDES_PATH, REPO_ROOT, Settings, get_settings, load_overrides, reset_settings_cache
+from app.config import EDITABLE_FIELDS, OVERRIDES_PATH, Settings, get_settings, load_overrides, reset_settings_cache
 from app.llm.base import LLMError, LLMRequest, Message
 from app.llm.factory import get_provider
 
-router = APIRouter(prefix="/api/settings")
+from app.security import require_admin  # noqa: E402
+
+router = APIRouter(prefix="/api/settings", dependencies=[Depends(require_admin)])
 
 
 def _view(s: Settings) -> dict[str, Any]:
@@ -32,12 +34,12 @@ def _view(s: Settings) -> dict[str, Any]:
         "model": s.model_id,
         "key_present": s.key_present,
         "key_hint": {
-            "gemini": "Set GEMINI_API_KEY in .env",
-            "openai_compatible": "Set OPENAI_API_KEY and OPENAI_BASE_URL in .env",
+            "gemini": "Set GEMINI_API_KEY in the server environment (.env locally)",
+            "openai_compatible": "Set OPENAI_API_KEY and OPENAI_BASE_URL in the server environment (.env locally)",
             "demo": "No key needed",
         }[s.llm_provider],
         "pdf": {"path": s.svtg_pdf_path, "exists": s.pdf_path.is_file(), "loaded": loaded, "pages": pages},
-        "overrides_file": os.path.relpath(OVERRIDES_PATH, REPO_ROOT).replace("\\", "/"),
+        "overrides_file": f"DATA_DIR/{OVERRIDES_PATH.name}",
     }
 
 

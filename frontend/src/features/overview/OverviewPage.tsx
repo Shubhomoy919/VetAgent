@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import { useHealth } from "../../api/health";
 import { useRunList } from "../../api/admin";
 import { pct, useScorecard } from "../../api/scorecard";
-import type { ConditionId } from "../../api/runs";
+import { RUN_STATUS_LABEL, type ConditionId } from "../../api/runs";
 import { CONDITIONS } from "../../app/conditions";
 import { Switchboard } from "../../components/Switchboard";
 import { DotWhisker } from "../scorecard/DotWhisker";
@@ -53,7 +53,18 @@ export function OverviewPage() {
               veterinarian&rsquo;s verification.
             </li>
             <li>
-              <strong>Mode</strong> {health ? (health.mode === "live" ? `live · ${health.model}` : "demo — sample responses") : "—"}.
+              <strong>Model</strong> {health ? (health.llm_mode === "live" ? `live · ${health.model}` : "demo: sample responses") : "—"}.
+            </li>
+            <li data-testid="benchmark-version">
+              <strong>Benchmark v{health?.benchmark?.version ?? "—"}</strong>{" "}
+              {health?.benchmark ? (
+                <>
+                  content hash <span className="mono" title={health.benchmark.hash}>{health.benchmark.short_hash}</span>
+                  {health.benchmark.frozen ? `, frozen ${health.benchmark.frozen_on}` : ", modified since the frozen release"}.
+                </>
+              ) : (
+                "unavailable."
+              )}
             </li>
           </ol>
         </div>
@@ -152,7 +163,7 @@ export function OverviewPage() {
               <Link to="/review">Review</Link> — a veterinarian rates answers blind; agreement as Cohen&rsquo;s κ.
             </li>
             <li>
-              <Link to="/cases">Cases</Link> and <Link to="/drugs">Drug Table</Link> — the ledgers, edited and verified.
+              <Link to="/cases">Cases</Link> and <Link to="/drugs">Drug table</Link> — the ledgers, edited and verified.
             </li>
             <li>
               <Link to="/study">Study design</Link> — conditions, metrics, statistics and limitations.
@@ -165,7 +176,7 @@ export function OverviewPage() {
             {(runs ?? []).slice(0, 5).map((r) => (
               <li key={r.id} className="mono">
                 {r.created_at.replace("T", " ").slice(0, 16)} · {r.provider} · {r.case_ids.length}×{r.conditions.length}
-                {r.interview ? " · interview" : ""} · {r.status}
+                {r.interview ? " · interview" : ""} · {RUN_STATUS_LABEL[r.status].toLowerCase()}
               </li>
             ))}
             {runs && runs.length === 0 && <li>No runs recorded yet.</li>}

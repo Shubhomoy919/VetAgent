@@ -69,6 +69,15 @@ export function PassageDrawer({ page, onClose }: { page: number | null; onClose:
                   <p>{c.text}</p>
                 </section>
               ))}
+              {data && (
+                <p className="drawer-source">
+                  Source: {data.source.title}.{" "}
+                  <a href={data.source.url} target="_blank" rel="noopener noreferrer">
+                    Official copy on dahd.gov.in
+                  </a>
+                  . Only passages cited by stored answers are shown here.
+                </p>
+              )}
             </div>
           </motion.aside>
         </>

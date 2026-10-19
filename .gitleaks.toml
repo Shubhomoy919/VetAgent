@@ -1,0 +1,8 @@
+# gitleaks config: default rules, plus one documented allowlist.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Snapshot cache keys are SHA-256 digests of (model, condition, case content, prompt version), not credentials."
+regexTarget = "line"
+regexes = ['''^\s*"cache_key": "[0-9a-f]{64}",?$''']

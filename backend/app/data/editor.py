@@ -90,12 +90,21 @@ def delete_case(case_id: str) -> None:
         _write_cases(kept)
 
 
+MAX_IMPORT_ROWS = 1000
+
+
 def import_cases(items: Any, mode: str) -> dict[str, Any]:
-    """mode 'merge' upserts by case_id; 'replace' replaces the whole file. All-or-nothing."""
+    """mode 'merge' upserts by case_id; 'replace' replaces the whole file. All-or-nothing.
+
+    Accepts a plain list of cases or an export file ({"meta": ..., "cases": [...]})."""
     if mode not in ("merge", "replace"):
         raise EditError("mode must be 'merge' or 'replace'", status=400)
+    if isinstance(items, dict) and isinstance(items.get("cases"), list):
+        items = items["cases"]
     if not isinstance(items, list):
-        raise EditError("Import must be a JSON list of cases", status=400)
+        raise EditError("Import must be a JSON list of cases or a cases export file", status=400)
+    if len(items) > MAX_IMPORT_ROWS:
+        raise EditError(f"Too many cases in one import ({len(items)}); the limit is {MAX_IMPORT_ROWS}", status=413)
     errors: list[dict[str, Any]] = []
     parsed: list[Case] = []
     for i, item in enumerate(items):
@@ -122,8 +131,9 @@ def import_cases(items: Any, mode: str) -> dict[str, Any]:
     return {"imported": len(parsed), "total": len(result), "mode": mode}
 
 
-def export_cases_json() -> str:
-    return json.dumps([c.model_dump(mode="json") for c in loaders.load_cases()], indent=2, ensure_ascii=False)
+def export_cases_json(meta: dict[str, Any] | None = None) -> str:
+    cases = [c.model_dump(mode="json") for c in loaders.load_cases()]
+    return json.dumps({"meta": meta, "cases": cases} if meta else cases, indent=2, ensure_ascii=False)
 
 
 # ---------- drug table ----------
@@ -136,8 +146,11 @@ def validate_drug(data: dict[str, Any], prefix: tuple[Any, ...] = ()) -> DrugRow
         raise EditError("Drug row failed validation", _errors(e, prefix)) from None
 
 
-def drugs_csv(rows: list[DrugRow]) -> str:
+def drugs_csv(rows: list[DrugRow], meta: dict[str, Any] | None = None) -> str:
+    """CSV text. With `meta`, provenance goes first as '# key: value' comment lines (import skips them)."""
     buf = io.StringIO()
+    for k, v in (meta or {}).items():
+        buf.write(f"# {k}: {v}\n")
     w = csv.writer(buf, lineterminator="\n")
     w.writerow(loaders.DRUG_COLUMNS)
     for r in rows:
@@ -196,7 +209,10 @@ def delete_drug(key: str) -> None:
 def import_drugs_csv(text: str, mode: str) -> dict[str, Any]:
     if mode not in ("merge", "replace"):
         raise EditError("mode must be 'merge' or 'replace'", status=400)
-    reader = csv.DictReader(io.StringIO(text))
+    lines = [ln for ln in text.splitlines() if not ln.startswith("#")]
+    if len(lines) > MAX_IMPORT_ROWS + 1:
+        raise EditError(f"Too many rows in one import ({len(lines) - 1}); the limit is {MAX_IMPORT_ROWS}", status=413)
+    reader = csv.DictReader(io.StringIO("\n".join(lines)))
     missing = [c for c in loaders.DRUG_COLUMNS if c not in (reader.fieldnames or [])]
     if missing:
         raise EditError(f"CSV is missing columns: {', '.join(missing)}", status=400)

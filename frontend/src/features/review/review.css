@@ -104,7 +104,6 @@
 .rv-fields dt {
   font-size: 10px;
   color: var(--text-muted);
-  text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 

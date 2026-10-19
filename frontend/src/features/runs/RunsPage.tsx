@@ -1,3 +1,4 @@
+import { RUN_STATUS_LABEL } from "../../api/runs";
 import { Link } from "react-router";
 import { useMemo, useState } from "react";
 import { useCompare, useRunList, type CompareResult, type RunListRow } from "../../api/admin";
@@ -11,7 +12,7 @@ import { SectionTitle } from "../../components/Ink";
 import { EmptySpecimen } from "../../components/EmptySpecimen";
 
 const fmtDate = (s: string) => s.replace("T", " ").slice(0, 16);
-const STATUS: Record<string, string> = { running: "running", done: "done", done_with_errors: "done · errors", cancelled: "cancelled", failed: "failed", quota_exhausted: "quota stop" };
+const STATUS: Record<string, string> = RUN_STATUS_LABEL;
 
 function Delta({ d, better }: { d: number | null; better: "higher" | "lower" }) {
   if (d === null) return <span className="sc-na">—</span>;
@@ -197,13 +198,13 @@ export function RunsPage() {
                     <td className="num mono">
                       {r.case_ids.length} × {r.conditions.length}
                     </td>
-                    <td className="mono" data-bad={r.status === "failed" || r.status === "done_with_errors" || r.status === "quota_exhausted"}>
+                    <td className="mono" data-bad={r.status === "failed" || r.status === "done_with_errors" || r.status === "quota_exhausted" || r.status === "budget_exhausted"}>
                       {STATUS[r.status] ?? r.status}
                     </td>
                     <td className="num mono">
                       {r.n_done}/{r.n_total}
                     </td>
-                    <td className="num mono">{r.tokens.toLocaleString("en-IN")}</td>
+                    <td className="num mono">{r.tokens.toLocaleString("en-US")}</td>
                     <td className="num mono" data-bad={r.errors > 0}>
                       {r.errors}
                     </td>

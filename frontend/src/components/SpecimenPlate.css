@@ -23,7 +23,6 @@
 .plate-no {
   font-size: var(--text-xs);
   letter-spacing: 0.14em;
-  text-transform: uppercase;
   color: var(--text-muted);
   padding-right: var(--s2);
   border-right: var(--hairline);

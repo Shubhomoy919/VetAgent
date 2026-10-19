@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/precompress.mjs",
     "typecheck": "tsc",
     "lint": "eslint . --max-warnings 0",
     "preview": "vite preview",
@@ -13,7 +13,8 @@
     "tokens": "..\\.venv\\Scripts\\python.exe scripts/gen_tokens.py",
     "check:style": "node scripts/check-style.mjs",
     "check:contrast": "node scripts/check-contrast.ts",
-    "check": "tsc && eslint . --max-warnings 0 && node scripts/check-style.mjs && node scripts/check-contrast.ts"
+    "check:motion": "node scripts/check-motion.mjs",
+    "check": "tsc && eslint . --max-warnings 0 && node scripts/check-style.mjs && node scripts/check-contrast.ts && node scripts/check-motion.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",

@@ -1,12 +1,42 @@
 # Data card — VetAgentBench-IN
 
-Research prototype — not for clinical use. **Nothing in this dataset has been verified by a veterinarian yet.**
+Research prototype, not for clinical use. Consult a registered veterinarian.
+**Nothing in this dataset has been verified by a veterinarian yet.**
+
+## Version
+
+**Benchmark v1.0.0**, frozen 2026-10-19.
+
+| Part | SHA-256 (canonical JSON of the validated records) |
+|---|---|
+| Cases (29) | `74c3269b0dcebdad4c67755abff096c409f60b8a3cab3c3f3d9d8e36f6823ae7` |
+| Drug table (31 rows) | `f30711fb9fd11a38006db449a506857f66f4163133a0240e60504237d069b007` |
+| **Benchmark** | **`b4b15a6930708f0976cb2b119f389c6d32ac321f8e2715d1751fed7c721edf07`** |
+
+The hashes are computed from the validated records with sorted keys (`backend/app/data/benchmark.py`), so
+reformatting a file does not change them but any content change does. The frozen values are in
+`backend/app/data/benchmark.json`. `/api/health`, the Overview page and every export show the current version
+and hash; if the data no longer matches, the version reads `1.0.0+modified`. Check from the command line:
+`python -m app.scripts.benchmark --check`.
+
+Every run records its provider, model, prompt version, temperature, benchmark version and hash, and date.
+
+## Frozen results snapshot
+
+`snapshots/v1.0.0/run.json` holds one complete live run: `gemini-3.5-flash-lite`, prompt v2, temperature 0,
+29 cases × 5 conditions, 145/145 schema-valid answers, with full traces and the expected scorecard counts. 144
+answers came from the answer cache, meaning earlier live calls (3–5 October 2026) with the same model, prompt
+version and case content. One (BOV-008 · C4) was called live on 2026-10-19. `python -m app.scripts.snapshot verify`
+re-scores it and confirms every count and the benchmark hash. Demo (sample) results are never part of a snapshot
+and never appear in production.
 
 ## Knowledge source: SVTG
 
-- File: `data/StandardVeterinaryTreatment.pdf` — *Standard Veterinary Treatment Guidelines for Livestock and
+- File: `data/StandardVeterinaryTreatment.pdf`: *Standard Veterinary Treatment Guidelines for Livestock and
   Poultry*, Department of Animal Husbandry and Dairying (DAHD), Government of India, with FAO; dated October 2024.
-  406 PDF pages.
+  406 PDF pages. **Not redistributed** (not in the repository or the Docker image). Download it from DAHD:
+  <https://dahd.gov.in/sites/default/files/2024-10/StandardVeterinaryTreatment.pdf>. The deployed site serves only
+  the passages that stored answers or gold answers cite, with page numbers and a link to DAHD's copy.
 - **Scope: livestock and poultry only** (ruminants, poultry, pig, camel, equine, mithun, yak). It has **no dog or
   cat chapters**.
 - Page numbers: citations use **PDF page numbers** (1-based). The printed page is PDF page − 18 (PDF p.19 = printed p.1).
@@ -87,9 +117,9 @@ Used only by the C4 deterministic rules.
 
 ## Editing
 
-The Cases and Drug Table pages edit `data/cases.json` and `data/drug_table.csv` directly. Every save, import
+The Cases and Drug table pages (behind the access code on a deployed site) edit `data/cases.json` and `data/drug_table.csv` directly. Every save, import
 or delete validates the whole file with the same Pydantic models the tests use, rejects duplicates, and writes
-atomically (temp file + replace); an invalid edit changes nothing. Imports are all-or-nothing. Marking a drug row
+atomically (temp file + replace); an invalid edit changes nothing. Imports are all-or-nothing, limited to 1,000 records, and every text field has a size limit. Marking a drug row
 verified requires both a verifier name and a date. Editing a case changes its cache key, so its next run is fresh.
 
 ## Before any real use

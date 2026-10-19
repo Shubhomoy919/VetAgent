@@ -18,7 +18,7 @@ export interface NavItem {
 }
 
 export interface NavGroup {
-  label: "WORK" | "DATA" | "RESULTS" | "ABOUT";
+  label: "Work" | "Data" | "Results" | "About";
   items: NavItem[];
 }
 
@@ -28,7 +28,7 @@ export interface NavGroup {
  */
 export const NAV: NavGroup[] = [
   {
-    label: "WORK",
+    label: "Work",
     items: [
       { to: "/", label: "Bench", icon: BenchIcon },
       { to: "/runs", label: "Runs", icon: RunsIcon },
@@ -36,17 +36,17 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
-    label: "DATA",
+    label: "Data",
     items: [
       { to: "/cases", label: "Cases", icon: CasesIcon },
-      { to: "/drugs", label: "Drug Table", icon: DrugIcon },
+      { to: "/drugs", label: "Drug table", icon: DrugIcon },
     ],
   },
-  { label: "RESULTS", items: [{ to: "/scorecard", label: "Scorecard", icon: ScorecardIcon }] },
+  { label: "Results", items: [{ to: "/scorecard", label: "Scorecard", icon: ScorecardIcon }] },
   {
-    label: "ABOUT",
+    label: "About",
     items: [
-      { to: "/study", label: "Study Design", icon: StudyIcon },
+      { to: "/study", label: "Study design", icon: StudyIcon },
       { to: "/overview", label: "Overview", icon: OverviewIcon },
       { to: "/settings", label: "Settings", icon: SettingsIcon },
     ],

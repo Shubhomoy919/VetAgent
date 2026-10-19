@@ -4,35 +4,44 @@ import asyncio
 import json
 import time
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from app.agent.manager import RunConflict, manager, result_payload
+from app.agent.manager import BudgetExceeded, RunConflict, manager, result_payload
 from app.config import Settings, get_settings
 from app.data.loaders import DataError, load_cases
 from app.retrieval.service import svtg_index
+from app.security import is_admin, require_admin
 
 router = APIRouter(prefix="/api")
 
 
 class StartRun(BaseModel):
-    case_ids: list[str] = Field(min_length=1, max_length=200)
-    conditions: list[str] | None = None
+    case_ids: list[str] = Field(min_length=1, max_length=500)
+    conditions: list[str] | None = Field(default=None, max_length=5)
     interview: bool = False
     force: bool = False
-    label: str = "bench"
+    label: str = Field(default="bench", max_length=80)
 
 
-@router.post("/runs", status_code=202)
+@router.post("/runs", status_code=202, dependencies=[Depends(require_admin)])
 def start_run(body: StartRun, settings: Settings = Depends(get_settings)) -> dict:
     try:
         state = manager.start(settings, body.case_ids, body.conditions, body.interview, body.force, body.label)
     except RunConflict as e:
         raise HTTPException(status_code=409, detail=str(e)) from e
+    except BudgetExceeded as e:
+        raise HTTPException(status_code=429, detail=str(e)) from e
     except (ValueError, DataError) as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     return state.summary()
+
+
+@router.get("/budget")
+def budget(settings: Settings = Depends(get_settings)) -> dict:
+    """Today's live-model token use against MAX_DAILY_TOKENS, plus the per-run case limit."""
+    return {**manager.budget(settings), "max_cases_per_run": settings.max_cases_per_run}
 
 
 @router.get("/runs/active")
@@ -46,7 +55,7 @@ COMPARE_METRICS = ("dx_top1", "triage_match", "dangerous", "under_triage", "fals
 
 
 @router.get("/runs/compare")
-def compare_runs(a: str = Query(...), b: str = Query(...)) -> dict:
+def compare_runs(a: str = Query(max_length=64), b: str = Query(max_length=64)) -> dict:
     """Two runs side by side: metric rates per shared condition, and cases whose verdict changed."""
     from app.scoring.metrics import build_scorecard
     from app.scoring.verdict import judge
@@ -96,7 +105,7 @@ def compare_runs(a: str = Query(...), b: str = Query(...)) -> dict:
             "n_pairs": len([k for k in la.keys() & lb.keys() if k[1] in shared])}
 
 
-@router.post("/runs/{run_id}/cancel")
+@router.post("/runs/{run_id}/cancel", dependencies=[Depends(require_admin)])
 def cancel_run(run_id: str) -> dict:
     if not manager.cancel(run_id):
         raise HTTPException(status_code=404, detail=f"Run {run_id} is not running")
@@ -158,7 +167,7 @@ def get_run(run_id: str) -> dict:
 
 
 @router.get("/results")
-def case_results(case_id: str = Query(min_length=1), limit: int = Query(default=100, ge=1, le=500)) -> list[dict]:
+def case_results(case_id: str = Query(min_length=1, max_length=40), limit: int = Query(default=100, ge=1, le=500)) -> list[dict]:
     """All stored results for one case across runs (newest first), with verdicts, without traces."""
     case = next((c for c in load_cases() if c.case_id == case_id), None)
     if case is None:
@@ -194,8 +203,22 @@ def get_result(result_id: int) -> dict:
     return p
 
 
+# DAHD's own copy of the guidelines (Department of Animal Husbandry and Dairying, Government of India).
+SVTG_SOURCE_URL = "https://dahd.gov.in/sites/default/files/2024-10/StandardVeterinaryTreatment.pdf"
+
+
+def public_pages() -> set[int]:
+    """Pages cited by stored answers or by a case's gold answer."""
+    gold = {cit.page for c in load_cases() for cit in c.gold_answer.citations if cit.page}
+    return manager.store.cited_pages() | gold
+
+
 @router.get("/svtg/pages/{page}")
-def svtg_page(page: int, settings: Settings = Depends(get_settings)) -> dict:
+def svtg_page(request: Request, page: int = Path(ge=1, le=5000), settings: Settings = Depends(get_settings)) -> dict:
+    """Indexed SVTG text for one PDF page. Public visitors get only pages that a stored answer cites;
+    the PDF itself is never served."""
+    if not is_admin(request, settings) and page not in public_pages():
+        raise HTTPException(status_code=404, detail=f"PDF page {page} is not cited by any stored answer")
     index = svtg_index(settings)
     chunks = [c for c in index.chunks if c.page == page]
     if not chunks:
@@ -204,4 +227,5 @@ def svtg_page(page: int, settings: Settings = Depends(get_settings)) -> dict:
         "page": page,
         "printed_page": chunks[0].printed_page,
         "chunks": [{"chunk_id": c.chunk_id, "section": c.section, "text": c.text} for c in chunks],
+        "source": {"title": "Standard Veterinary Treatment Guidelines (SVTG), DAHD, Government of India", "url": SVTG_SOURCE_URL},
     }

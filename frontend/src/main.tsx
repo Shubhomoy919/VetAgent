@@ -8,7 +8,8 @@ import { router } from "./app/routes";
 import "./styles/global.css";
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { refetchOnWindowFocus: false } },
+  // One quick retry: a dropped connection or a stopped server shows its error within a few seconds.
+  defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1, retryDelay: 800 } },
 });
 
 const root = document.getElementById("root");

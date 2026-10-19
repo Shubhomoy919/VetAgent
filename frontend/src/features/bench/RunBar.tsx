@@ -1,6 +1,8 @@
 import type { CSSProperties } from "react";
+import { useIsAdmin } from "../../api/auth";
 import { useHealth } from "../../api/health";
-import { INTERVIEW_CONDITIONS, resultKey } from "../../api/runs";
+import { INTERVIEW_CONDITIONS, RUN_STATUS_LABEL, resultKey, useBudget } from "../../api/runs";
+import { ReadOnlyNote } from "../../app/Access";
 import { useRun } from "../../app/runState";
 
 interface Props {
@@ -17,6 +19,8 @@ interface Props {
 export function RunBar({ caseId, selected, allIds, interview, force, setInterview, setForce, onOpenCases }: Props) {
   const { run, live, start, cancel, starting } = useRun();
   const { data: health } = useHealth();
+  const admin = useIsAdmin();
+  const { data: budget } = useBudget(admin);
   const running = run?.status === "running";
   const perCase = interview ? INTERVIEW_CONDITIONS.length : 5;
   const busy = running || starting;
@@ -24,7 +28,7 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
   const go = (ids: string[]) => {
     if (ids.length === 0) return;
     const total = ids.length * perCase;
-    if (health?.mode === "live" && total > 10) {
+    if (health?.llm_mode === "live" && total > 10) {
       const ok = window.confirm(
         `Run ${ids.length} case${ids.length > 1 ? "s" : ""} × ${perCase} conditions = ${total} live model runs on ${health.model}? This uses API quota.`,
       );
@@ -48,6 +52,16 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
 
   return (
     <div className="runbar" data-running={running} role="toolbar" aria-label="Run controls">
+      {!admin ? (
+        <div className="runbar-actions">
+          {onOpenCases && (
+            <button type="button" className="btn" onClick={onOpenCases} data-testid="open-cases">
+              Cases{caseId ? ` · ${caseId}` : ""}
+            </button>
+          )}
+          <ReadOnlyNote what="Run cases" />
+        </div>
+      ) : (
       <div className="runbar-actions">
         {onOpenCases && (
           <button type="button" className="btn" onClick={onOpenCases} data-testid="open-cases">
@@ -74,12 +88,18 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
             Owner interview (C0 and C3 only)
           </label>
         </details>
+        {budget && budget.cap > 0 && (
+          <span className={`runbar-budget mono${budget.exhausted ? " is-out" : ""}`} data-testid="budget" title="Live-model tokens used today (UTC) against the daily cap">
+            {budget.exhausted ? "Daily budget reached" : `Budget ${budget.used.toLocaleString("en-US")} / ${budget.cap.toLocaleString("en-US")} tokens`}
+          </span>
+        )}
       </div>
+      )}
       <div className="runbar-progress" aria-live="polite">
         {run && (
           <>
             <span className="mono runbar-count">
-              {run.status === "running" ? "Running" : { done: "Done", done_with_errors: "Done (errors)", cancelled: "Cancelled", failed: "Failed", quota_exhausted: "Quota stop" }[run.status]}{" "}
+              {RUN_STATUS_LABEL[run.status]}{" "}
               {run.n_done}/{run.n_total}
             </span>
             <span
@@ -97,9 +117,11 @@ export function RunBar({ caseId, selected, allIds, interview, force, setIntervie
             </span>
           </>
         )}
-        <button type="button" className="btn btn-danger" disabled={!running} onClick={() => void cancel()}>
-          Cancel
-        </button>
+        {admin && (
+          <button type="button" className="btn btn-danger" disabled={!running} onClick={() => void cancel()}>
+            Cancel run
+          </button>
+        )}
       </div>
       {running && <span className="scanline scanline-bar" aria-hidden="true" />}
     </div>

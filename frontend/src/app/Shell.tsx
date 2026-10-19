@@ -1,9 +1,14 @@
 import { AnimatePresence, motion } from "motion/react";
 import { NavLink, Outlet, useLocation } from "react-router";
+import { useEffect } from "react";
 import { Toaster } from "sonner";
+import { useAuth, useAuthActions } from "../api/auth";
 import { useHealth } from "../api/health";
+import { RUN_STATUS_LABEL } from "../api/runs";
 import { CollapseIcon, ExpandIcon } from "../components/icons";
 import { InkDefs } from "../components/Ink";
+import { AccessDialogProvider } from "./Access";
+import { useAccessDialog } from "./accessDialog";
 import { useKeyPressFeedback } from "../lib/useKeyPressFeedback";
 import { NAV } from "./nav";
 import { useRun } from "./runState";
@@ -21,6 +26,14 @@ function routeTitle(pathname: string): string {
     }
   }
   return "";
+}
+
+/** Browser tab title per route. */
+function useDocumentTitle(pathname: string) {
+  useEffect(() => {
+    const t = routeTitle(pathname);
+    document.title = t ? `${t} · VetAgentBench-IN` : "Page not found · VetAgentBench-IN";
+  }, [pathname]);
 }
 
 function ModePill() {
@@ -41,9 +54,9 @@ function ModePill() {
       </span>
     );
   }
-  const live = data.mode === "live";
+  const live = data.llm_mode === "live";
   return (
-    <span className="pill" data-tone={live ? "live" : "demo"} title={live ? `Live: ${data.provider}` : "No API key configured — sample responses"}>
+    <span className="pill" data-tone={live ? "live" : "demo"} title={live ? `Live: ${data.provider}` : "No API key configured: sample responses"}>
       <span className="pill-dot" aria-hidden="true" />
       {live ? "Live" : "Demo"}
     </span>
@@ -57,6 +70,7 @@ function TopBar() {
     <header className="topbar">
       <h1 className="topbar-title serif">{routeTitle(pathname) || "Not found"}</h1>
       <div className="topbar-meta">
+        <AccessControl />
         <ModePill />
         <span className="readout">
           <span className="readout-label">Model</span>
@@ -70,14 +84,29 @@ function TopBar() {
   );
 }
 
+/** Read-only / unlocked state, with the action to change it. */
+function AccessControl() {
+  const { data } = useAuth();
+  const { open } = useAccessDialog();
+  const { lock } = useAuthActions();
+  if (!data || !data.access_required) return null;
+  if (data.admin) {
+    return (
+      <button type="button" className="btn" onClick={() => void lock()} data-testid="lock">
+        Lock
+      </button>
+    );
+  }
+  return (
+    <button type="button" className="btn" onClick={open} data-testid="unlock" title="Browse freely; the access code unlocks runs, editing, Review and Settings">
+      Read-only · Unlock
+    </button>
+  );
+}
+
 function RunStatus() {
   const { run } = useRun();
-  const text = !run
-    ? "Idle"
-    : run.status === "running"
-      ? `Running ${run.n_done}/${run.n_total}`
-      : { done: "Done", done_with_errors: "Done (errors)", cancelled: "Cancelled", failed: "Failed", quota_exhausted: "Quota stop" }[run.status] +
-        ` ${run.n_done}/${run.n_total}`;
+  const text = !run ? "Idle" : `${RUN_STATUS_LABEL[run.status]} ${run.n_done}/${run.n_total}`;
   const led = !run ? undefined : run.status === "running" ? "running" : run.status === "done" ? "done" : "error";
   return (
     <span className="readout">
@@ -91,9 +120,20 @@ function RunStatus() {
   );
 }
 
+/** Shown when the server cannot be reached (offline, or the service is restarting). */
+function OfflineBanner() {
+  const { error } = useHealth();
+  if (!error) return null;
+  return (
+    <div className="demo-banner" role="alert" data-testid="offline-banner">
+      Can&rsquo;t reach the server. Check your connection; pages show what was already loaded and retry on their own.
+    </div>
+  );
+}
+
 function DemoBanner() {
   const { data } = useHealth();
-  if (data?.mode !== "demo") return null;
+  if (data?.llm_mode !== "demo") return null;
   return (
     <div className="demo-banner" role="status" data-testid="demo-banner">
       Demo mode: sample responses, not live model output
@@ -161,9 +201,11 @@ function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => 
 export function Shell() {
   const location = useLocation();
   useKeyPressFeedback();
+  useDocumentTitle(location.pathname);
   const [collapsed, setCollapsed] = usePersistentFlag("vab.sidebarCollapsed", () => window.innerWidth < 1280);
 
   return (
+    <AccessDialogProvider>
     <div className="shell" data-collapsed={collapsed}>
       <a className="skip-link" href="#content">
         Skip to content
@@ -171,6 +213,7 @@ export function Shell() {
       <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div className="main">
         <TopBar />
+        <OfflineBanner />
         <DemoBanner />
         <main id="content" className="content" tabIndex={-1}>
           <AnimatePresence mode="wait" initial={false}>
@@ -189,8 +232,9 @@ export function Shell() {
         <ShortcutHelp />
         <Toaster position="bottom-right" toastOptions={{ unstyled: true, classNames: { toast: "toast", error: "toast-error" } }} />
         <InkDefs />
-        <footer className="footer">Research prototype — not for clinical use. Consult a registered veterinarian.</footer>
+        <footer className="footer">Research prototype, not for clinical use. Consult a registered veterinarian.</footer>
       </div>
     </div>
+    </AccessDialogProvider>
   );
 }

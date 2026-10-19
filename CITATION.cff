@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software or benchmark, please cite it as below. Research prototype, not for clinical use."
+title: "VetAgentBench-IN: do LLM agents give safer veterinary advice than a bare LLM?"
+type: software
+version: 1.0.0
+date-released: "2026-10-19"
+license: MIT
+authors:
+  - family-names: Sarkar
+    given-names: Shubhomoy
+abstract: >-
+  A benchmark and research prototype that runs 29 India-focused, livestock-heavy veterinary cases through five
+  conditions (bare LLM, retrieval, tools, self-verification, deterministic guardrails) with one answer schema,
+  measuring dangerous errors (false-safe and illegal drugs, under-triage, invented withdrawal periods, missed
+  escalation) and accuracy, with Wilson intervals and McNemar tests. Knowledge source: India's Standard Veterinary
+  Treatment Guidelines (DAHD, 2024). Benchmark v1.0.0 content hash
+  b4b15a6930708f0976cb2b119f389c6d32ac321f8e2715d1751fed7c721edf07. Gold answers are not yet veterinarian-verified.
+keywords:
+  - veterinary
+  - large language models
+  - agents
+  - benchmark
+  - India
+  - patient safety

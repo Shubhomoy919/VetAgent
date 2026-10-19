@@ -1,6 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 import type { DrugStatus, Triage } from "./cases";
 
+export type RunStatus = "running" | "done" | "done_with_errors" | "cancelled" | "failed" | "quota_exhausted" | "budget_exhausted" | "interrupted";
+
+/** One wording for run states everywhere (top bar, run bar, toasts, Runs table). */
+export const RUN_STATUS_LABEL: Record<RunStatus, string> = {
+  running: "Running",
+  done: "Done",
+  done_with_errors: "Done with errors",
+  cancelled: "Cancelled",
+  failed: "Failed",
+  quota_exhausted: "Stopped: provider quota",
+  budget_exhausted: "Stopped: daily budget",
+  interrupted: "Interrupted by a restart",
+};
+
+export interface Budget {
+  cap: number;
+  used: number;
+  remaining: number | null;
+  exhausted: boolean;
+  max_cases_per_run: number;
+}
+
 export type ConditionId = "C0" | "C1" | "C2" | "C3" | "C4";
 export const CONDITION_IDS: ConditionId[] = ["C0", "C1", "C2", "C3", "C4"];
 export const INTERVIEW_CONDITIONS: ConditionId[] = ["C0", "C3"];
@@ -93,7 +115,7 @@ export interface ResultSummary {
 
 export interface RunSummary {
   run_id: string;
-  status: "running" | "done" | "done_with_errors" | "cancelled" | "failed" | "quota_exhausted";
+  status: RunStatus;
   n_done: number;
   n_total: number;
   case_ids: string[];
@@ -115,6 +137,7 @@ export interface SvtgPage {
   page: number;
   printed_page: number | null;
   chunks: { chunk_id: string; section: string; text: string }[];
+  source: { title: string; url: string };
 }
 
 async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
@@ -132,7 +155,8 @@ async function request<T>(method: string, url: string, body?: unknown): Promise<
     } catch {
       // non-JSON body
     }
-    throw new Error(`${method} ${url} → ${res.status}: ${detail}`);
+    // The server's message is written for people (budget, access code, limits); show it as is.
+    throw new Error(detail);
   }
   return (await res.json()) as T;
 }
@@ -142,6 +166,10 @@ export const cancelRun = (id: string) => request<{ run_id: string }>("POST", `/a
 export const getActiveRun = () => request<RunSummary | null>("GET", "/api/runs/active");
 export const getResult = (id: number) => request<ResultSummary>("GET", `/api/results/${id}`);
 export const getSvtgPage = (page: number) => request<SvtgPage>("GET", `/api/svtg/pages/${page}`);
+
+export function useBudget(enabled = true) {
+  return useQuery({ queryKey: ["budget"], queryFn: () => request<Budget>("GET", "/api/budget"), enabled, refetchInterval: 60_000 });
+}
 
 export type LatestResults = Record<string, Partial<Record<ConditionId, ResultSummary>>>;
 

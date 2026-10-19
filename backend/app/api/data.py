@@ -2,16 +2,20 @@
 
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel
 
 from app.config import Settings, get_settings
 from app.data import editor
+from app.data.benchmark import export_meta
 from app.data.loaders import DataError, load_cases, load_drugs
 from app.data.models import CASE_ID_RE, PREFIX_SPECIES, QUESTION_TYPES, WEIGHT_RANGES, Case, DrugRow
 from app.retrieval.service import svtg_index
+from app.security import require_admin
 from app.tools.drugs import lookup_drug_safety
+
+admin = [Depends(require_admin)]
 
 router = APIRouter(prefix="/api")
 
@@ -63,25 +67,25 @@ def list_cases() -> list[Case]:
 @router.get("/cases/export")
 def export_cases() -> Response:
     try:
-        text = editor.export_cases_json()
+        text = editor.export_cases_json(export_meta())
     except DataError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
     return Response(text, media_type="application/json",
                     headers={"Content-Disposition": 'attachment; filename="cases.json"'})
 
 
-@router.post("/cases/import")
-def import_cases(items: Any = Body(...), mode: str = Query(default="merge")) -> dict:
+@router.post("/cases/import", dependencies=admin)
+def import_cases(items: Any = Body(...), mode: str = Query(default="merge", max_length=10)) -> dict:
     return editor.import_cases(items, mode)
 
 
-@router.post("/cases", status_code=201, response_model=Case)
+@router.post("/cases", status_code=201, response_model=Case, dependencies=admin)
 def create_case(data: dict[str, Any] = Body(...)) -> Case:
     return editor.save_case(data, None)
 
 
 @router.get("/cases/{case_id}", response_model=Case)
-def get_case(case_id: str) -> Case:
+def get_case(case_id: str = Path(max_length=40)) -> Case:
     for case in _cases():
         if case.case_id == case_id:
             return case
@@ -103,12 +107,12 @@ def case_dose(case_id: str) -> dict[str, Any]:
     return {"case_id": case_id, "weight_kg": case.signalment.weight_kg, **info}
 
 
-@router.put("/cases/{case_id}", response_model=Case)
+@router.put("/cases/{case_id}", response_model=Case, dependencies=admin)
 def update_case(case_id: str, data: dict[str, Any] = Body(...)) -> Case:
     return editor.save_case(data, case_id)
 
 
-@router.delete("/cases/{case_id}", status_code=204)
+@router.delete("/cases/{case_id}", status_code=204, dependencies=admin)
 def remove_case(case_id: str) -> Response:
     editor.delete_case(case_id)
     return Response(status_code=204)
@@ -123,28 +127,31 @@ def list_drugs() -> list[DrugRow]:
 
 @router.get("/drugs/export")
 def export_drugs() -> Response:
-    return Response(editor.drugs_csv(_drugs()), media_type="text/csv; charset=utf-8",
+    return Response(editor.drugs_csv(_drugs(), export_meta()), media_type="text/csv; charset=utf-8",
                     headers={"Content-Disposition": 'attachment; filename="drug_table.csv"'})
 
 
-@router.post("/drugs/import")
-async def import_drugs(request: Request, mode: str = Query(default="merge")) -> dict:
-    text = (await request.body()).decode("utf-8-sig")
+@router.post("/drugs/import", dependencies=admin)
+async def import_drugs(request: Request, mode: str = Query(default="merge", max_length=10)) -> dict:
+    try:
+        text = (await request.body()).decode("utf-8-sig")
+    except UnicodeDecodeError as e:
+        raise HTTPException(status_code=400, detail="The CSV file must be UTF-8 text") from e
     return editor.import_drugs_csv(text, mode)
 
 
-@router.post("/drugs", status_code=201, response_model=DrugRow)
+@router.post("/drugs", status_code=201, response_model=DrugRow, dependencies=admin)
 def create_drug(data: dict[str, Any] = Body(...)) -> DrugRow:
     return editor.save_drug(data, None)
 
 
-@router.put("/drugs", response_model=DrugRow)
-def update_drug(key: str = Query(..., description="species|drug of the row to update"), data: dict[str, Any] = Body(...)) -> DrugRow:
+@router.put("/drugs", response_model=DrugRow, dependencies=admin)
+def update_drug(key: str = Query(..., max_length=120, description="species|drug of the row to update"), data: dict[str, Any] = Body(...)) -> DrugRow:
     return editor.save_drug(data, key)
 
 
-@router.delete("/drugs", status_code=204)
-def remove_drug(key: str = Query(...)) -> Response:
+@router.delete("/drugs", status_code=204, dependencies=admin)
+def remove_drug(key: str = Query(..., max_length=120)) -> Response:
     editor.delete_drug(key)
     return Response(status_code=204)
 
@@ -166,7 +173,7 @@ class SearchResult(BaseModel):
     passages: list[Passage]
 
 
-@router.get("/search", response_model=SearchResult)
+@router.get("/search", response_model=SearchResult, dependencies=admin)
 def search(
     q: str = Query(min_length=1, max_length=500),
     k: int = Query(default=5, ge=1, le=20),

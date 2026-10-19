@@ -48,7 +48,7 @@ test("Scorecard renders real numbers, charts, tables and exports CSV", async ({ 
   const target = path.join(EXPORTS, download.suggestedFilename().replace(".csv", "-ui.csv"));
   await download.saveAs(target);
   const csv = fs.readFileSync(target, "utf-8");
-  expect(csv.split("\n")[0]).toContain("metric,label,better,condition,k,n,rate,ci_low,ci_high");
+  expect(csv.split("\n").find((l) => !l.startsWith("#"))).toContain("metric,label,better,condition,k,n,rate,ci_low,ci_high");
   expect(csv).toContain("dx_top1");
   console.log(`CSV saved: ${target}`);
 

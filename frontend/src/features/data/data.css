@@ -1,4 +1,4 @@
-/* Cases and Drug Table pages. */
+/* Cases and Drug table pages. */
 
 .datapage {
   height: 100%;
@@ -157,11 +157,11 @@ a.btn {
   padding: 0 4px;
   border: 1px solid var(--safe);
   border-radius: 2px;
+  text-transform: uppercase;
   font-family: var(--font-mono);
   font-size: 9.5px;
   font-weight: 500;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--safe-text);
 }
 
@@ -176,7 +176,6 @@ a.btn {
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .status-pill[data-status="safe"] {

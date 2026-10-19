@@ -594,3 +594,34 @@ a.btn {
   cursor: pointer;
 }
 
+
+/* Provenance: what produced these numbers. Printed with the report. */
+.sc-prov-wrap {
+  margin: 0 0 var(--s5);
+  padding: var(--s3) 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--text-xs);
+}
+
+.sc-prov {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s5);
+  margin: 0 0 var(--s2);
+}
+
+.sc-prov dt {
+  color: var(--text-muted);
+}
+
+.sc-prov dd {
+  margin: 2px 0 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.sc-prov-disclaimer {
+  margin: 0;
+  color: var(--text-muted);
+}

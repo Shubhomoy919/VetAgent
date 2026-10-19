@@ -13,6 +13,18 @@ const TONE: Record<StampKind, "good" | "danger" | "info"> = {
   ESCALATED: "info",
 };
 
+/** What each stamp means, for screen readers (the visible stamp is decorative uppercase). */
+const MEANING: Record<StampKind, string> = {
+  CORRECT: "Verdict: correct diagnosis.",
+  "FALSE-SAFE": "Verdict: false-safe, a drug that should not be given was called safe.",
+  "ILLEGAL DRUG": "Verdict: illegal drug, a drug banned for animal use in India was recommended.",
+  "DO NOT GIVE": "Verdict: do not give, the guardrail blocked a banned or contraindicated drug.",
+  "UNDER-TRIAGE": "Verdict: under-triage, the answer is less urgent than the gold answer.",
+  "MISSED ESCALATION": "Verdict: missed escalation, the case needed a vet or a report and the answer did not escalate.",
+  "WITHDRAWAL ERROR": "Verdict: withdrawal error, the withdrawal period was wrong or invented.",
+  ESCALATED: "Verdict: escalated to a veterinarian or the authorities.",
+};
+
 /** Stable per-stamp tilt between −2° and −5°, so a row of stamps looks hand-applied, not cloned. */
 function tilt(seed: string): number {
   let h = 0;
@@ -32,7 +44,8 @@ export function Stamp({ kind, delay = 0, seed = "" }: { kind: StampKind; delay?:
       transition={{ duration: 0.26, ease: [0.2, 0.8, 0.2, 1], times: [0, 0.7, 1], delay }}
       style={{ rotate: r }}
     >
-      {kind}
+      <span className="visually-hidden">{MEANING[kind]}</span>
+      <span aria-hidden="true">{kind}</span>
     </motion.span>
   );
 }

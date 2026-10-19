@@ -131,7 +131,6 @@ a {
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: 600;
-  font-variant-caps: all-small-caps;
   letter-spacing: var(--tracking-label);
   color: var(--text-muted);
 }

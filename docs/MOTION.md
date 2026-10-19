@@ -35,3 +35,21 @@ rule are switched off. The e2e suite checks that `--dur` is `0ms` under reduced 
 **Removed:** theme ink-spread transition, View Transitions for routes and cases, the printer-strip pass,
 corner-mark draw, coach-mark slip, launcher slide, misregistration settle, develop washes, plate morph,
 registration-mark hover draw, chart crosshair.
+
+## Keyframe registry
+
+Every `@keyframes` in the stylesheets, each defined once. `npm --prefix frontend run check:motion` fails if a
+keyframe is missing here, defined twice, loops (other than the LED), animates a property outside the list
+above, or uses a literal duration outside 80–320 ms.
+
+| Keyframes | Animates | Used by |
+|---|---|---|
+| `ph-rule` | transform (scaleX) | Page header rule |
+| `vt-draw` | stroke-dashoffset | Vital-signs trace segments |
+| `scan-in` | transform (scaleX) | Running card / run bar rule |
+| `log-spine` | transform (scaleY) | Trace log spine |
+| `type-in` | clip-path | Trace log lines typing in |
+| `ink-draw` | stroke-dashoffset | Section heading underline |
+| `led-pulse` | opacity, 900 ms, alternates (the only loop) | Running LED |
+| `count-up` | `--count` | Scorecard numbers |
+| `sec-rise` | opacity, transform | Overview / Study sections (scroll-driven) |

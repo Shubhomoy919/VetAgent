@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { ConditionId } from "./runs";
+import type { ConditionId, RunStatus } from "./runs";
 
 export interface Rate {
   k: number;
@@ -55,13 +55,33 @@ export interface RunRow {
   conditions: ConditionId[];
   case_ids: string[];
   interview: boolean;
-  status: string;
+  status: RunStatus;
   n_total: number;
   n_done: number;
+  finished_at?: string | null;
+  temperature?: number | null;
+  benchmark_version?: string | null;
+  benchmark_hash?: string | null;
+}
+
+/** What produced a scorecard: shown on the page and written into every export. */
+export interface Provenance {
+  disclaimer: string;
+  benchmark_version: string;
+  benchmark_hash: string;
+  run_id: string;
+  run_date: string;
+  provider: string;
+  model: string;
+  prompt_version: string;
+  temperature: number | null;
+  run_benchmark_version: string | null;
+  run_benchmark_hash: string | null;
 }
 
 export interface Scorecard {
   run: RunRow;
+  provenance: Provenance;
   conditions: ConditionId[];
   n_cases: number;
   metrics: MetricRow[];

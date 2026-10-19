@@ -47,7 +47,7 @@ test("Scorecard renders and exports CSV", async ({ page }) => {
   fs.mkdirSync(EXPORTS, { recursive: true });
   const target = path.join(EXPORTS, `m8-${download.suggestedFilename()}`);
   await download.saveAs(target);
-  expect(fs.readFileSync(target, "utf-8").split("\n")[0]).toContain("metric,label,better,condition,k,n,rate,ci_low,ci_high");
+  expect(fs.readFileSync(target, "utf-8").split("\n").find((l) => !l.startsWith("#"))).toContain("metric,label,better,condition,k,n,rate,ci_low,ci_high");
   expect(errors).toEqual([]);
 });
 

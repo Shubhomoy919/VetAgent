@@ -14,7 +14,6 @@
   font-family: var(--font-mono);
   font-size: 9.5px;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--meter-ink);
   background: var(--meter-off);
 }

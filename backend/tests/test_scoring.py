@@ -217,10 +217,14 @@ def test_scorecard_csv_and_json_export(client):
     assert r.status_code == 200
     assert r.headers["content-type"].startswith("text/csv")
     assert f"scorecard-{run_id}.csv" in r.headers["content-disposition"]
-    rows = list(csv.reader(io.StringIO(r.text)))
+    lines = r.text.splitlines()
+    assert lines[0].startswith("# disclaimer: Research prototype") and any(ln.startswith("# benchmark_hash: ") for ln in lines)
+    rows = list(csv.reader(io.StringIO("\n".join(ln for ln in lines if not ln.startswith("#")))))
     assert rows[0] == CSV_HEADER and len(rows) > 10
     j = c.get("/api/scorecard/export.json", params={"run_id": run_id})
     assert j.json()["run"]["id"] == run_id
+    prov = j.json()["provenance"]
+    assert prov["run_id"] == run_id and prov["model"] and prov["prompt_version"] and prov["benchmark_hash"]
 
 
 def test_scorecard_404s(client):

@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # Python
 .venv/
@@ -30,3 +31,8 @@ Thumbs.db
 .idea/
 data/exports/
 data/settings.json
+
+# Production build and local server artefacts
+data/backups/
+frontend/lighthouse/
+data/*.pdf

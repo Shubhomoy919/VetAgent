@@ -1,3 +1,5 @@
+import { useIsAdmin } from "../../api/auth";
+import { useAccessDialog } from "../../app/accessDialog";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
 import { useSearchParams } from "react-router";
@@ -71,6 +73,8 @@ export function BenchPage() {
   const { data: cases, error, isPending } = useCases();
   const { data: latest } = useLatestResults(interview);
   const { live, run, start, starting } = useRun();
+  const admin = useIsAdmin();
+  const { open: openAccess } = useAccessDialog();
   const selected = cases?.find((c) => c.case_id === selectedId);
 
 
@@ -144,11 +148,15 @@ export function BenchPage() {
       if (e.key.toLowerCase() !== "r" || !selectedId) return;
       if (run?.status === "running" || starting) return;
       e.preventDefault();
+      if (!admin) {
+        openAccess();
+        return;
+      }
       void start({ case_ids: [selectedId], interview, force: e.shiftKey || force });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [selectedId, interview, force, run?.status, starting, start]);
+  }, [selectedId, interview, force, run?.status, starting, start, admin, openAccess]);
 
   const closeDrawer = useCallback(() => setCitePage(null), []);
 

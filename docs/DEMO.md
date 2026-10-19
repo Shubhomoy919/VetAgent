@@ -1,57 +1,60 @@
-# Demo script — VetAgentBench-IN (about 10 minutes)
+# Meeting walkthrough: VetAgentBench-IN v1.0.0 (about 10 minutes)
 
-Research prototype — not for clinical use. Consult a registered veterinarian.
+Research prototype, not for clinical use. Consult a registered veterinarian.
 
-## Before the meeting (15 minutes)
+## Before the meeting (10 minutes)
 
-1. **Choose live or demo.**
-   - *Live (recommended):* create `.env` from `.env.example`, set `LLM_PROVIDER=gemini` and `GEMINI_API_KEY=…`
-     (and optionally `PRICE_INPUT_PER_MTOK` / `PRICE_OUTPUT_PER_MTOK` from the provider's price page).
-   - *Demo (no key):* leave the key empty and set `DEMO_DELAY_MS=250` so the streaming is visible. The banner
-     "Demo mode: sample responses, not live model output" stays on every page. **Do not present demo numbers as results.**
-2. Start the app: `npm run dev` (or `run.bat`) and open http://localhost:5173.
-3. Settings → **Test connection** → expect "OK · Connected" (live) or "Demo mode" (demo).
-4. Produce real numbers: Bench → **Run all (29)** — 145 condition runs. In live mode allow several minutes; the run
-   bar shows progress and can be cancelled. Then open Scorecard to check it scored the new run.
-5. Optional for Review: rate a handful of answers so the agreement panel is populated.
+1. **Pick where to present from.**
+   - *Deployed site (recommended):* open the production URL. The public pages already show the frozen v1.0.0
+     results (one complete live run, 145 answers), so nothing needs to run and no credits are spent.
+   - *Laptop:* `docker compose up -d` (see [DEPLOY.md](DEPLOY.md) §6) and open http://localhost:8000, or
+     `npm run dev` for the development build (http://localhost:5173).
+2. Check `/api/health`: `"benchmark": {"version": "1.0.0", "frozen": true}`, `"pdf_loaded": true`,
+   `"counts": {"runs": ≥ 1}`.
+3. Have the access code ready, but **stay read-only** until the live-run step. Check today's budget in the run bar
+   after unlocking (`Budget … / … tokens`).
+4. Optional: open the Scorecard once so the fonts and charts are cached.
 
-## The walk-through
+## The walkthrough
 
 | Time | Page | What to show | What to say |
 |---|---|---|---|
-| 0:00 | **Overview** | Status strip, the five conditions, headline numbers | The question: do retrieval, tools, self-verification and hard rules make advice safer? We measure dangerous errors first, accuracy second. |
-| 1:00 | **Study Design** | The ablation ladder | Each condition adds exactly one component; same model, same answer schema, temperature 0. Owner-interview variant hides the case. |
-| 2:00 | **Bench** → BOV-WD-007 | Signalment, owner narrative, question; press **G** to reveal gold (2-day milk withdrawal, SVTG p.175); press **G** again | A real Indian scenario: buparvaquone for theileriosis; when can the milk be sold? |
-| 3:00 | **Bench** → press **Shift+R** | Steps streaming into C0–C4; the trace (tool calls with latency and tokens); stamps landing | C0 answers from memory; C1 cites SVTG pages; C2 looks up the drug table (dose maths in Python); C3 checks its claims; C4 applies rules. Click a citation chip → the SVTG passage. |
-| 5:00 | **Bench** → BOV-009 (type BOV-009 in the case search) | Ketoprofen question | The SVTG itself still lists a ketoprofen dose, but ketoprofen is banned for animal use in India. Watch whether each condition catches it; C4's `banned_drug` rule fires. |
-| 6:00 | **Bench** → FEL-SAFE-004 | Paracetamol in a cat | Not in the SVTG (livestock only). Retrieval cannot help; the drug table and rules must. |
-| 7:00 | **Scorecard** | Tiles, dot-and-whisker charts, McNemar table, breakdowns; **CSV** export | Every rate has a 95% Wilson interval; McNemar compares adjacent conditions on the same cases. With 29 cases intervals are wide — this is a pilot. |
-| 8:30 | **Review** | Blind rating with **1 / 2 / N**; reveal condition and auto verdict; κ panel | The automatic scorer must be checked by a veterinarian: Cohen's κ between vet and scorer. |
-| 9:30 | **Cases / Drug Table** | UNVERIFIED tags, an edit with validation (e.g. cattle weight 90 kg → rejected) | All gold answers and drug rows await veterinary sign-off; numbers only where a source states them. |
+| 0:00 | **Overview** | The question, the five conditions, the figures; the benchmark line "v1.0.0, content hash b4b15a693070, frozen 2026-10-19" | Do retrieval, tools, self-verification and hard rules make advice safer? Dangerous errors first, accuracy second. The case set is frozen and hashed, so every number can be traced to this exact data. |
+| 1:00 | **Study design** | The ablation switchboard | One component per step; same model, same answer schema, temperature 0. The owner-interview variant hides the case behind a simulated owner. |
+| 2:00 | **Bench** → BOV-WD-007 (read-only) | Signalment, owner narrative; press **G** for the gold answer (milk withdrawal 2 days, SVTG p.175); the five stored answers with stamps, dose dial and triage strip | A real Indian scenario: buparvaquone for theileriosis; when can the milk go back in the can? C0 answers from memory; C1–C4 cite SVTG pages. |
+| 3:00 | **Bench** → a citation | Click a page chip; the passage drawer shows the cited SVTG text and a link to DAHD's copy | Only the passages the answers cite are shown. The PDF itself is never served. |
+| 4:00 | **Bench** → **Read-only · Unlock** → access code → **Run case** (or Shift+R to force) | Steps stream into C0–C4 live, traces fill, stamps land | Live run on the deployed model. The run bar shows today's token budget; runs stop at the daily cap. |
+| 5:30 | **Bench** → BOV-009, FEL-SAFE-004 | Ketoprofen in cattle; paracetamol in a cat | The SVTG still lists a ketoprofen dose although ketoprofen is banned for animal use in India; C4's `banned_drug` rule says "do not give". The SVTG has no cat chapter, so the drug table and rules have to catch paracetamol. |
+| 6:30 | **Scorecard** | Provenance strip (model, prompt v2, temperature 0, benchmark v1.0.0, date); tiles; dot-and-whisker charts; McNemar table; **Export CSV** | False-safe 17% → 0% and illegal-drug 50% → 0% from C0 to C2–C4, but on 6 and 2 cases: the intervals are wide and this is a pilot. The CSV carries the disclaimer, benchmark hash and model in its header. |
+| 8:00 | **Review** (unlocked) | Blind rating with **1 / 2 / N**; the agreement panel | The automatic scorer must be checked by a veterinarian: Cohen's κ between vet and scorer. That review is the next step. |
+| 9:00 | **Cases / Drug table** | UNVERIFIED tags in the second column; with the code unlocked, an edit rejected by validation (cattle weight 90 kg) | Every gold answer and drug row awaits veterinary sign-off; numbers only where a source states them. |
+| 9:30 | Top bar → **Lock** | Back to read-only | What the public sees: everything above except running, editing, Review and Settings. |
 
 ## Shortcuts worth showing
 
-**?** shortcut sheet · J/K move · R run · Shift+R force re-run · 1–5 jump to a condition ·
-G gold · X select for batch run · Review: 1 / 2 / N.
+**?** shortcut sheet · J/K move · R run · Shift+R force re-run · 1–5 jump to a condition · G gold ·
+X select for batch run · Review: 1 / 2 / N.
 
 ## Honest caveats to state
 
-- The SVTG has no dog or cat chapters; companion-animal cases are sourced from general veterinary toxicology.
-- Withdrawal periods are rarely stated in the SVTG; three of four withdrawal cases test refusal to invent a number.
-- Gold answers, triage and escalation labels are the author's judgments pending veterinary review.
-- Ban notifications (diclofenac, ketoprofen, aceclofenac) are recorded by year; gazette numbers still need verifying.
-- 29 cases: treat p-values as exploratory.
+- 29 cases and one model: treat p-values as exploratory, and differences between conditions as hypotheses.
+- Gold answers, triage and escalation labels are the author's judgement pending veterinary review.
+- The SVTG has no dog or cat chapters; companion-animal cases come from general veterinary toxicology.
+- Withdrawal periods are rarely stated in the SVTG; three of the four withdrawal cases test refusal to invent one.
+- Ban notifications (diclofenac, ketoprofen, aceclofenac) are recorded by year; gazette numbers still need checking.
 
 ## If something goes wrong
 
-- **Top bar says "Backend offline":** the API is not running on 127.0.0.1:8010 — restart `npm run dev`.
-- **A condition card shows an error:** the real provider error is printed on the card (quota, invalid key, …).
-  Fix it in `.env`/Settings and press Shift+R.
-- **Port 8000 is busy:** irrelevant — this project uses 8010.
-- **Live provider fails during the meeting:** remove the key (or set the provider to Demo in Settings) and say so;
-  the app keeps working with clearly labelled sample responses.
+- **"Can't reach the server" banner / "Backend offline" pill:** the service is down or restarting; the health
+  check restarts it. Stored pages keep what they loaded.
+- **Run refused: "Daily token budget reached":** the cap is working; show the stored results instead, or raise
+  `MAX_DAILY_TOKENS` on the host after the meeting.
+- **"Too many wrong codes":** the lockout is working; wait 15 minutes or present read-only.
+- **A condition card shows an error:** the provider's real error is printed on the card (quota, key). Present
+  the stored run instead.
 
 ## Screenshots
 
-`docs/screenshots/<page>-<1440|1024>.png` (regenerated by the e2e suite) — Bench, Runs, Review, Cases, Drug Table, Scorecard,
-Study Design, Overview, Settings. Milestone evidence screenshots are the `m1-` … `m7-` files.
+`docs/screenshots/release/<page>-<state>-<1440|1024|768>.png`: every page read-only and unlocked, the access
+prompt and dialog, loading, empty, offline and 404 states. Regenerate them against a running production build
+with `npx playwright test -c playwright.release.config.ts screens`.

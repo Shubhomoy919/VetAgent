@@ -1,3 +1,4 @@
+import { AccessGate } from "../../app/Access";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -48,7 +49,7 @@ function SettingsForm({ view }: { view: SettingsView }) {
   const [test, setTest] = useState<TestResult | null>(null);
   const [testing, setTesting] = useState(false);
   const set = (k: keyof SettingsValues) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
-  const tag = (k: keyof SettingsValues) => (view.overridden.includes(k) ? "overridden in settings.json" : "from .env / default");
+  const tag = (k: keyof SettingsValues) => (view.overridden.includes(k) ? "overridden here" : "from the environment / default");
   const refresh = () =>
     Promise.all(["settings", "health", "usage"].map((k) => qc.invalidateQueries({ queryKey: [k] })));
 
@@ -86,7 +87,7 @@ function SettingsForm({ view }: { view: SettingsView }) {
   };
 
   const reset = async () => {
-    if (!window.confirm("Remove all overrides and go back to .env values?")) return;
+    if (!window.confirm("Remove all overrides and go back to the environment values?")) return;
     const v = await resetSettings();
     setForm(toForm(v.values));
     setErrors({ fields: {}, other: [] });
@@ -165,13 +166,13 @@ function SettingsForm({ view }: { view: SettingsView }) {
                 ? "file found but could not be read"
                 : "file not found"}
           </span>
-          <span className="ff-hint mono">{form.svtg_pdf_path} · set SVTG_PDF_PATH in .env to change it</span>
+          <span className="ff-hint mono">{form.svtg_pdf_path} · set SVTG_PDF_PATH in the server environment to change it</span>
         </div>
       </FormSection>
 
       <div className="editor-actions">
         <button type="button" className="btn" onClick={() => void reset()} disabled={view.overridden.length === 0}>
-          Reset to .env
+          Reset to environment
         </button>
         <div className="editor-actions-right">
           <span className="ff-hint">Saved to <span className="mono">{view.overrides_file}</span></span>
@@ -212,16 +213,16 @@ function Usage() {
                 <tr key={r.provider + r.model} className="nohover">
                   <td className="mono">{r.provider}</td>
                   <td className="mono">{r.model}</td>
-                  <td className="num mono">{r.results.toLocaleString("en-IN")}</td>
-                  <td className="num mono">{r.tokens_in.toLocaleString("en-IN")}</td>
-                  <td className="num mono">{r.tokens_out.toLocaleString("en-IN")}</td>
+                  <td className="num mono">{r.results.toLocaleString("en-US")}</td>
+                  <td className="num mono">{r.tokens_in.toLocaleString("en-US")}</td>
+                  <td className="num mono">{r.tokens_out.toLocaleString("en-US")}</td>
                   <td className="num mono">{r.cost_usd === null ? `unknown (${r.cost_unknown})` : `$${r.cost_usd.toFixed(4)}`}</td>
                 </tr>
               ))}
               <tr className="nohover set-total">
                 <th scope="row" colSpan={2}>Total</th>
-                <td className="num mono">{data.total_results.toLocaleString("en-IN")}</td>
-                <td className="num mono" colSpan={2}>{data.total_tokens.toLocaleString("en-IN")} tokens</td>
+                <td className="num mono">{data.total_results.toLocaleString("en-US")}</td>
+                <td className="num mono" colSpan={2}>{data.total_tokens.toLocaleString("en-US")} tokens</td>
                 <td className="num mono">{data.total_cost_usd === null ? "unknown" : `$${data.total_cost_usd.toFixed(4)}`}</td>
               </tr>
             </tbody>
@@ -236,6 +237,14 @@ function Usage() {
 }
 
 export function SettingsPage() {
+  return (
+    <AccessGate title="Settings" plate="09" purpose="Provider, model, temperature and step limits change how new runs behave, so they are kept behind the study's access code.">
+      <SettingsContent />
+    </AccessGate>
+  );
+}
+
+function SettingsContent() {
   const { data, error, isPending } = useSettings();
   return (
     <div className="datapage settings" data-testid="settings-page">
@@ -243,8 +252,8 @@ export function SettingsPage() {
         <div>
           <PageTitle plate="09">Settings</PageTitle>
           <p className="dp-sub">
-            Non-secret settings saved here override <span className="mono">.env</span>. API keys stay in{" "}
-            <span className="mono">.env</span> only.
+            Non-secret settings saved here override the server environment (<span className="mono">.env</span> locally).
+            API keys stay in the environment only and are never shown.
           </p>
         </div>
       </header>

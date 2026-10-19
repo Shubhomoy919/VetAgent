@@ -139,7 +139,7 @@
   display: grid;
   align-content: start;
   gap: 2px;
-  padding: var(--s3) var(--s3) var(--s4) 0;
+  padding: var(--s3) var(--s4) var(--s4);
   border-bottom: var(--hairline);
 }
 

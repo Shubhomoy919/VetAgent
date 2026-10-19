@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 
 from app.agent.manager import manager
+from app.data.benchmark import export_meta
 from app.data.loaders import DataError, load_cases
 from app.scoring.metrics import CSV_HEADER, build_scorecard, scorecard_csv_rows
 
@@ -39,7 +40,23 @@ def scorecard_for(run_id: str | None) -> dict:
         cases = {c.case_id: c for c in load_cases()}
     except DataError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
-    return build_scorecard(run, manager.store.results(rid), cases)
+    sc = build_scorecard(run, manager.store.results(rid), cases)
+    sc["provenance"] = provenance(run)
+    return sc
+
+
+def provenance(run: dict) -> dict:
+    """What produced these numbers: shown on the Scorecard and written into every export."""
+    return export_meta({
+        "run_id": run["id"],
+        "run_date": run["created_at"],
+        "provider": run["provider"],
+        "model": run["model"],
+        "prompt_version": run["prompt_version"],
+        "temperature": run.get("temperature"),
+        "run_benchmark_version": run.get("benchmark_version"),
+        "run_benchmark_hash": run.get("benchmark_hash"),
+    })
 
 
 @router.get("")
@@ -51,6 +68,8 @@ def scorecard(run_id: str | None = Query(default=None)) -> dict:
 def export_csv(run_id: str | None = Query(default=None)) -> Response:
     sc = scorecard_for(run_id)
     buf = io.StringIO()
+    for k, v in sc["provenance"].items():
+        buf.write(f"# {k}: {'' if v is None else v}\r\n")
     w = csv.writer(buf)
     w.writerow(CSV_HEADER)
     w.writerows(scorecard_csv_rows(sc))

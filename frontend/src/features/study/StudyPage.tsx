@@ -258,7 +258,7 @@ export function StudyPage() {
             <li>Withdrawal periods are rarely stated in the SVTG; most withdrawal cases test refusal to invent a number.</li>
             <li>Gold answers, triage and escalation labels are author judgments pending veterinary review.</li>
             <li>29 cases give wide intervals; this is a pilot to size a larger study.</li>
-            <li>Research prototype — not for clinical use.</li>
+            <li>Research prototype, not for clinical use.</li>
           </ul>
         </section>
       </div>

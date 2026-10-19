@@ -85,7 +85,7 @@ export function DoseDial({ dose, modelDose, seed }: Props) {
             {modelDose !== null && <span className="dial-bad"> · model dosed {fmt(modelDose)} mg</span>}
           </span>
         ) : noData ? (
-          <span className="dial-note dial-nodata mono">NO DATA — UNVERIFIED{modelDose !== null ? ` · model ${fmt(modelDose)} mg` : ""}</span>
+          <span className="dial-note dial-nodata mono">No data · UNVERIFIED{modelDose !== null ? ` · model ${fmt(modelDose)} mg` : ""}</span>
         ) : (
           <>
             <span className="dial-value serif">{modelDose === null ? "—" : `${fmt(modelDose)} mg`}</span>

@@ -27,7 +27,10 @@ CREATE TABLE IF NOT EXISTS runs (
     status TEXT NOT NULL DEFAULT 'running',
     n_total INTEGER NOT NULL,
     n_done INTEGER NOT NULL DEFAULT 0,
-    finished_at TEXT
+    finished_at TEXT,
+    temperature REAL,
+    benchmark_version TEXT,
+    benchmark_hash TEXT
 );
 CREATE TABLE IF NOT EXISTS results (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -75,6 +78,9 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE INDEX IF NOT EXISTS reviews_result ON reviews(result_id);
 """
 
+# Columns added after the first release of the schema: (name, type). Added in place on older databases.
+RUN_COLUMNS_ADDED = (("temperature", "REAL"), ("benchmark_version", "TEXT"), ("benchmark_hash", "TEXT"))
+
 _lock = threading.Lock()
 
 
@@ -83,11 +89,29 @@ def now() -> str:
 
 
 class Store:
-    def __init__(self, path: Path = DB_PATH):
+    def __init__(self, path: Path = DB_PATH, hide_demo: bool | None = None):
         self.path = path
+        self._hide_demo = hide_demo
         path.parent.mkdir(parents=True, exist_ok=True)
         with self._conn() as c:
+            have = {r["name"] for r in c.execute("PRAGMA table_info(runs)")}
+            if have:
+                for name, typ in RUN_COLUMNS_ADDED:
+                    if name not in have:
+                        c.execute(f"ALTER TABLE runs ADD COLUMN {name} {typ}")
             c.executescript(SCHEMA)
+
+    @property
+    def hide_demo(self) -> bool:
+        """Production never shows demo (sample) runs or results, even if some are still in the database."""
+        if self._hide_demo is not None:
+            return self._hide_demo
+        from app.config import get_settings
+
+        return get_settings().is_production
+
+    def _vis(self, alias: str = "u") -> str:
+        return f" AND {alias}.provider != 'demo'" if self.hide_demo else ""
 
     @contextmanager
     def _conn(self):
@@ -104,15 +128,16 @@ class Store:
     # ---------- runs ----------
     def create_run(
         self, *, provider: str, model: str, prompt_version: str, conditions: list[str], case_ids: list[str],
-        interview: bool, label: str = "",
+        interview: bool, label: str = "", temperature: float | None = None, benchmark_version: str | None = None,
+        benchmark_hash: str | None = None,
     ) -> str:
         run_id = datetime.now(UTC).strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:6]
         with self._conn() as c:
             c.execute(
                 "INSERT INTO runs (id, created_at, label, provider, model, prompt_version, conditions, case_ids, "
-                "interview, n_total) VALUES (?,?,?,?,?,?,?,?,?,?)",
+                "interview, n_total, temperature, benchmark_version, benchmark_hash) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (run_id, now(), label, provider, model, prompt_version, json.dumps(conditions), json.dumps(case_ids),
-                 int(interview), len(conditions) * len(case_ids)),
+                 int(interview), len(conditions) * len(case_ids), temperature, benchmark_version, benchmark_hash),
             )
         return run_id
 
@@ -122,7 +147,7 @@ class Store:
 
     def get_run(self, run_id: str) -> dict[str, Any] | None:
         with self._conn() as c:
-            row = c.execute("SELECT * FROM runs WHERE id=?", (run_id,)).fetchone()
+            row = c.execute("SELECT * FROM runs u WHERE id=?" + self._vis(), (run_id,)).fetchone()
         return _run_dict(row) if row else None
 
     def list_runs(self, limit: int = 100) -> list[dict[str, Any]]:
@@ -136,10 +161,11 @@ class Store:
                        SUM(r.cost_usd) AS cost_usd,
                        COALESCE(SUM(CASE WHEN r.id IS NOT NULL AND r.cost_usd IS NULL THEN 1 ELSE 0 END), 0) AS cost_unknown
                 FROM runs u LEFT JOIN results r ON r.run_id = u.id
+                WHERE 1=1{vis}
                 GROUP BY u.id
                 ORDER BY u.created_at DESC, u.id DESC
                 LIMIT ?
-                """,
+                """.replace("{vis}", self._vis()),
                 (limit,),
             ).fetchall()
         out = []
@@ -160,8 +186,9 @@ class Store:
                        SUM(r.cost_usd) AS cost_usd,
                        COALESCE(SUM(CASE WHEN r.cost_usd IS NULL THEN 1 ELSE 0 END), 0) AS cost_unknown
                 FROM results r JOIN runs u ON u.id = r.run_id
+                WHERE 1=1{vis}
                 GROUP BY u.provider, u.model ORDER BY results DESC
-                """
+                """.replace("{vis}", self._vis())
             ).fetchall()
         return [dict(r) for r in rows]
 
@@ -214,13 +241,16 @@ class Store:
 
     def results(self, run_id: str) -> list[dict[str, Any]]:
         with self._conn() as c:
-            rows = c.execute("SELECT * FROM results WHERE run_id=? ORDER BY id", (run_id,)).fetchall()
+            rows = c.execute(
+                "SELECT r.* FROM results r JOIN runs u ON u.id = r.run_id WHERE r.run_id=?" + self._vis() + " ORDER BY r.id",
+                (run_id,),
+            ).fetchall()
         return [_result_dict(r) for r in rows]
 
     def get_result(self, result_id: int) -> dict[str, Any] | None:
         with self._conn() as c:
             row = c.execute(
-                "SELECT r.*, u.provider, u.model FROM results r JOIN runs u ON u.id = r.run_id WHERE r.id=?",
+                "SELECT r.*, u.provider, u.model FROM results r JOIN runs u ON u.id = r.run_id WHERE r.id=?" + self._vis(),
                 (result_id,),
             ).fetchone()
         return _result_dict(row) if row else None
@@ -234,8 +264,8 @@ class Store:
                        r.rules_fired, r.owner_questions, r.steps, r.tokens_in, r.tokens_out, r.cost_usd,
                        r.latency_ms, r.cached, r.created_at, u.provider, u.model
                 FROM results r JOIN runs u ON u.id = r.run_id
-                WHERE r.case_id=? ORDER BY r.id DESC LIMIT ?
-                """,
+                WHERE r.case_id=?{vis} ORDER BY r.id DESC LIMIT ?
+                """.replace("{vis}", self._vis()),
                 (case_id, limit),
             ).fetchall()
         return [_result_dict(r) for r in rows]
@@ -249,10 +279,10 @@ class Store:
                        r.rules_fired, r.owner_questions, r.steps, r.tokens_in, r.tokens_out, r.cost_usd,
                        r.latency_ms, r.cached, r.created_at, u.provider, u.model
                 FROM results r
-                JOIN (SELECT case_id, condition, MAX(id) AS mid FROM results WHERE interview=?
-                      GROUP BY case_id, condition) m ON m.mid = r.id
+                JOIN (SELECT x.case_id, x.condition, MAX(x.id) AS mid FROM results x JOIN runs v ON v.id = x.run_id
+                      WHERE x.interview=?{vis} GROUP BY x.case_id, x.condition) m ON m.mid = r.id
                 JOIN runs u ON u.id = r.run_id
-                """,
+                """.replace("{vis}", self._vis("v")),
                 (int(interview),),
             ).fetchall()
         out = []
@@ -282,7 +312,75 @@ class Store:
 
     def count_runs(self) -> int:
         with self._conn() as c:
-            return int(c.execute("SELECT COUNT(*) FROM runs").fetchone()[0])
+            return int(c.execute("SELECT COUNT(*) FROM runs u WHERE 1=1" + self._vis()).fetchone()[0])
+
+    def tokens_since(self, since_iso: str) -> int:
+        """Live-model tokens (in + out) spent since a timestamp. Cached and demo answers cost nothing."""
+        with self._conn() as c:
+            row = c.execute(
+                "SELECT COALESCE(SUM(r.tokens_in + r.tokens_out), 0) FROM results r JOIN runs u ON u.id = r.run_id "
+                "WHERE r.created_at >= ? AND r.cached = 0 AND u.provider != 'demo'",
+                (since_iso,),
+            ).fetchone()
+        return int(row[0])
+
+    def delete_demo_runs(self) -> int:
+        """Remove every demo run with its results and reviews (cascade), and demo cache rows. Returns runs removed."""
+        with self._conn() as c:
+            n = c.execute("DELETE FROM runs WHERE provider = 'demo'").rowcount
+            c.execute("DELETE FROM cache WHERE provider = 'demo'")
+        return n
+
+    def mark_interrupted(self) -> int:
+        """Runs left 'running' by a crash or hard stop can never finish; mark them so the UI does not wait."""
+        with self._conn() as c:
+            return c.execute("UPDATE runs SET status='interrupted', finished_at=? WHERE status='running'", (now(),)).rowcount
+
+    def run_exists(self, run_id: str) -> bool:
+        with self._conn() as c:
+            return c.execute("SELECT 1 FROM runs WHERE id=?", (run_id,)).fetchone() is not None
+
+    def import_run(self, run: dict[str, Any], results: list[dict[str, Any]]) -> None:
+        """Insert a finished run and its results exactly as exported (timestamps kept), in one transaction."""
+        with self._conn() as c:
+            c.execute(
+                "INSERT INTO runs (id, created_at, label, provider, model, prompt_version, conditions, case_ids, "
+                "interview, status, n_total, n_done, finished_at, temperature, benchmark_version, benchmark_hash) "
+                "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (run["id"], run["created_at"], run.get("label", ""), run["provider"], run["model"], run["prompt_version"],
+                 json.dumps(run["conditions"]), json.dumps(run["case_ids"]), int(run["interview"]), run["status"],
+                 run["n_total"], len(results), run.get("finished_at"), run.get("temperature"),
+                 run.get("benchmark_version"), run.get("benchmark_hash")),
+            )
+            for r in results:
+                c.execute(
+                    "INSERT INTO results (run_id, case_id, condition, interview, status, answer, error, trace, rules_fired, "
+                    "owner_questions, steps, tokens_in, tokens_out, cost_usd, latency_ms, cached, cache_key, created_at) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    (run["id"], r["case_id"], r["condition"], int(r["interview"]), r["status"],
+                     json.dumps(r["answer"]) if r.get("answer") is not None else None, r.get("error"),
+                     json.dumps(r["trace"]), json.dumps(r.get("rules_fired") or []), json.dumps(r.get("owner_questions") or []),
+                     r.get("steps", 0), r.get("tokens_in", 0), r.get("tokens_out", 0), r.get("cost_usd"),
+                     r.get("latency_ms", 0), int(bool(r.get("cached"))), r.get("cache_key"), r["created_at"]),
+                )
+
+    def cited_pages(self) -> set[int]:
+        """SVTG PDF pages cited by any visible stored answer."""
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT DISTINCT CAST(json_extract(j.value, '$.page') AS INTEGER) FROM results r "
+                "JOIN runs u ON u.id = r.run_id, json_each(r.answer, '$.citations') j "
+                "WHERE r.status = 'ok' AND r.answer IS NOT NULL" + self._vis()
+            ).fetchall()
+        return {int(r[0]) for r in rows if r[0] is not None}
+
+    def ping(self) -> bool:
+        try:
+            with self._conn() as c:
+                c.execute("SELECT 1").fetchone()
+            return True
+        except sqlite3.Error:
+            return False
 
 
 def _run_dict(row: sqlite3.Row) -> dict[str, Any]:
