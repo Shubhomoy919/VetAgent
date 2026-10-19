@@ -1,4 +1,4 @@
-/* Acceptance checks from CLAUDE.md M8, plus shortcuts and responsive layouts. */
+/* Acceptance checks for milestone M8, plus shortcuts and responsive layouts. */
 import { expect, test, type ConsoleMessage, type Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";

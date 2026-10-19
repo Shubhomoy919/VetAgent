@@ -1,0 +1,19 @@
+#!/bin/sh
+# Commit message hygiene: remove tool-attribution lines from the commit message before the commit is recorded.
+#   - "Co-Authored-By: ..." trailers
+#   - "Generated with ..." lines
+#   - "<Tool>-Session: ..." trailers
+# Trailing blank lines left behind are removed too. Installed by scripts/install-hooks.sh (or .ps1).
+msg="$1"
+tmp="$msg.hygiene"
+awk '
+  { l = tolower($0) }
+  l ~ /^[ \t]*co-authored-by:/ { next }
+  l ~ /generated with/ { next }
+  l ~ /^[ \t]*[a-z0-9_]+-session:/ { next }
+  { lines[++n] = $0 }
+  END {
+    while (n > 0 && lines[n] ~ /^[ \t]*$/) n--
+    for (i = 1; i <= n; i++) print lines[i]
+  }
+' "$msg" > "$tmp" && mv "$tmp" "$msg"

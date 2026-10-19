@@ -5,6 +5,7 @@ type: software
 version: 1.0.0
 date-released: "2026-10-19"
 license: MIT
+repository-code: "https://github.com/Shubhomoy919/VetAgent"
 authors:
   - family-names: Sarkar
     given-names: Shubhomoy

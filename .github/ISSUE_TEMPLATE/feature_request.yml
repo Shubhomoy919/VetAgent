@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest a new case, metric, condition, model or interface change.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or research question
+      description: What you want to measure or do, and why the current version does not allow it.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What you would change. For new cases or drug rows, give the source (document and page).
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: integrity
+    attributes:
+      label: Research integrity
+      options:
+        - label: I understand that changing cases or drug rows changes the benchmark version and hash.
+        - label: Any dose or withdrawal number I propose comes from a cited source, not from memory.

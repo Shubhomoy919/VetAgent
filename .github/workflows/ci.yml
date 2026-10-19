@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements-dev.txt
+
+      # The SVTG PDF is not in the repository. Tests that need it are skipped when the download fails.
+      - name: Restore SVTG PDF
+        id: svtg
+        uses: actions/cache@v4
+        with:
+          path: data/StandardVeterinaryTreatment.pdf
+          key: svtg-2024-10
+
+      - name: Download SVTG PDF
+        if: steps.svtg.outputs.cache-hit != 'true'
+        continue-on-error: true
+        run: >
+          curl --fail --location --retry 3 --max-time 120
+          -o data/StandardVeterinaryTreatment.pdf
+          https://dahd.gov.in/sites/default/files/2024-10/StandardVeterinaryTreatment.pdf
+          || rm -f data/StandardVeterinaryTreatment.pdf
+
+      - name: Benchmark data matches v1.0.0
+        working-directory: backend
+        run: python -m app.scripts.benchmark --check
+
+      - name: Frozen snapshot reproduces
+        working-directory: backend
+        run: python -m app.scripts.snapshot verify
+
+      - name: pytest
+        working-directory: backend
+        env:
+          LLM_PROVIDER: demo
+        run: python -m pytest -q
+
+  frontend:
+    name: Frontend (tsc, lint, checks, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Style, contrast and motion checks
+        run: |
+          npm run check:style
+          npm run check:contrast
+          npm run check:motion
+
+      - name: Production build
+        run: npm run build

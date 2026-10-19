@@ -6,3 +6,5 @@ snapshots/** text eol=lf
 *.pdf binary
 *.png binary
 *.woff2 binary
+
+.githooks/* text eol=lf
