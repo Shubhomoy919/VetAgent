@@ -27,8 +27,8 @@ npm run dev                   # first start creates and seeds the local SQLite d
 The app reads everything from a database: SQLite (`data/vetagentbench.db`) unless `DATABASE_URL` points at
 Postgres. A schema change needs an Alembic migration in `backend/migrations/versions/`
 (`cd backend; python -m alembic revision --autogenerate -m "..."`, then review it); `test_seed.py` fails if the
-migrations and `app/storage/schema.py` disagree. Runtime Python packages go in `requirements.txt` (what Vercel
-installs); tools that never run on the server go in `backend/requirements-dev.txt`.
+migrations and `app/storage/schema.py` disagree. Runtime Python packages go in `backend/requirements.txt`
+(what Vercel installs for the API service); tools that never run on the server go in `backend/requirements-dev.txt`.
 
 ## Commit message hygiene
 

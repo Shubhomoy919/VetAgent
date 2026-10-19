@@ -1,5 +1,5 @@
 /* Release tests against a running production build: a Vercel deployment, or the same app run locally by
- * importing api/index.py exactly as Vercel does (see docs/DEPLOY.md, "Test a production build locally").
+ * by running the API service's entrypoint (app.main:app) as Vercel does (see docs/DEPLOY.md, "Test a production build locally").
  *
  *   E2E_BASE_URL=http://localhost:8000 E2E_ACCESS_CODE=... npx playwright test -c playwright.release.config.ts
  *

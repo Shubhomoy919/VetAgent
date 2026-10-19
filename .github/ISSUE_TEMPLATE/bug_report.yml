@@ -36,7 +36,7 @@ body:
       label: Where
       options:
         - Local development (npm run dev)
-        - Local production build (api/index.py)
+        - Local production build (uvicorn app.main:app)
         - A deployed site
     validations:
       required: true

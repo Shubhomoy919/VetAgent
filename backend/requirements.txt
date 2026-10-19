@@ -1,6 +1,6 @@
-# Runtime dependencies of the API, installed by Vercel for the Python function (api/index.py).
+# Runtime dependencies of the API: what Vercel installs for the "api" service (vercel.json).
 # Pinned for reproducible builds. Local tools (uvicorn, Alembic, pymupdf for the seed script, pytest) are in
-# backend/requirements-dev.txt.
+# requirements-dev.txt.
 fastapi==0.142.2
 pydantic==2.13.5
 pydantic-settings==2.15.0

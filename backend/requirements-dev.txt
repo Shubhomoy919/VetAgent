@@ -1,5 +1,5 @@
 # Local development, migrations, seeding and tests: runtime dependencies plus tools that are never deployed.
--r ../requirements.txt
+-r requirements.txt
 uvicorn[standard]==0.54.0
 alembic==1.20.0
 pymupdf==1.28.2

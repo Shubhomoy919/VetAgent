@@ -35,14 +35,15 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: |
-            requirements.txt
+            backend/requirements.txt
             backend/requirements-dev.txt
 
       - name: Install dependencies
         run: pip install -r backend/requirements-dev.txt
 
-      - name: Vercel entry point imports cleanly
-        run: python -c "import runpy; app = runpy.run_path('api/index.py')['app']; print(type(app).__name__, 'OK')"
+      - name: API service entrypoint (app.main:app) imports cleanly
+        working-directory: backend
+        run: python -c "from app.main import app; print(type(app).__name__, 'OK')"
 
       - name: Seed data matches benchmark v1.0.0
         working-directory: backend

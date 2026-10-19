@@ -6,7 +6,7 @@ An India-focused benchmark that counts dangerous errors first.**
 [![CI](https://github.com/Shubhomoy919/VetAgent/actions/workflows/ci.yml/badge.svg)](https://github.com/Shubhomoy919/VetAgent/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-v1.1.0-FF4F9A)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](requirements.txt)
+[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](backend/requirements.txt)
 [![React](https://img.shields.io/badge/react-19-61DAFB?logo=react&logoColor=black)](frontend/package.json)
 [![Deploys on Vercel](https://img.shields.io/badge/deploys%20on-Vercel-000000?logo=vercel&logoColor=white)](docs/DEPLOY.md)
 [![Postgres](https://img.shields.io/badge/database-Postgres-4169E1?logo=postgresql&logoColor=white)](docs/DEPLOY.md#3-add-postgres-from-the-marketplace)
@@ -176,7 +176,7 @@ flowchart LR
     UI["Bench · Scorecard · Cases · Drug table<br/>Runs · Review · Study design · Overview · Settings"]
   end
 
-  subgraph Server["Vercel: FastAPI as a Python function (api/index.py)"]
+  subgraph Server["Vercel service api: FastAPI in backend/ (app.main:app)"]
     API["REST API · one step per request (SSE)<br/>security middleware"]
     MGR["Runs<br/>budget · case cap · answer cache"]
     subgraph Agents["Agent conditions"]
@@ -195,7 +195,7 @@ flowchart LR
   DB[("Postgres (Neon) · SQLite locally<br/>runs · results · traces · cache · reviews<br/>cases · drug rows · SVTG passages<br/>rate limits · lockout · budget")]
   SEED["Seed script (your computer)<br/>cases.json · drug_table.csv<br/>v1.0.0 snapshot · SVTG PDF"]
 
-  CDN["Vercel CDN<br/>static frontend build"] --> UI
+  CDN["Vercel service web<br/>static Vite build from the CDN"] --> UI
   UI <-->|"HTTPS JSON / SSE"| API
   API --> MGR
   MGR --> C0 & C1 & C2 & C3 & C4
@@ -211,8 +211,9 @@ flowchart LR
   SEED -->|"alembic upgrade · app.scripts.seed"| DB
 ```
 
-On Vercel the frontend is served from the CDN and every `/api/*` request goes to one Python function. Function
-instances are short-lived and share nothing in memory, so all state is in Postgres: runs and results, the answer
+On Vercel the project has two services: `web` (the static Vite build of `frontend/`, from the CDN) and `api`
+(the FastAPI app in `backend/`, run as a function), and `vercel.json` routes `/api/*` to `api` and everything
+else to `web`. Function instances are short-lived and share nothing in memory, so all state is in Postgres: runs and results, the answer
 cache, the benchmark data, the SVTG passages, rate-limit counters, lockouts and the daily token budget. A run is
 split into steps (one case through one condition per request) that the browser requests in turn, so each request
 ends inside the function time limit. The SVTG PDF stays on your computer: the seed script stores its
@@ -228,17 +229,16 @@ page-numbered passages in the database, and each function instance builds the se
 | Models | google-genai (Gemini), httpx (any OpenAI-compatible endpoint), an offline demo provider |
 | Frontend | React 19, TypeScript (strict), Vite 8, React Router, TanStack Query, motion, react-resizable-panels, sonner; charts in custom SVG |
 | Testing | pytest, Playwright, ESLint, `tsc`, custom style, contrast and motion checks |
-| Deployment | Vercel (static frontend on the CDN, FastAPI as a Python function), GitHub Actions CI |
+| Deployment | Vercel Services (`web`: static Vite build on the CDN; `api`: FastAPI on Python functions), GitHub Actions CI |
 
 No PyTorch, sentence-transformers or LangChain: retrieval is lexical, and the agent loops are plain Python.
 
 ## Repository structure
 
 ```text
-api/index.py      Vercel entry point: exposes the FastAPI app as a Python function
-vercel.json       build, routes (/api/* → function, the rest → index.html), maxDuration, security headers
-requirements.txt  runtime Python dependencies (what Vercel installs)
-backend/
+vercel.json       Vercel services (web, api), routes (/api/* → api, the rest → web), maxDuration, headers
+backend/          the "api" service: FastAPI app, entrypoint app.main:app
+  requirements.txt, .python-version   runtime dependencies and Python 3.12 (what Vercel installs)
   alembic.ini, migrations/   Alembic migrations (Postgres and SQLite)
   app/
     agent/        conditions C0–C4, guardrail rules, answer parser, prompts, run manager
@@ -252,7 +252,7 @@ backend/
     scripts/      seed, run_case, score, snapshot, benchmark
     security.py   access code, sessions, lockout, rate limit, headers
   tests/          pytest
-frontend/
+frontend/         the "web" service: React + Vite (built to dist/)
   src/            app shell, routes, feature pages, components, design tokens
   e2e/            Playwright (development build)
   e2e-release/    Playwright (production build)
@@ -340,11 +340,11 @@ Production adds `APP_ENV`, `ADMIN_ACCESS_CODE`, `SESSION_SECRET`, `ALLOWED_ORIGI
 ## Deploying on Vercel
 
 The whole project deploys as one Vercel project: the frontend as a static build from the CDN, the FastAPI
-backend as a Python function (`api/index.py`), and Postgres from the Vercel Marketplace (Neon). The step-by-step
+backend as a second service (`backend/`, `app.main:app`), and Postgres from the Vercel Marketplace (Neon). The step-by-step
 guide is **[docs/DEPLOY.md](docs/DEPLOY.md)**. In short:
 
-1. Import the GitHub repository in Vercel; root directory `./`, framework preset **Other** (`vercel.json` sets
-   the build command, the output directory `frontend/dist`, the routes and the security headers).
+1. Import the GitHub repository in Vercel with root directory `./`. Vercel reads the two services, `web`
+   (`frontend/`) and `api` (`backend/`), and the routes and security headers from `vercel.json`.
 2. Add **Neon Postgres** from the Marketplace; it sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`.
 3. Set the server-only environment variables: `APP_ENV=production`, `ADMIN_ACCESS_CODE`, `SESSION_SECRET`,
    `ALLOWED_ORIGINS`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `MAX_DAILY_TOKENS` (full list:
@@ -450,7 +450,7 @@ Full provenance and known gaps are in [docs/DATA_CARD.md](docs/DATA_CARD.md).
 - **Reproducible database.** `python -m app.scripts.seed` rebuilds the benchmark data, the frozen results and the
   answer cache from files in this repository (plus your copy of the SVTG PDF); the benchmark hash computed from
   the database is the same `b4b15a69…`.
-- **Pinned dependencies.** `requirements.txt` pins the runtime packages exactly, and `frontend/package-lock.json`
+- **Pinned dependencies.** `backend/requirements.txt` pins the runtime packages exactly, and `frontend/package-lock.json`
   locks the frontend.
 
 ## Testing
@@ -469,10 +469,10 @@ suite there (the fixture applies the Alembic migrations first).
 The release suite runs against a production build, covering public browsing, blocked writes, a live C0–C4 run,
 the budget cap, the rate limit, keyboard use and screenshots of every page:
 `npx playwright test -c playwright.release.config.ts`, against a deployment or a local production build that
-imports `api/index.py` the way Vercel does (see [docs/DEPLOY.md](docs/DEPLOY.md#test-a-production-build-locally)).
+runs the API service's entrypoint (`app.main:app`) the way Vercel does (see [docs/DEPLOY.md](docs/DEPLOY.md#test-a-production-build-locally)).
 
 Tests that need the SVTG PDF skip when it is absent; made-up passages test the database-backed index instead.
-[CI](.github/workflows/ci.yml) runs, on every push and pull request: an import check of `api/index.py`, the
+[CI](.github/workflows/ci.yml) runs, on every push and pull request: an import check of the API entrypoint `app.main:app`, the
 benchmark and snapshot checks, pytest on SQLite and on a Postgres service, the migrations and the seed (twice) on
 a fresh Postgres database, type checking, lint, the style, contrast and motion checks, the production build and
 the secrets scan.

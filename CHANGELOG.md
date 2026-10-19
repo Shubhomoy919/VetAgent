@@ -8,10 +8,12 @@ Deployment on Vercel. The benchmark is unchanged: still v1.0.0 with content hash
 `b4b15a6930708f0976cb2b119f389c6d32ac321f8e2715d1751fed7c721edf07`, and the same frozen results.
 
 ### Deployment
-- The whole project deploys as one Vercel project: the frontend as a static build from the CDN, the FastAPI app as
-  a Python function (`api/index.py`), and Postgres from the Vercel Marketplace (Neon). `vercel.json` sets the build,
-  the routes (`/api/*` to the function, everything else to `index.html`), `maxDuration` 300 s (the Hobby maximum)
-  and the security headers (CSP with `frame-ancestors 'none'`, nosniff, Referrer-Policy, X-Frame-Options, HSTS).
+- The whole project deploys as one Vercel project with two services (`vercel.json`): `web`, the static Vite build
+  of `frontend/` from the CDN, and `api`, the FastAPI app in `backend/` (`app.main:app`) on Vercel Functions, plus
+  Postgres from the Vercel Marketplace (Neon). Routes: `/api/*` to `api`, everything else to `web` (which serves
+  `index.html` for client-side routes). `maxDuration` 300 s (the Hobby maximum) and security headers (CSP with
+  `frame-ancestors 'none'`, nosniff, Referrer-Policy, X-Frame-Options, HSTS). Runtime dependencies and the Python
+  version (3.12) live in `backend/`.
 - `docs/DEPLOY.md` is now a step-by-step Vercel guide: import, settings, Marketplace Postgres, every environment
   variable, migrations and seed from your computer (PowerShell), `maxDuration`, custom domain, smoke-test checklist.
   `.env.vercel.example` lists every variable.

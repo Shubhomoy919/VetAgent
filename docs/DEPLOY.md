@@ -1,9 +1,12 @@
 # Deploying VetAgentBench-IN on Vercel
 
-One Vercel project serves everything:
+One Vercel project with two [services](https://vercel.com/docs/services) (defined in `vercel.json`) serves
+everything on one domain:
 
-- the **frontend**: the static Vite build of `frontend/`, from Vercel's CDN;
-- the **API**: the FastAPI app as one Python function, `api/index.py`, for every `/api/*` request;
+- **`web`**: the static Vite build of `frontend/`, from Vercel's CDN, for every path except `/api/*`
+  (unknown paths get `index.html`, so client-side routes work);
+- **`api`**: the FastAPI app in `backend/` (entrypoint `app.main:app`), run as Vercel Functions, for every
+  `/api/*` request; it receives the original path, e.g. `/api/health`;
 - the **database**: Postgres from the Vercel Marketplace (Neon), holding runs, results, the benchmark data, the
   SVTG passages, rate-limit counters and the daily token budget.
 
@@ -47,14 +50,19 @@ On the import screen (later: **Settings → Build and Deployment**):
 
 | Setting | Value |
 |---|---|
-| Root Directory | `./` (the repository root) |
-| Framework Preset | **Other** (`vercel.json` sets `"framework": null`) |
-| Install / Build Command, Output Directory | leave the defaults: `vercel.json` sets `npm --prefix frontend ci`, `npm --prefix frontend run build` and `frontend/dist` |
+| Root Directory | `./` (the repository root, where `vercel.json` is) |
+| Framework / build settings | nothing to set: Vercel reads the services from `vercel.json` |
 | Node.js Version | 22.x or 24.x |
 
-Vercel finds `api/index.py`, installs the Python packages from `requirements.txt` (runtime only), and uses
-Python 3.12 from `.python-version`. `vercel.json` routes `/api/*` to the function and every other path to
-`index.html`.
+The import screen lists the two services it found in `vercel.json`:
+
+| Service | Root | What Vercel does |
+|---|---|---|
+| `web` | `frontend/` | Vite: `npm ci`, `npm run build`, serves `dist/` from the CDN |
+| `api` | `backend/` | FastAPI: installs `backend/requirements.txt` with Python 3.12 (`backend/.python-version`), runs `app.main:app` |
+
+Public routing, most specific first: `/api/(.*)` → `api`, then `/(.*)` → `web`. There are no service bindings:
+the browser calls the API with same-origin `/api/...` URLs, and the API calls only Gemini and Postgres.
 
 ## 3. Add Postgres from the Marketplace
 
@@ -138,7 +146,8 @@ On macOS or Linux the same steps are `export VAR=...`, `../.venv/bin/alembic upg
 
 ## 6. Function duration (maxDuration)
 
-`vercel.json` gives the function `"maxDuration": 300`, the Hobby plan's maximum. Runs are split so that one
+`vercel.json` gives the API service's function (`app/main.py` in `backend/`) `"maxDuration": 300`, the Hobby
+plan's maximum. Runs are split so that one
 request handles one case through one condition, and a step stops at `STEP_DEADLINE_S` (240 s) to leave time to
 store a "timed out" result that you can retry. A condition usually takes seconds (C3 and C4 make several model
 calls). On a Pro plan you can raise `maxDuration` to 800 in `vercel.json` and `STEP_DEADLINE_S` accordingly.
@@ -183,15 +192,15 @@ When everything passes, add the URL to the README and the repository's About sec
 
 ## Test a production build locally
 
-Vercel serves the frontend from its CDN and imports `api/index.py`. Locally, the same app imported the same way
-also serves the built frontend:
+On Vercel the `api` service runs `app.main:app` from `backend/` and the CDN serves the frontend. Locally, the same
+entrypoint also serves the built frontend, so one server stands in for both services:
 
 ```powershell
 npm --prefix frontend run build
 $env:APP_ENV = "production"; $env:COOKIE_SECURE = "false"            # plain http on localhost
 $env:DATABASE_URL = "postgresql://..."                               # a test database, migrated and seeded
 $env:ADMIN_ACCESS_CODE = "<code>"; $env:SESSION_SECRET = "<secret>"; $env:ALLOWED_ORIGINS = "http://localhost:8000"
-.venv\Scripts\python.exe -m uvicorn api.index:app --port 8000      # from the repository root
+.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --port 8000   # from the repository root
 ```
 
 Then `cd frontend; $env:E2E_BASE_URL = "http://localhost:8000"; $env:E2E_ACCESS_CODE = "<code>";
