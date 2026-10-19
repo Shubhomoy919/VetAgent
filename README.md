@@ -4,11 +4,16 @@
 An India-focused benchmark that counts dangerous errors first.**
 
 [![CI](https://github.com/Shubhomoy919/VetAgent/actions/workflows/ci.yml/badge.svg)](https://github.com/Shubhomoy919/VetAgent/actions/workflows/ci.yml)
-[![Version](https://img.shields.io/badge/version-v1.0.0-FF4F9A)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-v1.1.0-FF4F9A)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](backend/requirements.txt)
+[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](requirements.txt)
 [![React](https://img.shields.io/badge/react-19-61DAFB?logo=react&logoColor=black)](frontend/package.json)
-[![Docker](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)](Dockerfile)
+[![Deploys on Vercel](https://img.shields.io/badge/deploys%20on-Vercel-000000?logo=vercel&logoColor=white)](docs/DEPLOY.md)
+[![Postgres](https://img.shields.io/badge/database-Postgres-4169E1?logo=postgresql&logoColor=white)](docs/DEPLOY.md#3-add-postgres-from-the-marketplace)
+
+<!-- LIVE_DEMO_URL: scripts/set-live-url.ps1 replaces this block with the deployed URL -->
+**Live demo:** deployment on Vercel in progress. The link will appear here and in the repository's About section.
+<!-- /LIVE_DEMO_URL -->
 
 ![Overview page: the research question, the five conditions and the frozen v1.0.0 results](docs/screenshots/release/overview-public-1440.png)
 
@@ -27,7 +32,7 @@ An India-focused benchmark that counts dangerous errors first.**
 - [Tech stack](#tech-stack)
 - [Repository structure](#repository-structure)
 - [Getting started](#getting-started)
-- [Docker and deployment](#docker-and-deployment)
+- [Deploying on Vercel](#deploying-on-vercel)
 - [Usage](#usage)
 - [Dataset](#dataset)
 - [Reproducibility](#reproducibility)
@@ -171,9 +176,9 @@ flowchart LR
     UI["Bench · Scorecard · Cases · Drug table<br/>Runs · Review · Study design · Overview · Settings"]
   end
 
-  subgraph Server["FastAPI service (one process)"]
-    API["REST API + SSE stream<br/>security middleware"]
-    MGR["Run manager<br/>budget · case cap · cache"]
+  subgraph Server["Vercel: FastAPI as a Python function (api/index.py)"]
+    API["REST API · one step per request (SSE)<br/>security middleware"]
+    MGR["Runs<br/>budget · case cap · answer cache"]
     subgraph Agents["Agent conditions"]
       C0["C0 Bare LLM"]
       C1["C1 Retrieval"]
@@ -182,15 +187,15 @@ flowchart LR
       C4["C4 Guardrail rules"]
     end
     TOOLS["Tools<br/>drug safety · dose maths<br/>withdrawal · patient record"]
-    RET["SVTG retrieval<br/>BM25 + keyword boost<br/>page-cited chunks"]
+    RET["SVTG retrieval<br/>BM25 + keyword boost, built in memory<br/>from page-cited passages"]
     SCORE["Scorer<br/>verdicts · Wilson CIs · McNemar"]
     LLM["LLM providers<br/>Gemini · OpenAI-compatible · demo"]
   end
 
-  DATA[("Data<br/>cases.json · drug_table.csv")]
-  PDF[("SVTG PDF<br/>DAHD 2024")]
-  DB[("SQLite<br/>runs · results · reviews")]
+  DB[("Postgres (Neon) · SQLite locally<br/>runs · results · traces · cache · reviews<br/>cases · drug rows · SVTG passages<br/>rate limits · lockout · budget")]
+  SEED["Seed script (your computer)<br/>cases.json · drug_table.csv<br/>v1.0.0 snapshot · SVTG PDF"]
 
+  CDN["Vercel CDN<br/>static frontend build"] --> UI
   UI <-->|"HTTPS JSON / SSE"| API
   API --> MGR
   MGR --> C0 & C1 & C2 & C3 & C4
@@ -198,35 +203,43 @@ flowchart LR
   C1 --> RET
   C2 & C3 & C4 --> TOOLS
   C2 & C3 & C4 --> RET
-  TOOLS --> DATA
-  RET --> PDF
+  TOOLS --> DB
+  RET --> DB
   MGR --> DB
   API --> SCORE
   SCORE --> DB
-  SCORE --> DATA
+  SEED -->|"alembic upgrade · app.scripts.seed"| DB
 ```
 
-In production one container runs this service under gunicorn with a single worker, because the active run, its
-event stream, the rate-limit windows and the lockout counters are held in memory. FastAPI also serves the built
-frontend, pre-compressed with Brotli and gzip.
+On Vercel the frontend is served from the CDN and every `/api/*` request goes to one Python function. Function
+instances are short-lived and share nothing in memory, so all state is in Postgres: runs and results, the answer
+cache, the benchmark data, the SVTG passages, rate-limit counters, lockouts and the daily token budget. A run is
+split into steps (one case through one condition per request) that the browser requests in turn, so each request
+ends inside the function time limit. The SVTG PDF stays on your computer: the seed script stores its
+page-numbered passages in the database, and each function instance builds the search index from them.
 
 ## Tech stack
 
 | Layer | Technology |
 |---|---|
-| Backend | Python 3.11+, FastAPI, Uvicorn, Pydantic v2, pydantic-settings, SQLite |
-| Retrieval | PyMuPDF (PDF text with page numbers), rank-bm25 |
+| Backend | Python 3.11+, FastAPI, Pydantic v2, pydantic-settings, SQLAlchemy 2 (Core), Alembic |
+| Database | Postgres (Neon, via the Vercel Marketplace; psycopg 3) in production, SQLite locally |
+| Retrieval | rank-bm25 at runtime; PyMuPDF only in the seed script (PDF text with page numbers) |
 | Models | google-genai (Gemini), httpx (any OpenAI-compatible endpoint), an offline demo provider |
 | Frontend | React 19, TypeScript (strict), Vite 8, React Router, TanStack Query, motion, react-resizable-panels, sonner; charts in custom SVG |
 | Testing | pytest, Playwright, ESLint, `tsc`, custom style, contrast and motion checks |
-| Deployment | Docker (multi-stage, non-root), gunicorn with a Uvicorn worker, GitHub Actions CI |
+| Deployment | Vercel (static frontend on the CDN, FastAPI as a Python function), GitHub Actions CI |
 
 No PyTorch, sentence-transformers or LangChain: retrieval is lexical, and the agent loops are plain Python.
 
 ## Repository structure
 
 ```text
+api/index.py      Vercel entry point: exposes the FastAPI app as a Python function
+vercel.json       build, routes (/api/* → function, the rest → index.html), maxDuration, security headers
+requirements.txt  runtime Python dependencies (what Vercel installs)
 backend/
+  alembic.ini, migrations/   Alembic migrations (Postgres and SQLite)
   app/
     agent/        conditions C0–C4, guardrail rules, answer parser, prompts, run manager
     api/          REST and SSE routes (runs, data, scorecard, review, settings, auth, health)
@@ -234,31 +247,32 @@ backend/
     llm/          providers: gemini, openai_compatible, demo
     retrieval/    SVTG ingestion and BM25 search
     scoring/      verdicts, metrics, Wilson intervals, McNemar, Cohen's kappa
-    storage/      SQLite store
+    storage/      SQLAlchemy schema and store (Postgres or SQLite)
     tools/        drug safety and dose maths, withdrawal, patient record
-    scripts/      run_case, score, snapshot, benchmark, backup
+    scripts/      seed, run_case, score, snapshot, benchmark
     security.py   access code, sessions, lockout, rate limit, headers
   tests/          pytest
 frontend/
   src/            app shell, routes, feature pages, components, design tokens
   e2e/            Playwright (development build)
   e2e-release/    Playwright (production build)
-data/             cases.json, drug_table.csv, knowledge_seed.json (SVTG PDF downloaded here, not committed)
+data/             seed files: cases.json, drug_table.csv, knowledge_seed.json (the SVTG PDF goes here, never committed)
 snapshots/v1.0.0/ frozen results: run.json + run.sha256
-docs/             DEPLOY, DATA_CARD, DEMO, DESIGN, MOTION, screenshots
-docker/           container entrypoint
+docs/             DEPLOY (Vercel guide), DATA_CARD, DEMO, DESIGN, MOTION, screenshots
+scripts/          install-hooks, set-live-url.ps1
 ```
 
 ## Getting started
 
 ### Prerequisites
 
-- Python 3.11 or newer (Docker and CI use 3.12)
-- Node.js 22.18 or newer (Docker and CI use 24)
+- Python 3.11 or newer (Vercel and CI use 3.12)
+- Node.js 22.18 or newer (CI uses 24)
 - Optional: a Gemini API key, or any OpenAI-compatible endpoint. Without a key the app runs in **demo mode**,
   with sample responses labelled "Demo mode: sample responses, not live model output".
 - The SVTG PDF (not in the repository). Download DAHD's copy to `data/StandardVeterinaryTreatment.pdf`:
-  <https://dahd.gov.in/sites/default/files/2024-10/StandardVeterinaryTreatment.pdf>
+  <https://dahd.gov.in/sites/default/files/2024-10/StandardVeterinaryTreatment.pdf>. Without it the app runs,
+  but retrieval finds nothing and `/api/health` says the passages are not loaded.
 
 ### Windows (PowerShell)
 
@@ -288,6 +302,14 @@ npm --prefix frontend run dev
 Open <http://localhost:5173>. The API runs on `127.0.0.1:8010`, and Vite proxies `/api` to it. Check
 <http://localhost:5173/api/health>.
 
+On first start the local database (`data/vetagentbench.db`, SQLite) is created and filled automatically: the
+cases, the drug table, the frozen v1.0.0 results and, if the PDF is in `data/`, the SVTG passages (about 10
+seconds once). To do it by hand, or against Postgres: `cd backend`, then `python -m alembic upgrade head`
+(Postgres only) and `python -m app.scripts.seed`.
+
+With the [Vercel CLI](https://vercel.com/docs/cli) you can also run the project the way Vercel serves it:
+`npx vercel link`, then `npx vercel dev` (see [docs/DEPLOY.md](docs/DEPLOY.md#test-a-production-build-locally)).
+
 Optional: install the commit message hook with `sh scripts/install-hooks.sh` (or `.\scripts\install-hooks.ps1`).
 See [CONTRIBUTING.md](CONTRIBUTING.md#commit-message-hygiene).
 
@@ -302,7 +324,9 @@ or returned by the API.
 | `GEMINI_API_KEY` | empty | Gemini key (enables live runs) |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model ID (the v1.0.0 snapshot used `gemini-3.5-flash-lite`) |
 | `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_MODEL` | empty | Any OpenAI-compatible endpoint |
-| `SVTG_PDF_PATH` | `data/StandardVeterinaryTreatment.pdf` | Location of the SVTG PDF |
+| `DATABASE_URL` | empty | Postgres URL; empty = local SQLite `data/vetagentbench.db` |
+| `DATABASE_URL_UNPOOLED` | empty | Direct Postgres URL for migrations and the seed script |
+| `SVTG_PDF_PATH` | `data/StandardVeterinaryTreatment.pdf` | Local SVTG PDF, read only by the seed script |
 | `TEMPERATURE` | `0` | Sampling temperature |
 | `MAX_STEPS` | `6` | Maximum agent steps (C2–C4) |
 | `MAX_OWNER_QUESTIONS` | `5` | Owner-interview question limit |
@@ -310,23 +334,37 @@ or returned by the API.
 | `DEMO_DELAY_MS` | `0` | Demo mode only: pause per simulated call |
 
 Production adds `APP_ENV`, `ADMIN_ACCESS_CODE`, `SESSION_SECRET`, `ALLOWED_ORIGINS`, `MAX_DAILY_TOKENS`,
-`MAX_CASES_PER_RUN`, `RATE_LIMIT_PER_MINUTE`, `DATA_DIR` and more. They are all documented in
-[`.env.production.example`](.env.production.example) and [docs/DEPLOY.md](docs/DEPLOY.md#2-environment-variables).
+`MAX_CASES_PER_RUN`, `RATE_LIMIT_PER_MINUTE`, `STEP_DEADLINE_S` and more. They are all listed in
+[`.env.vercel.example`](.env.vercel.example) and described in [docs/DEPLOY.md](docs/DEPLOY.md#4-environment-variables).
 
-## Docker and deployment
+## Deploying on Vercel
 
-One container serves the API and the built frontend. It runs as a non-root user, has a health check, and keeps
-all writable state on one persistent volume. On first start it loads the frozen v1.0.0 results, so a fresh
-deployment shows real numbers without spending API credits.
+The whole project deploys as one Vercel project: the frontend as a static build from the CDN, the FastAPI
+backend as a Python function (`api/index.py`), and Postgres from the Vercel Marketplace (Neon). The step-by-step
+guide is **[docs/DEPLOY.md](docs/DEPLOY.md)**. In short:
 
-```bash
-cp .env.production.example .env.production   # set ADMIN_ACCESS_CODE, SESSION_SECRET, ALLOWED_ORIGINS
-docker compose up --build -d                 # → http://localhost:8000
-```
+1. Import the GitHub repository in Vercel; root directory `./`, framework preset **Other** (`vercel.json` sets
+   the build command, the output directory `frontend/dist`, the routes and the security headers).
+2. Add **Neon Postgres** from the Marketplace; it sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`.
+3. Set the server-only environment variables: `APP_ENV=production`, `ADMIN_ACCESS_CODE`, `SESSION_SECRET`,
+   `ALLOWED_ORIGINS`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `MAX_DAILY_TOKENS` (full list:
+   [`.env.vercel.example`](.env.vercel.example)). None of them may start with `VITE_`.
+4. From your computer, with the SVTG PDF: `alembic upgrade head`, then `python -m app.scripts.seed` against the
+   direct database URL. It loads the cases, the drug table, the frozen v1.0.0 results and the SVTG passages, and
+   is safe to run twice.
+5. Deploy, then work through the smoke-test checklist in DEPLOY.md, and publish the link with
+   `.\scripts\set-live-url.ps1 -Url https://<your-app>.vercel.app`.
 
-The service needs a long-running process and a persistent disk (live runs stream over SSE, run state is in
-memory, the database is SQLite). Hosts like Render, Railway or Fly.io fit that model. Step-by-step instructions,
-every variable, backups, the snapshot and scaling notes are in **[docs/DEPLOY.md](docs/DEPLOY.md)**.
+**Limitations to know about:**
+
+- **Function time limit.** A request may run for at most 300 s on the Hobby plan (`maxDuration`). Runs are split
+  so that each request handles one case through one condition; a step still working after 240 s is stored as
+  "timed out" and can be retried from its card. The browser drives the run, so keep the tab open (a reloaded
+  page continues it).
+- **Read-only public mode.** Visitors browse the stored results; nothing they do calls a model or changes data.
+- **Live runs need the access code**, and the daily token budget caps what they can spend. Re-running a frozen
+  case with the snapshot's model is answered from the cache and costs nothing.
+- **Cold starts.** A new function instance loads the SVTG passages from the database before its first search.
 
 ## Usage
 
@@ -356,6 +394,7 @@ lock again from the same place. In development with no access code set, everythi
 Command line (from `backend/`):
 
 ```bash
+python -m app.scripts.seed                    # load data, frozen results and SVTG passages (safe to repeat)
 python -m app.scripts.run_case BOV-WD-007     # all five conditions for one case
 python -m app.scripts.score                   # score the latest run → data/exports/
 python -m app.scripts.snapshot verify         # re-score the frozen snapshot
@@ -390,8 +429,9 @@ escalation labels are the author's judgement from the cited sources, pending vet
 shows an UNVERIFIED tag on each one.
 
 **Licensing.** The code and the case and drug data are MIT-licensed. The SVTG is a Government of India
-publication: it is **not redistributed** here (not in the repository, the Docker image or the API). The app
-shows only short passages that an answer or gold answer cites, with the page number and a link to DAHD's copy.
+publication: it is **not redistributed** here (not in the repository or the deployment, and the API never
+serves it). The seed script stores page-numbered passages from your own copy in your database; the app shows
+only short passages that an answer or gold answer cites, with the page number and a link to DAHD's copy.
 Full provenance and known gaps are in [docs/DATA_CARD.md](docs/DATA_CARD.md).
 
 ## Reproducibility
@@ -407,25 +447,35 @@ Full provenance and known gaps are in [docs/DATA_CARD.md](docs/DATA_CARD.md).
 - **Frozen results.** `snapshots/v1.0.0/run.json` holds the complete run (all 145 answers, traces and token counts)
   with a checksum in `run.sha256`. `python -m app.scripts.snapshot verify` re-scores it and checks that every
   metric and the benchmark hash match.
-- **Pinned dependencies.** `backend/requirements.txt` pins exact versions, and `frontend/package-lock.json` locks
-  the frontend.
+- **Reproducible database.** `python -m app.scripts.seed` rebuilds the benchmark data, the frozen results and the
+  answer cache from files in this repository (plus your copy of the SVTG PDF); the benchmark hash computed from
+  the database is the same `b4b15a69…`.
+- **Pinned dependencies.** `requirements.txt` pins the runtime packages exactly, and `frontend/package-lock.json`
+  locks the frontend.
 
 ## Testing
 
 ```bash
-npm test                                   # backend: pytest (security, scoring, tools, rules, parser, API, data)
+npm test                                   # backend: pytest (security, scoring, tools, rules, parser, API, data, seed)
 npm --prefix frontend run check            # tsc, ESLint, style, contrast (WCAG AA) and motion checks
 npm --prefix frontend run build            # production build
+npm --prefix frontend run check:secrets    # no server-only value or key-shaped string in the built frontend
 npm --prefix frontend run e2e              # Playwright against the development build
 ```
 
+pytest uses a fresh SQLite database per test; set `TEST_DATABASE_URL` to a Postgres database to run the same
+suite there (the fixture applies the Alembic migrations first).
+
 The release suite runs against a production build, covering public browsing, blocked writes, a live C0–C4 run,
 the budget cap, the rate limit, keyboard use and screenshots of every page:
-`npx playwright test -c playwright.release.config.ts` (see [docs/DEPLOY.md](docs/DEPLOY.md#6-local-test-with-docker-compose)).
+`npx playwright test -c playwright.release.config.ts`, against a deployment or a local production build that
+imports `api/index.py` the way Vercel does (see [docs/DEPLOY.md](docs/DEPLOY.md#test-a-production-build-locally)).
 
-Tests that need the SVTG PDF skip when it is absent. [CI](.github/workflows/ci.yml) runs the benchmark check,
-the snapshot check, pytest, type checking, lint, the style, contrast and motion checks, and the production build on
-every push and pull request.
+Tests that need the SVTG PDF skip when it is absent; made-up passages test the database-backed index instead.
+[CI](.github/workflows/ci.yml) runs, on every push and pull request: an import check of `api/index.py`, the
+benchmark and snapshot checks, pytest on SQLite and on a Postgres service, the migrations and the seed (twice) on
+a fresh Postgres database, type checking, lint, the style, contrast and motion checks, the production build and
+the secrets scan.
 
 ## Security
 
@@ -433,7 +483,10 @@ every push and pull request.
 - **Access code:** a salted scrypt hash, compared in constant time. Unlocking sets a signed (HMAC-SHA256),
   httpOnly, Secure, SameSite=Strict session cookie. Per-IP and global lockout after repeated wrong codes.
 - **Limits:** a per-IP rate limit on every endpoint except health, a daily live-token budget (`MAX_DAILY_TOKENS`), a cap on
-  cases per run, and request body size limits.
+  cases per run, and request body size limits. Counters live in the database, so every serverless instance
+  enforces them.
+- **Secrets stay on the server:** keys, the access code and the database URL are server-only environment
+  variables; a build check proves none of them reaches the JavaScript bundle.
 - **Hardening:** strict Content-Security-Policy, HSTS, frame denial, same-origin writes, CORS allow-list, no stack
   traces in responses, secrets redacted from logs, API docs off in production. The git history is scanned with
   gitleaks.

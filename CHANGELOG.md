@@ -2,6 +2,59 @@
 
 All notable changes. Research prototype, not for clinical use. Consult a registered veterinarian.
 
+## [1.1.0] - 2026-10-19
+
+Deployment on Vercel. The benchmark is unchanged: still v1.0.0 with content hash
+`b4b15a6930708f0976cb2b119f389c6d32ac321f8e2715d1751fed7c721edf07`, and the same frozen results.
+
+### Deployment
+- The whole project deploys as one Vercel project: the frontend as a static build from the CDN, the FastAPI app as
+  a Python function (`api/index.py`), and Postgres from the Vercel Marketplace (Neon). `vercel.json` sets the build,
+  the routes (`/api/*` to the function, everything else to `index.html`), `maxDuration` 300 s (the Hobby maximum)
+  and the security headers (CSP with `frame-ancestors 'none'`, nosniff, Referrer-Policy, X-Frame-Options, HSTS).
+- `docs/DEPLOY.md` is now a step-by-step Vercel guide: import, settings, Marketplace Postgres, every environment
+  variable, migrations and seed from your computer (PowerShell), `maxDuration`, custom domain, smoke-test checklist.
+  `.env.vercel.example` lists every variable.
+- Docker is gone: `Dockerfile`, `docker-compose.yml`, `docker/`, `.dockerignore`, gunicorn configuration, the
+  SQLite backup script and `.env.production.example`.
+- `scripts/set-live-url.ps1` puts the deployed URL in the README and the repository's About section.
+
+### Storage
+- All state is in a database: SQLAlchemy Core with `DATABASE_URL` (Postgres via psycopg 3 in production, SQLite
+  locally). Tables for runs, results, traces, the answer cache, reviews, cases, drug rows, SVTG passages, saved
+  settings, rate-limit counters, access-code lockout and the daily token budget. Alembic migrations.
+- `python -m app.scripts.seed` (safe to run twice) loads the cases and drug table, the frozen v1.0.0 results, their
+  answers into the cache (re-running a frozen case with the snapshot's model costs nothing), and the SVTG passages.
+  Locally an empty database is seeded on first start.
+- Cases and drug rows edited in the app are stored in the database; the files in `data/` are the seed source.
+
+### Knowledge base
+- The seed script parses your local copy of the SVTG PDF into page-numbered passages and stores them in the
+  database. The PDF and the passage set are never in git or in the deployment; the function builds the BM25 index
+  in memory, and pymupdf is no longer a runtime dependency.
+- `/api/health` reports `index_loaded`, `chunks` and `source_pages`, and warns clearly when the passages are missing
+  (the app still starts). It also reports the database engine and a missing `DATABASE_URL`.
+
+### Runs on serverless functions
+- A run is split into steps: each request runs one case through one condition and ends within the function time
+  limit. The browser requests the steps in order and shows progress; the steps of a condition stream as
+  server-sent events, or arrive as JSON when streaming is not available.
+- A step still running at `STEP_DEADLINE_S` (240 s) is stored as "timed out" with a clear message and a Retry
+  button. A reloaded page continues an unfinished run; a run without progress for `RUN_STALE_S` is marked
+  interrupted. Results and the answer cache are stored in the database.
+
+### Security
+- Rate-limit counters, failed access codes, lockouts and the daily budget are stored in the database, so every
+  function instance enforces them. On Vercel the client IP comes from the platform's `X-Real-IP` header.
+- `npm run check:secrets` proves the built frontend contains no server-only value, key-shaped string or `VITE_`
+  variable.
+
+### Tests and CI
+- pytest runs on a fresh database per test, on SQLite and on Postgres (`TEST_DATABASE_URL`); new tests for the seed
+  (idempotent), migrations matching the schema, step runs, timeouts, resume, budget stop and the health warnings.
+- CI: an import check of `api/index.py`, pytest on SQLite and on a Postgres service, migrations and the seed on a
+  fresh database, the secrets scan after the frontend build.
+
 ## [1.0.0] - 2026-10-19
 
 First public release: a read-only research site with a frozen benchmark and a frozen live result.

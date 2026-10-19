@@ -21,8 +21,14 @@ See [Getting started](README.md#getting-started) in the README. In short:
 ```bash
 npm run setup                 # Windows; on macOS/Linux see the README
 cp .env.example .env          # optional: add a model key; without one the app runs in demo mode
-npm run dev
+npm run dev                   # first start creates and seeds the local SQLite database
 ```
+
+The app reads everything from a database: SQLite (`data/vetagentbench.db`) unless `DATABASE_URL` points at
+Postgres. A schema change needs an Alembic migration in `backend/migrations/versions/`
+(`cd backend; python -m alembic revision --autogenerate -m "..."`, then review it); `test_seed.py` fails if the
+migrations and `app/storage/schema.py` disagree. Runtime Python packages go in `requirements.txt` (what Vercel
+installs); tools that never run on the server go in `backend/requirements-dev.txt`.
 
 ## Commit message hygiene
 
@@ -46,9 +52,10 @@ explains why.
 ## Before you open a pull request
 
 ```bash
-npm test                                   # backend pytest
+npm test                                   # backend pytest (SQLite; TEST_DATABASE_URL=postgresql://... for Postgres)
 npm --prefix frontend run check            # tsc, eslint, style, contrast and motion checks
 npm --prefix frontend run build            # production build
+npm --prefix frontend run check:secrets    # no secret in the built frontend
 cd backend && python -m app.scripts.snapshot verify   # the frozen results still reproduce
 ```
 

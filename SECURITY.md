@@ -39,15 +39,16 @@ model answers (that is a research question. Open a normal issue).
 
 ## How the deployment is protected
 
-A summary. The details are in [docs/DEPLOY.md](docs/DEPLOY.md#8-operations).
+A summary. The details are in [docs/DEPLOY.md](docs/DEPLOY.md#operations).
 
 - **Read-only public mode** in production. Running cases, editing data, Review and Settings need
   `ADMIN_ACCESS_CODE`.
 - **Access code:** compared as a salted scrypt hash in constant time. Unlocking sets a signed (HMAC-SHA256),
   httpOnly, Secure, SameSite=Strict cookie. Per-IP and global lockout after repeated wrong codes.
 - **Limits:** a per-IP rate limit on every endpoint except health, a daily live-token budget, a cap on cases per
-  run and a request body size limit.
+  run and a request body size limit. The counters are kept in the database, shared by every serverless instance.
 - **Headers:** Content-Security-Policy, HSTS, X-Frame-Options, nosniff, Referrer-Policy, and a same-origin
   check on writes. CORS is limited to `ALLOWED_ORIGINS`.
-- **Secrets:** never logged (redacted at record creation) or returned. Health shows only `key_present`. The git
-  history is scanned with gitleaks.
+- **Secrets:** server-only environment variables, never logged (redacted at record creation) or returned. Health
+  shows only `key_present` and the database engine name. A build check scans the frontend bundle for secret
+  values, and the git history is scanned with gitleaks.

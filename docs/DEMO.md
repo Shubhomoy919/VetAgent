@@ -7,8 +7,8 @@ Research prototype, not for clinical use. Consult a registered veterinarian.
 1. **Pick where to present from.**
    - *Deployed site (recommended):* open the production URL. The public pages already show the frozen v1.0.0
      results (one complete live run, 145 answers), so nothing needs to run and no credits are spent.
-   - *Laptop:* `docker compose up -d` (see [DEPLOY.md](DEPLOY.md) §6) and open http://localhost:8000, or
-     `npm run dev` for the development build (http://localhost:5173).
+   - *Laptop:* `npm run dev` (http://localhost:5173). On first start it creates and seeds the local database,
+     including the frozen results; or a local production build (see [DEPLOY.md](DEPLOY.md#test-a-production-build-locally)).
 2. Check `/api/health`: `"benchmark": {"version": "1.0.0", "frozen": true}`, `"pdf_loaded": true`,
    `"counts": {"runs": ≥ 1}`.
 3. Have the access code ready, but **stay read-only** until the live-run step. Check today's budget in the run bar
