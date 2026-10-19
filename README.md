@@ -11,8 +11,8 @@ An India-focused benchmark that counts dangerous errors first.**
 [![Deploys on Vercel](https://img.shields.io/badge/deploys%20on-Vercel-000000?logo=vercel&logoColor=white)](docs/DEPLOY.md)
 [![Postgres](https://img.shields.io/badge/database-Postgres-4169E1?logo=postgresql&logoColor=white)](docs/DEPLOY.md#3-add-postgres-from-the-marketplace)
 
-<!-- LIVE_DEMO_URL: scripts/set-live-url.ps1 replaces this block with the deployed URL -->
-**Live demo:** deployment on Vercel in progress. The link will appear here and in the repository's About section.
+<!-- LIVE_DEMO_URL: set by scripts/set-live-url.ps1 -->
+**Live demo:** [https://vetagent-jade.vercel.app](https://vetagent-jade.vercel.app) (read-only for visitors; live runs need the access code)
 <!-- /LIVE_DEMO_URL -->
 
 ![Overview page: the research question, the five conditions and the frozen v1.0.0 results](docs/screenshots/release/overview-public-1440.png)
