@@ -19,9 +19,9 @@ frontend/playwright-report/
 frontend/blob-report/
 *.tsbuildinfo
 
-# Data generated at runtime
-data/runs.db
-data/runs.db-*
+# Data generated at runtime (local SQLite databases, old index cache)
+data/*.db
+data/*.db-*
 data/cache/
 
 # OS / editor

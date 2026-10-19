@@ -17,46 +17,44 @@ from app.config import REPO_ROOT, get_settings
 from app.data.editor import EditError
 from app.retrieval.service import svtg_index
 from app.security import BodySizeLimit, GuardMiddleware, install_log_redaction, redact
+from app.storage.db import DatabaseNotConfigured
 
 log = logging.getLogger("vetagentbench")
 
-# Built frontend (npm run build). Present in the Docker image and after a local production build.
+# Built frontend (npm run build), served by the app when it runs locally. On Vercel the CDN serves it.
 DIST = Path(__import__("os").environ.get("FRONTEND_DIST") or REPO_ROOT / "frontend" / "dist").resolve()
 
 
 def _startup() -> None:
+    """Local development only: give an empty database the seed data, the frozen results and (when the PDF is
+    present) the SVTG passages, so `npm run dev` works without a separate seed step. Production does nothing
+    here: the database is migrated and seeded from a laptop (docs/DEPLOY.md, step 5), and cold starts stay fast."""
     s = get_settings()
-    from app.agent.manager import manager
-    from app.snapshot import SnapshotError, load_snapshot
-
-    store = manager.store
-    interrupted = store.mark_interrupted()
-    if interrupted:
-        log.info("Marked %d run(s) interrupted by a restart", interrupted)
     if s.is_production:
-        removed = store.delete_demo_runs()
-        if removed:
-            log.info("Removed %d demo run(s) from the production database", removed)
-    if s.autoload_snapshot and s.snapshot_file.is_file():
-        try:
-            rid = load_snapshot(store, s.snapshot_file)
-            if rid:
-                log.info("Loaded frozen results snapshot %s", rid)
-        except (SnapshotError, OSError, ValueError) as e:
-            log.error("Could not load results snapshot: %s", e)
+        return
+    from app.scripts.seed import seed_data, seed_snapshot, seed_svtg
+    from app.storage.db import get_store
+
+    try:
+        store = get_store()
+        if not store.case_records():
+            log.info("Seed data: %s", seed_data(store, reset=False))
+            if s.autoload_snapshot and s.snapshot_file.is_file():
+                log.info("Results snapshot: %s", seed_snapshot(store, s.snapshot_file))
+        if not store.chunk_count() and s.pdf_path.is_file():
+            log.info("SVTG passages: %s", seed_svtg(store, s.pdf_path))
+    except Exception as e:  # never block start-up; /api/health shows what is missing
+        log.error("Local seeding failed: %s", redact(f"{type(e).__name__}: {e}"))
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     install_log_redaction()
     _startup()
-    # Warm the SVTG index in the background so the first search is fast.
-    threading.Thread(target=lambda: svtg_index(get_settings()), daemon=True).start()
+    if not get_settings().is_production:
+        # Warm the SVTG index in the background so the first local search is fast.
+        threading.Thread(target=svtg_index, daemon=True).start()
     yield
-    from app.agent.manager import manager
-
-    log.info("Shutting down: stopping any active run")
-    manager.shutdown(timeout=20.0)
 
 
 _s = get_settings()
@@ -70,6 +68,11 @@ app = FastAPI(
     redoc_url=None,
     openapi_url=None if _s.is_production else "/api/openapi.json",
 )
+
+
+@app.exception_handler(DatabaseNotConfigured)
+async def no_database_handler(_: Request, exc: DatabaseNotConfigured) -> JSONResponse:
+    return JSONResponse(status_code=503, content={"detail": str(exc)})
 
 
 @app.exception_handler(EditError)

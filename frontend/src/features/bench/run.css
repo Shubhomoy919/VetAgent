@@ -277,6 +277,12 @@
   padding: 2px 0;
 }
 
+.ccard-failed {
+  display: grid;
+  justify-items: start;
+  gap: var(--s2);
+}
+
 .ccard-error {
   margin: 0;
   padding: var(--s2) var(--s3);

@@ -1,16 +1,14 @@
-"""Edit cases.json and drug_table.csv safely.
+"""Edit the case set and drug table safely.
 
-Every write: validate each record with the Pydantic model, check uniqueness across the whole file,
-then write to a temp file and atomically replace the original. Validation failures raise EditError
-with a list of {loc, msg} items so the UI can point at the field.
+Every write: validate each record with the Pydantic model, check uniqueness across the whole set, then replace
+the set in the database in one transaction. Validation failures raise EditError with a list of {loc, msg}
+items so the UI can point at the field.
 """
 
 import csv
 import io
 import json
-import os
 import threading
-from pathlib import Path
 from typing import Any
 
 from pydantic import ValidationError
@@ -33,12 +31,6 @@ def _errors(err: ValidationError, prefix: tuple[Any, ...] = ()) -> list[dict[str
     return [{"loc": [*prefix, *e["loc"]], "msg": e["msg"].removeprefix("Value error, ")} for e in err.errors()]
 
 
-def _atomic_write(path: Path, text: str) -> None:
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(text, encoding="utf-8", newline="")
-    os.replace(tmp, path)
-
-
 def drug_key(row: DrugRow) -> str:
     return f"{row.species}|{row.drug.lower()}"
 
@@ -57,8 +49,9 @@ def _write_cases(cases: list[Case]) -> None:
     dupes = sorted({i for i in ids if ids.count(i) > 1})
     if dupes:
         raise EditError("Duplicate case IDs", [{"loc": ["case_id"], "msg": f"case_id {d} already exists"} for d in dupes])
-    text = json.dumps([c.model_dump(mode="json") for c in cases], indent=2, ensure_ascii=False) + "\n"
-    _atomic_write(loaders.CASES_PATH, text)
+    from app.storage.db import get_store
+
+    get_store().replace_cases([c.model_dump(mode="json") for c in cases])
 
 
 def save_case(data: dict[str, Any], original_id: str | None) -> Case:
@@ -175,7 +168,9 @@ def _write_drugs(rows: list[DrugRow]) -> None:
     dupes = sorted({k for k in keys if keys.count(k) > 1})
     if dupes:
         raise EditError("Duplicate drug rows", [{"loc": ["drug"], "msg": f"{d.replace('|', ' / ')} already exists"} for d in dupes])
-    _atomic_write(loaders.DRUGS_PATH, drugs_csv(rows))
+    from app.storage.db import get_store
+
+    get_store().replace_drugs([r.model_dump(mode="json", exclude={"verified"}) for r in rows])
 
 
 def save_drug(data: dict[str, Any], original_key: str | None) -> DrugRow:

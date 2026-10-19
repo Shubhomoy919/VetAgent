@@ -1,8 +1,9 @@
 """Benchmark version and content hash.
 
 The hash covers the validated case set and drug table, serialised canonically (sorted keys, no whitespace), so
-reformatting a file does not change it but any change to content does. `benchmark.json` (shipped with the
-code) records the frozen v1.0 hashes; if the live data no longer matches, the version reads "1.0.0+modified".
+reformatting does not change it but any change to content does. The same hash is computed for the data in the
+database (what the app serves) and for the seed files. `benchmark.json` (shipped with the code) records the
+frozen v1.0 hashes; if the data no longer matches, the version reads "1.0.0+modified".
 """
 
 import hashlib
@@ -39,9 +40,7 @@ def load_manifest(path: Path = MANIFEST_PATH) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-@lru_cache(maxsize=8)
-def _info(cases_mtime: float, drugs_mtime: float) -> dict[str, Any]:
-    cases, drugs = loaders.load_cases(), loaders.load_drugs()
+def info_for(cases: list[Case], drugs: list[DrugRow]) -> dict[str, Any]:
     c_hash, d_hash = cases_hash(cases), drugs_hash(drugs)
     full = combined_hash(c_hash, d_hash)
     manifest = load_manifest()
@@ -60,16 +59,26 @@ def _info(cases_mtime: float, drugs_mtime: float) -> dict[str, Any]:
     }
 
 
-def _mtime(p: Path) -> float:
-    try:
-        return p.stat().st_mtime
-    except OSError:
-        return 0.0
+@lru_cache(maxsize=8)
+def _db_info(url: str, rev: str) -> dict[str, Any]:
+    return info_for(loaders.load_cases(), loaders.load_drugs())
 
 
 def benchmark_info() -> dict[str, Any]:
-    """Current benchmark version and hash. Raises loaders.DataError if the data files are invalid."""
-    return dict(_info(_mtime(loaders.CASES_PATH), _mtime(loaders.DRUGS_PATH)))
+    """Version and hash of the data in the database. Raises loaders.DataError if it is missing or invalid."""
+    from app.storage.db import get_store
+
+    try:
+        store = get_store()
+        key = (store.url, store.data_rev())
+    except Exception as e:
+        raise loaders.DataError(f"Benchmark data could not be read from the database ({type(e).__name__})") from e
+    return dict(_db_info(*key))
+
+
+def file_benchmark_info() -> dict[str, Any]:
+    """Version and hash of the seed files (data/cases.json, data/drug_table.csv)."""
+    return info_for(loaders.read_cases_file(), loaders.read_drugs_file())
 
 
 def export_meta(extra: dict[str, Any] | None = None) -> dict[str, Any]:

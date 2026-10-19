@@ -12,13 +12,11 @@ passage that is *about* a disease or drug above passages that only mention it.
 """
 
 import re
-import threading
 from dataclasses import dataclass
-from pathlib import Path
 
 from rank_bm25 import BM25Okapi
 
-from app.retrieval.ingest import Chunk, build_chunks
+from app.retrieval.ingest import Chunk
 
 SECTION_BOOST = 2.0
 KEYWORD_BOOST = 1.0
@@ -109,21 +107,3 @@ class SearchIndex:
                 hits.append(Hit(self.chunks[i], total, float(base), boost))
         hits.sort(key=lambda h: h.score, reverse=True)
         return hits[:k]
-
-
-_lock = threading.Lock()
-_cache: dict[tuple[str, float], SearchIndex] = {}
-
-
-def get_index(pdf_path: Path, cache_dir: Path | None, extra_keywords: list[str] | None = None) -> SearchIndex:
-    """Build (or reuse) the index for this PDF. Missing PDF → empty index."""
-    if not pdf_path.is_file():
-        return SearchIndex([])
-    key = (str(pdf_path), pdf_path.stat().st_mtime)
-    with _lock:
-        idx = _cache.get(key)
-        if idx is None:
-            idx = SearchIndex(build_chunks(pdf_path, cache_dir), extra_keywords)
-            _cache.clear()
-            _cache[key] = idx
-        return idx

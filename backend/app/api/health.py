@@ -1,26 +1,24 @@
-"""GET /api/health — version, benchmark hash, readiness of the PDF, data, database and LLM provider.
+"""GET /api/health — version, benchmark hash, readiness of the database, the SVTG passages and the LLM provider.
 
-Never exposes keys: only `key_present: true/false`. Paths are shown relative and only in development.
+Never exposes keys or the database URL: only `key_present: true/false` and the database engine name.
 """
 
-import sqlite3
-from functools import lru_cache
-from pathlib import Path
 from typing import Literal
 
-import pymupdf
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
 from app import __version__
-from app.config import REPO_ROOT, Settings, get_settings
+from app.config import Settings, get_settings
 from app.data.benchmark import benchmark_info
 from app.data.loaders import DataError, load_cases, load_drugs
-from app.retrieval.service import svtg_index
+from app.retrieval.service import index_status
 from app.security import is_admin
-from app.storage.db import DB_PATH, Store
+from app.storage.db import DatabaseNotConfigured, database_url, describe_url, get_store
 
 router = APIRouter()
+
+SEED_HINT = "Run the migrations and the seed script (docs/DEPLOY.md, step 5)."
 
 
 class Counts(BaseModel):
@@ -39,7 +37,7 @@ class Benchmark(BaseModel):
 
 class Database(BaseModel):
     ok: bool
-    engine: Literal["sqlite"]
+    engine: Literal["sqlite", "postgresql", "none"]
 
 
 class Health(BaseModel):
@@ -53,71 +51,62 @@ class Health(BaseModel):
     configured_provider: str
     model: str
     key_present: bool
-    pdf_path: str
-    pdf_loaded: bool
-    pages: int
+    index_loaded: bool
     chunks: int
+    source_pages: int
     counts: Counts
     benchmark: Benchmark | None
     database: Database
     data_errors: list[str]
-
-
-@lru_cache(maxsize=4)
-def _pdf_pages(path: str, mtime: float) -> int:
-    with pymupdf.open(path) as doc:
-        return doc.page_count
-
-
-def pdf_status(path: Path) -> tuple[bool, int]:
-    if not path.is_file():
-        return False, 0
-    try:
-        return True, _pdf_pages(str(path), path.stat().st_mtime)
-    except Exception:
-        return False, 0
-
-
-def _display_path(path: Path) -> str:
-    try:
-        return path.relative_to(REPO_ROOT).as_posix()
-    except ValueError:
-        return str(path)
+    warnings: list[str]
 
 
 @router.get("/api/health", response_model=Health)
 def health(request: Request, settings: Settings = Depends(get_settings)) -> Health:
-    pdf_loaded, pages = pdf_status(settings.pdf_path)
     provider = settings.effective_provider
-
     errors: list[str] = []
+    warnings: list[str] = []
+
     try:
-        n_cases = len(load_cases())
-    except DataError as e:
-        n_cases = 0
+        url = database_url()
+        store = get_store()
+        db = Database(ok=store.ping(), engine=describe_url(url))  # type: ignore[arg-type]
+    except DatabaseNotConfigured as e:
+        store, db = None, Database(ok=False, engine="none")
         errors.append(str(e))
-    try:
-        n_drugs = len(load_drugs())
-    except DataError as e:
-        n_drugs = 0
-        errors.append(str(e))
-    try:
-        chunks = len(svtg_index(settings)) if pdf_loaded else 0
-    except Exception as e:  # a corrupt PDF must not take health down
-        chunks = 0
-        errors.append(f"SVTG index could not be built: {type(e).__name__}")
-    try:
-        bench = Benchmark(**{k: v for k, v in benchmark_info().items() if k in Benchmark.model_fields})
-    except DataError:
-        bench = None
-    db_ok = Store(DB_PATH).ping() if DB_PATH.parent.is_dir() else False
-    try:
-        n_runs = Store(DB_PATH).count_runs() if db_ok else 0
-    except sqlite3.Error:
-        n_runs, db_ok = 0, False
+    except Exception as e:  # unreachable or misconfigured database must not take health down
+        store, db = None, Database(ok=False, engine="none")
+        errors.append(f"Database unavailable ({type(e).__name__})")
+    if store is not None and not db.ok:
+        errors.append("Database unreachable")
+
+    n_cases = n_drugs = n_runs = 0
+    bench = None
+    idx = {"index_loaded": False, "chunks": 0, "source_pages": 0}
+    if db.ok and store is not None:
+        try:
+            n_cases = len(load_cases())
+        except DataError as e:
+            errors.append(f"{e} {SEED_HINT}" if "seed" not in str(e) else str(e))
+        try:
+            n_drugs = len(load_drugs())
+        except DataError as e:
+            errors.append(str(e))
+        try:
+            bench = Benchmark(**{k: v for k, v in benchmark_info().items() if k in Benchmark.model_fields})
+        except DataError:
+            bench = None
+        try:
+            n_runs = store.count_runs()
+        except Exception as e:
+            errors.append(f"Runs could not be counted ({type(e).__name__}). {SEED_HINT}")
+        idx = index_status()
+        if not idx["index_loaded"]:
+            warnings.append("SVTG passages are not loaded: retrieval returns nothing and cited passages cannot be "
+                            "shown. " + SEED_HINT)
 
     return Health(
-        status="ok" if db_ok and not errors else "degraded",
+        status="ok" if db.ok and not errors and not warnings else "degraded",
         version=__version__,
         environment=settings.app_env,
         mode="admin" if is_admin(request, settings) else "public",
@@ -127,12 +116,12 @@ def health(request: Request, settings: Settings = Depends(get_settings)) -> Heal
         configured_provider=settings.llm_provider,
         model=settings.model_id,
         key_present=settings.key_present,
-        pdf_path="" if settings.is_production else _display_path(settings.pdf_path),
-        pdf_loaded=pdf_loaded,
-        pages=pages,
-        chunks=chunks,
+        index_loaded=bool(idx["index_loaded"]),
+        chunks=int(idx["chunks"]),
+        source_pages=int(idx["source_pages"]),
         counts=Counts(cases=n_cases, drugs=n_drugs, runs=n_runs),
         benchmark=bench,
-        database=Database(ok=db_ok, engine="sqlite"),
+        database=db,
         data_errors=errors,
+        warnings=warnings,
     )

@@ -121,7 +121,7 @@ needs_pdf = pytest.mark.skipif(not PDF.is_file(), reason="SVTG PDF not present")
 
 @pytest.fixture(scope="module")
 def svtg(tmp_path_factory) -> SearchIndex:
-    chunks = build_chunks(PDF, tmp_path_factory.mktemp("cache"))
+    chunks = build_chunks(PDF)
     return SearchIndex(chunks, ["buparvaquone", "ketoprofen", "diclofenac", "albendazole"])
 
 
@@ -150,8 +150,25 @@ def test_svtg_known_answers_rank_top3(svtg, query, expected_pages):
 
 
 @needs_pdf
-def test_cache_roundtrip(tmp_path: Path):
-    first = build_chunks(PDF, tmp_path)
-    assert (tmp_path / "svtg_chunks.json").is_file()
-    second = build_chunks(PDF, tmp_path)
-    assert first == second
+def test_index_is_built_from_database_passages(fake_svtg):
+    from app.retrieval.service import index_status, svtg_index
+
+    idx = svtg_index()
+    assert len(idx) == 3
+    assert idx.search("buparvaquone theileriosis", 1)[0].chunk.page == 175
+    assert index_status() == {"index_loaded": True, "chunks": 3, "source_pages": 406, "source": "SVTG (test passages)"}
+    # New passages (a re-seed) rebuild the index.
+    fake_svtg.replace_chunks([{"chunk_id": "p9-c1", "page": 9, "printed_page": None, "section": "x",
+                               "text": "Foot and mouth disease vaccination."},
+                              {"chunk_id": "p10-c1", "page": 10, "printed_page": None, "section": "y",
+                               "text": "Mastitis treatment in dairy cows."},
+                              {"chunk_id": "p11-c1", "page": 11, "printed_page": None, "section": "z",
+                               "text": "Deworming of goats with albendazole."}], {"pages": 11})
+    assert [h.chunk.page for h in svtg_index().search("foot mouth", 3)] == [9]
+
+
+def test_no_passages_means_empty_index():
+    from app.retrieval.service import index_status, svtg_index
+
+    assert len(svtg_index()) == 0 and svtg_index().search("rabies") == []
+    assert index_status()["index_loaded"] is False

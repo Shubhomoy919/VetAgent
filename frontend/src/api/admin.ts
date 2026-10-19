@@ -146,7 +146,6 @@ export interface SettingsValues {
   gemini_model: string;
   openai_base_url: string;
   openai_model: string;
-  svtg_pdf_path: string;
   temperature: number;
   max_steps: number;
   max_owner_questions: number;
@@ -163,8 +162,7 @@ export interface SettingsView {
   model: string;
   key_present: boolean;
   key_hint: string;
-  pdf: { path: string; exists: boolean; loaded: boolean; pages: number };
-  overrides_file: string;
+  svtg: { index_loaded: boolean; chunks: number; source_pages: number; source: string | null };
 }
 
 export interface UsageTotals {

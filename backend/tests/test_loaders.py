@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from app.data.loaders import DRUG_COLUMNS, DataError, load_cases, load_drugs
+from app.data.loaders import DRUG_COLUMNS, DataError, load_cases, load_drugs, read_cases_file, read_drugs_file
 from app.data.models import QUESTION_TYPES
 
 # ---------- the real data files ----------
@@ -12,12 +12,12 @@ from app.data.models import QUESTION_TYPES
 
 @pytest.fixture(scope="module")
 def cases():
-    return load_cases()
+    return read_cases_file()
 
 
 @pytest.fixture(scope="module")
 def drugs():
-    return load_drugs()
+    return read_drugs_file()
 
 
 def test_at_least_25_cases(cases):

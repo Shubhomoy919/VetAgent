@@ -1,12 +1,12 @@
 import pytest
 
-from app.data.loaders import load_cases
+from app.data.loaders import read_cases_file
 from app.scoring.verdict import dx_matches, judge, normalize
 
 
 @pytest.fixture(scope="module")
 def cases():
-    return {c.case_id: c for c in load_cases()}
+    return {c.case_id: c for c in read_cases_file()}
 
 
 def ans(**kw):

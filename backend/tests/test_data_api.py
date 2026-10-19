@@ -1,11 +1,8 @@
-import pytest
 from fastapi.testclient import TestClient
 
-from app.config import Settings
 from app.main import app
 
 client = TestClient(app)
-PDF_PRESENT = Settings(_env_file=None).pdf_path.is_file()
 
 
 def test_list_cases():
@@ -35,8 +32,7 @@ def test_list_drugs_marks_unverified():
     assert {"diclofenac", "ketoprofen", "aceclofenac"} <= banned
 
 
-@pytest.mark.skipif(not PDF_PRESENT, reason="SVTG PDF not present")
-def test_search_returns_pages():
+def test_search_returns_pages(svtg):
     res = client.get("/api/search", params={"q": "buparvaquone milk withdrawal", "k": 3})
     assert res.status_code == 200
     body = res.json()
@@ -49,13 +45,13 @@ def test_search_validates_query():
     assert client.get("/api/search", params={"q": ""}).status_code == 422
 
 
-@pytest.mark.skipif(not PDF_PRESENT, reason="SVTG PDF not present")
-def test_health_counts_real_data():
+def test_health_counts_real_data(svtg):
     body = client.get("/api/health").json()
     assert body["counts"]["cases"] >= 25
     assert body["counts"]["drugs"] >= 25
     assert body["chunks"] > 1000
-    assert body["data_errors"] == []
+    assert body["index_loaded"] is True and body["source_pages"] > 300
+    assert body["data_errors"] == [] and body["warnings"] == []
 
 
 def test_case_dose_band_is_computed_from_the_drug_table():

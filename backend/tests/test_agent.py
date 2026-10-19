@@ -10,7 +10,7 @@ from app.agent.runner import run_one
 from app.agent.schema import FinalAnswer
 from app.agent.trace import Trace
 from app.config import Settings
-from app.data.loaders import load_cases, load_drugs
+from app.data.loaders import read_cases_file, read_drugs_file
 from app.llm.base import LLMError, LLMRequest, LLMResponse
 from app.llm.demo import DemoProvider
 from app.retrieval.ingest import Chunk
@@ -54,12 +54,12 @@ class Scripted:
 
 @pytest.fixture(scope="module")
 def cases():
-    return {c.case_id: c for c in load_cases()}
+    return {c.case_id: c for c in read_cases_file()}
 
 
 @pytest.fixture(scope="module")
 def drugs():
-    return load_drugs()
+    return read_drugs_file()
 
 
 @pytest.fixture(scope="module")

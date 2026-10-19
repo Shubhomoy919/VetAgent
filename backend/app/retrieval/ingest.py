@@ -2,14 +2,12 @@
 
 Chunks never cross a page boundary, so every chunk cites exactly one page.
 The front matter (messages, acknowledgements, contents) is skipped.
+Run by the seed script on a local copy of the PDF; pymupdf is a seed-time dependency only, never deployed.
 """
 
-import json
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
-
-import pymupdf
 
 INDEX_VERSION = 4
 TARGET_CHARS = 800
@@ -174,6 +172,8 @@ def chunk_pages(pages: list[tuple[int, str]]) -> list[Chunk]:
 
 
 def extract_pages(pdf_path: Path) -> list[tuple[int, str]]:
+    import pymupdf  # seed-time only (requirements-seed.txt)
+
     with pymupdf.open(pdf_path) as doc:
         return [
             (i + 1, doc[i].get_text())
@@ -182,25 +182,12 @@ def extract_pages(pdf_path: Path) -> list[tuple[int, str]]:
         ]
 
 
-def build_chunks(pdf_path: Path, cache_dir: Path | None = None) -> list[Chunk]:
-    """Chunk the PDF, reusing a JSON cache keyed on file size and mtime."""
-    stat = pdf_path.stat()
-    key = {"version": INDEX_VERSION, "size": stat.st_size, "mtime": stat.st_mtime, "name": pdf_path.name}
-    cache_file = cache_dir / "svtg_chunks.json" if cache_dir else None
+def page_count(pdf_path: Path) -> int:
+    import pymupdf
 
-    if cache_file and cache_file.is_file():
-        try:
-            cached = json.loads(cache_file.read_text(encoding="utf-8"))
-            if cached.get("key") == key:
-                return [Chunk(**c) for c in cached["chunks"]]
-        except (OSError, ValueError, TypeError, KeyError):
-            pass  # rebuild below
+    with pymupdf.open(pdf_path) as doc:
+        return doc.page_count
 
-    chunks = chunk_pages(extract_pages(pdf_path))
-    if cache_file:
-        cache_file.parent.mkdir(parents=True, exist_ok=True)
-        cache_file.write_text(
-            json.dumps({"key": key, "chunks": [asdict(c) for c in chunks]}, ensure_ascii=False),
-            encoding="utf-8",
-        )
-    return chunks
+
+def build_chunks(pdf_path: Path) -> list[Chunk]:
+    return chunk_pages(extract_pages(pdf_path))

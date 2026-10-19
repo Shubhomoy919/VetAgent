@@ -12,7 +12,7 @@ export const RUN_STATUS_LABEL: Record<RunStatus, string> = {
   failed: "Failed",
   quota_exhausted: "Stopped: provider quota",
   budget_exhausted: "Stopped: daily budget",
-  interrupted: "Interrupted by a restart",
+  interrupted: "Interrupted",
 };
 
 export interface Budget {
@@ -94,7 +94,8 @@ export interface ResultSummary {
   case_id: string;
   condition: ConditionId;
   interview: boolean;
-  status: "ok" | "error";
+  /** "timeout": the step did not finish within the per-request limit; retry it. */
+  status: "ok" | "error" | "timeout";
   answer: Answer | null;
   error: string | null;
   rules_fired: RuleFiring[];
@@ -124,6 +125,19 @@ export interface RunSummary {
   force: boolean;
   provider: string;
   model: string;
+  /** Steps that already have a result (returned by /runs/active and /finish, so a reloaded page can continue). */
+  done?: { case_id: string; condition: ConditionId }[];
+}
+
+export interface StepDone {
+  case_id: string;
+  condition: ConditionId;
+  interview: boolean;
+  result: ResultSummary;
+  n_done: number;
+  n_total: number;
+  /** Set when the run had to stop after this step. */
+  stop: "quota" | "budget" | null;
 }
 
 export interface StartRunBody {
@@ -162,7 +176,71 @@ async function request<T>(method: string, url: string, body?: unknown): Promise<
 }
 
 export const startRun = (body: StartRunBody) => request<RunSummary>("POST", "/api/runs", body);
-export const cancelRun = (id: string) => request<{ run_id: string }>("POST", `/api/runs/${id}/cancel`);
+export const finishRun = (id: string, cancelled = false) => request<RunSummary>("POST", `/api/runs/${id}/finish`, { cancelled });
+
+export class StepHttpError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+  }
+}
+
+/** Run one case through one condition: one request, which must finish inside the server's time limit.
+ *  The server streams the agent steps as server-sent events; if a proxy returns plain JSON instead, the same
+ *  events arrive at the end. Either way `onEvent` sees result_started, step…, result_done (and run_error). */
+export async function runStep(
+  runId: string,
+  caseId: string,
+  condition: ConditionId,
+  onEvent: (type: string, data: unknown) => void,
+  signal?: AbortSignal,
+): Promise<StepDone | null> {
+  const res = await fetch(`/api/runs/${runId}/step`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+    body: JSON.stringify({ case_id: caseId, condition }),
+    signal: signal ?? null,
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const data = (await res.json()) as { detail?: unknown };
+      if (data.detail) detail = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
+    } catch {
+      // non-JSON body (e.g. the platform's own timeout page)
+    }
+    throw new StepHttpError(detail, res.status);
+  }
+  let done: StepDone | null = null;
+  const handle = (type: string, data: unknown) => {
+    if (type === "result_done") done = data as StepDone;
+    onEvent(type, data);
+  };
+  if ((res.headers.get("content-type") ?? "").includes("text/event-stream") && res.body) {
+    const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+    let buf = "";
+    for (;;) {
+      const { value, done: end } = await reader.read();
+      if (value) buf += value;
+      let cut: number;
+      while ((cut = buf.indexOf("\n\n")) >= 0) {
+        const block = buf.slice(0, cut);
+        buf = buf.slice(cut + 2);
+        let type = "message";
+        const data: string[] = [];
+        for (const line of block.split("\n")) {
+          if (line.startsWith("event: ")) type = line.slice(7);
+          else if (line.startsWith("data: ")) data.push(line.slice(6));
+        }
+        if (data.length) handle(type, JSON.parse(data.join("\n")));
+      }
+      if (end) break;
+    }
+  } else {
+    const body = (await res.json()) as { events?: { type: string; data: unknown }[] };
+    for (const e of body.events ?? []) handle(e.type, e.data);
+  }
+  return done;
+}
 export const getActiveRun = () => request<RunSummary | null>("GET", "/api/runs/active");
 export const getResult = (id: number) => request<ResultSummary>("GET", `/api/results/${id}`);
 export const getSvtgPage = (page: number) => request<SvtgPage>("GET", `/api/svtg/pages/${page}`);

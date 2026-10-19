@@ -1,13 +1,11 @@
 """Runs list/compare, review + agreement statistics, settings (overrides, no secrets, test connection)."""
 
-from pathlib import Path
+import json
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app import config
-from app.agent import manager as manager_mod
-from app.api import settings as settings_api
 from app.main import app
 from app.scoring.stats import cohen_kappa
 from app.storage.db import Store
@@ -53,20 +51,25 @@ def add(store: Store, run_id: str, case_id: str, cond: str, answer, status="ok",
     })
 
 
+class SavedSettings:
+    """The saved settings (database table app_settings), seen like the old settings file."""
+
+    def __init__(self, store: Store):
+        self.store = store
+
+    def exists(self) -> bool:
+        return bool(self.store.settings_overrides())
+
+    def read_text(self, encoding: str = "utf-8") -> str:
+        return json.dumps(self.store.settings_overrides())
+
+
 @pytest.fixture
-def env(tmp_path: Path, monkeypatch):
-    m = manager_mod.manager
-    old = (m._store, m._runs, m._active)
-    store = Store(tmp_path / "runs.db")
-    m._store, m._runs, m._active = store, {}, None
-    overrides = tmp_path / "settings.json"
-    monkeypatch.setattr(config, "OVERRIDES_PATH", overrides)
-    monkeypatch.setattr(settings_api, "OVERRIDES_PATH", overrides)
+def env(_isolated, monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", KEY)
     config.reset_settings_cache()
-    yield TestClient(app), store, overrides
+    yield TestClient(app), _isolated, SavedSettings(_isolated)
     config.reset_settings_cache()
-    m._store, m._runs, m._active = old
 
 
 def two_runs(store: Store):

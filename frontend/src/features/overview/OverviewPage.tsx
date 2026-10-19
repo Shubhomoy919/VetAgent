@@ -84,7 +84,7 @@ export function OverviewPage() {
           </div>
           <div className="ov-fig">
             <dt className="eyebrow">SVTG pages indexed</dt>
-            <dd className="ov-num serif">{health?.pages ?? "—"}</dd>
+            <dd className="ov-num serif">{health?.index_loaded ? health.source_pages : "—"}</dd>
             <dd className="ov-cap mono">{health ? `${health.chunks} passages` : ""}</dd>
           </div>
           <div className="ov-fig">

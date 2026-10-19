@@ -13,7 +13,6 @@ import {
   type TestResult,
 } from "../../api/admin";
 import { ApiError } from "../../api/data";
-import { useHealth } from "../../api/health";
 import { ErrorSummary, FormSection, SelectField, TextField } from "../../components/form";
 import "../data/data.css";
 import "./settings.css";
@@ -42,7 +41,6 @@ function toPayload(f: Form): Partial<Record<keyof SettingsValues, unknown>> {
 
 function SettingsForm({ view }: { view: SettingsView }) {
   const qc = useQueryClient();
-  const { data: health } = useHealth();
   const [form, setForm] = useState<Form>(() => toForm(view.values));
   const [errors, setErrors] = useState<{ fields: Record<string, string>; other: string[] }>({ fields: {}, other: [] });
   const [saving, setSaving] = useState(false);
@@ -158,15 +156,16 @@ function SettingsForm({ view }: { view: SettingsView }) {
 
       <FormSection title="Knowledge source (SVTG)">
         <div className="ff" data-span="2">
-          <span className="ff-label">PDF status</span>
-          <span className="mono set-pdf" data-ok={view.pdf.loaded} data-testid="pdf-status">
-            {view.pdf.loaded
-              ? `loaded · ${view.pdf.pages} pages · ${health?.chunks ?? "…"} passages indexed`
-              : view.pdf.exists
-                ? "file found but could not be read"
-                : "file not found"}
+          <span className="ff-label">Passage index</span>
+          <span className="mono set-pdf" data-ok={view.svtg.index_loaded} data-testid="pdf-status">
+            {view.svtg.index_loaded
+              ? `loaded · ${view.svtg.chunks.toLocaleString("en-US")} passages from ${view.svtg.source_pages} pages`
+              : "not loaded · run the seed script with the PDF on your computer"}
           </span>
-          <span className="ff-hint mono">{form.svtg_pdf_path} · set SVTG_PDF_PATH in the server environment to change it</span>
+          <span className="ff-hint">
+            Passages are stored in the database by <span className="mono">python -m app.scripts.seed</span>. The PDF
+            itself is never deployed.
+          </span>
         </div>
       </FormSection>
 
@@ -175,7 +174,7 @@ function SettingsForm({ view }: { view: SettingsView }) {
           Reset to environment
         </button>
         <div className="editor-actions-right">
-          <span className="ff-hint">Saved to <span className="mono">{view.overrides_file}</span></span>
+          <span className="ff-hint">Saved in the database; overrides the server environment</span>
           <button type="submit" className="btn btn-primary" disabled={saving} data-testid="save-settings">
             {saving ? "Saving…" : "Save settings"}
           </button>

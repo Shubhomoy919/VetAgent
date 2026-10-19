@@ -22,14 +22,15 @@ export interface Health {
   configured_provider: "gemini" | "openai_compatible" | "demo";
   model: string;
   key_present: boolean;
-  pdf_path: string;
-  pdf_loaded: boolean;
-  pages: number;
+  /** SVTG passages stored in the database by the seed script (the PDF itself is never deployed). */
+  index_loaded: boolean;
   chunks: number;
+  source_pages: number;
   counts: { cases: number; drugs: number; runs: number };
   benchmark: Benchmark | null;
-  database: { ok: boolean; engine: "sqlite" };
+  database: { ok: boolean; engine: "sqlite" | "postgresql" | "none" };
   data_errors: string[];
+  warnings: string[];
 }
 
 export async function fetchHealth(): Promise<Health> {

@@ -1,12 +1,12 @@
-"""Application settings, loaded from the repo-root .env file.
+"""Application settings from environment variables (and the repo-root .env file locally).
 
 Keys are held only in memory. Nothing in this module logs or returns them;
 callers should use `key_present` / `effective_provider` instead.
 """
 
-import json
 import os
-from functools import lru_cache
+import threading
+import time
 from pathlib import Path
 from typing import Literal
 
@@ -14,7 +14,8 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-# Writable data (cases, drug table, runs.db, SVTG index cache). In Docker this is the persistent volume.
+# Seed data (cases.json, drug_table.csv), the local SQLite database and the local SVTG PDF. Production keeps all
+# state in Postgres and never writes here.
 DATA_DIR = Path(os.environ.get("DATA_DIR") or REPO_ROOT / "data").resolve()
 
 Provider = Literal["gemini", "openai_compatible", "demo"]
@@ -37,7 +38,13 @@ class Settings(BaseSettings):
     openai_api_key: str = Field(default="", repr=False)
     openai_model: str = ""
 
+    # Local copy of the SVTG PDF, read only by the seed script (app.scripts.seed). Never deployed or served.
     svtg_pdf_path: str = "data/StandardVeterinaryTreatment.pdf"
+
+    # Postgres in production (pooled URL); empty = local SQLite (data/vetagentbench.db).
+    database_url: str = Field(default="", repr=False)
+    # Direct (non-pooled) connection for migrations and the seed script; falls back to DATABASE_URL.
+    database_url_unpooled: str = Field(default="", repr=False)
 
     # Deployment. In production, demo runs are refused and hidden, API docs are off, and an access code is
     # always required for runs, edits, Review and Settings (with no ADMIN_ACCESS_CODE set, nobody can unlock).
@@ -55,8 +62,14 @@ class Settings(BaseSettings):
     # Hard cap on live-model tokens (in + out) per UTC day across all runs; 0 = no cap (development only).
     max_daily_tokens: int = Field(default=1_000_000, ge=0)
     max_cases_per_run: int = Field(default=30, ge=1, le=500)
-    max_body_bytes: int = Field(default=2_000_000, ge=10_000, le=50_000_000)
-    # Frozen results snapshot, loaded into an empty database at startup (path relative to the repo root).
+    max_body_bytes: int = Field(default=2_000_000, ge=10_000, le=4_000_000)
+    # One run step (one case through one condition) must finish inside the platform's function limit
+    # (Vercel Hobby: maxDuration 300 s). A step still running at this deadline is stored as "timeout".
+    step_deadline_s: int = Field(default=240, ge=1, le=780)
+    # A run with no new result for this long is treated as abandoned (closed browser) and marked interrupted.
+    run_stale_s: int = Field(default=600, ge=60, le=86_400)
+    # Frozen results snapshot (path relative to the repo root), loaded by the seed script; locally also loaded
+    # into an empty database at start-up.
     snapshot_path: str = "snapshots/v1.0.0/run.json"
     autoload_snapshot: bool = True
 
@@ -105,7 +118,7 @@ class Settings(BaseSettings):
         path = Path(self.svtg_pdf_path)
         if path.is_absolute():
             return path
-        # "data/x.pdf" resolves inside DATA_DIR, so the same setting works locally and on a Docker volume.
+        # "data/x.pdf" resolves inside DATA_DIR.
         if path.parts and path.parts[0] == "data":
             return DATA_DIR.joinpath(*path.parts[1:])
         return REPO_ROOT / path
@@ -135,18 +148,32 @@ class Settings(BaseSettings):
     @property
     def secrets(self) -> list[str]:
         """Values that must never appear in logs or responses."""
-        return [v for v in (self.gemini_api_key, self.openai_api_key, self.admin_access_code, self.session_secret) if v.strip()]
+        values = (self.gemini_api_key, self.openai_api_key, self.admin_access_code, self.session_secret, self.database_url,
+                  self.database_url_unpooled)
+        return [v for v in values if v.strip()]
 
 
-# Non-secret settings editable from the Settings page. Saved to data/settings.json (gitignored); they override
-# .env. API keys are deliberately not in this list: they live only in .env.
-OVERRIDES_PATH = DATA_DIR / "settings.json"
+_env: list[Settings] = []
+
+
+def env_settings() -> Settings:
+    """Settings from the environment only (no saved overrides): used where the database is not available yet."""
+    if not _env:
+        _env.append(Settings())
+    return _env[0]
+
+
+def configured_database_url() -> str:
+    return env_settings().database_url
+
+
+# Non-secret settings editable from the Settings page. Saved in the database (table app_settings); they override
+# environment variables. API keys are deliberately not in this list: they live only in the environment.
 EDITABLE_FIELDS = (
     "llm_provider",
     "gemini_model",
     "openai_base_url",
     "openai_model",
-    "svtg_pdf_path",
     "temperature",
     "max_steps",
     "max_owner_questions",
@@ -156,21 +183,35 @@ EDITABLE_FIELDS = (
 )
 
 
-def load_overrides(path: Path | None = None) -> dict[str, object]:
-    path = path or OVERRIDES_PATH
-    if not path.is_file():
-        return {}
+def load_overrides() -> dict[str, object]:
+    """Saved settings from the database. An unreachable or empty database means no overrides."""
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+        from app.storage.db import get_store
+
+        raw = get_store().settings_overrides()
+    except Exception:
         return {}
-    return {k: v for k, v in raw.items() if k in EDITABLE_FIELDS} if isinstance(raw, dict) else {}
+    return {k: v for k, v in raw.items() if k in EDITABLE_FIELDS}
 
 
-@lru_cache
+# Saved settings are re-read at most this often, so a change made on one serverless instance reaches the others.
+SETTINGS_TTL_S = 10.0
+_settings_lock = threading.Lock()
+_settings_cache: dict[str, object] = {}
+
+
 def get_settings() -> Settings:
-    return Settings(**load_overrides())  # type: ignore[arg-type]
+    with _settings_lock:
+        cached = _settings_cache.get("value")
+        if isinstance(cached, Settings) and time.monotonic() - float(_settings_cache["at"]) < SETTINGS_TTL_S:  # type: ignore[arg-type]
+            return cached
+    value = Settings(**load_overrides())  # type: ignore[arg-type]
+    with _settings_lock:
+        _settings_cache.update(value=value, at=time.monotonic())
+    return value
 
 
 def reset_settings_cache() -> None:
-    get_settings.cache_clear()
+    with _settings_lock:
+        _settings_cache.clear()
+        _env.clear()

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -25,7 +23,7 @@ def client_with():
     app.dependency_overrides.clear()
 
 
-def test_health_without_key_runs_in_demo_mode(client_with):
+def test_health_without_key_runs_in_demo_mode(client_with, fake_svtg):
     res = client_with(llm_provider="gemini", gemini_api_key="").get("/api/health")
     assert res.status_code == 200
     body = res.json()
@@ -39,7 +37,8 @@ def test_health_without_key_runs_in_demo_mode(client_with):
 
 def test_health_reports_required_fields(client_with):
     body = client_with().get("/api/health").json()
-    for field in ("pdf_loaded", "pages", "chunks", "key_present", "model", "counts", "data_errors"):
+    for field in ("index_loaded", "chunks", "source_pages", "key_present", "model", "counts", "data_errors",
+                  "warnings", "database"):
         assert field in body
     assert set(body["counts"]) == {"cases", "drugs", "runs"}
 
@@ -68,18 +67,46 @@ def test_openai_compatible_needs_key_and_base_url(client_with):
     assert body["llm_mode"] == "demo"
 
 
-def test_missing_pdf_reported_not_loaded(client_with, tmp_path: Path):
-    body = client_with(svtg_pdf_path=str(tmp_path / "missing.pdf")).get("/api/health").json()
-    assert body["pdf_loaded"] is False
-    assert body["pages"] == 0
+def test_empty_index_reported_and_app_still_works(client_with):
+    """No SVTG passages in the database (seed not run): health says so clearly; the rest still works."""
+    res = client_with().get("/api/health")
+    body = res.json()
+    assert res.status_code == 200
+    assert body["index_loaded"] is False and body["chunks"] == 0 and body["source_pages"] == 0
+    assert body["status"] == "degraded"
+    assert any("SVTG passages are not loaded" in w and "seed" in w for w in body["warnings"])
+    assert body["counts"]["cases"] == 29 and body["database"]["ok"] is True
+
+
+def test_index_loaded_from_database(client_with, fake_svtg):
+    body = client_with().get("/api/health").json()
+    assert body["index_loaded"] is True
+    assert body["chunks"] == 3 and body["source_pages"] == 406
+    assert body["warnings"] == []
+
+
+def test_production_without_database_url_still_answers_health(monkeypatch):
+    """Missing DATABASE_URL in production: the app starts, health explains, other endpoints return 503."""
+    from app import config
+    from app.storage import db
+
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("APP_ENV", "production")
+    config.reset_settings_cache()
+    db.reset_store_cache()
+    client = TestClient(app)
+    body = client.get("/api/health").json()
+    assert body["database"] == {"ok": False, "engine": "none"}
+    assert any("DATABASE_URL is not set" in e for e in body["data_errors"])
+    assert body["status"] == "degraded"
+    res = client.get("/api/runs")
+    assert res.status_code == 503 and "DATABASE_URL" in res.json()["detail"]
 
 
 def test_svtg_pdf_opens():
     default_pdf = make_settings().pdf_path
     if not default_pdf.is_file():
         pytest.skip(f"SVTG PDF not present at {default_pdf.relative_to(REPO_ROOT)}")
-    from app.api.health import pdf_status
+    from app.retrieval.ingest import page_count
 
-    loaded, pages = pdf_status(default_pdf)
-    assert loaded is True
-    assert pages > 0
+    assert page_count(default_pdf) > 300

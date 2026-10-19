@@ -4,8 +4,9 @@ import { DoseDial } from "../../components/DoseDial";
 import { SidenoteList, SidenoteRefs } from "../../components/Sidenotes";
 import { TriageStrip } from "../../components/TriageStrip";
 import { VitalTrace } from "../../components/VitalTrace";
+import { useIsAdmin } from "../../api/auth";
 import { useResultTrace, type ResultSummary } from "../../api/runs";
-import type { LiveEntry } from "../../app/runState";
+import { useRun, type LiveEntry } from "../../app/runState";
 import { pickResult, type DiffField } from "./answerDiff";
 import type { Condition } from "../../app/conditions";
 import { Stamp } from "../../components/Stamp";
@@ -72,13 +73,18 @@ export function ConditionCard({ condition, available, live, latest, onCite, diff
   const cites = (a?.citations ?? []).filter((c) => c.page !== null);
   const v = result?.verdict;
   const showTrace = traceOpen || running;
+  const admin = useIsAdmin();
+  const { run, start, starting } = useRun();
+  const timedOut = result?.status === "timeout";
+  const statusLabel = status === "error" && timedOut ? "Timed out" : STATUS_LABEL[status];
+  const canRetry = admin && !starting && run?.status !== "running" && !!result && result.status !== "ok";
 
   return (
     <article
       className="ccard"
       data-cond={condition.id}
       data-status={status}
-      aria-label={`${condition.id} ${condition.name}: ${STATUS_LABEL[status]}`}
+      aria-label={`${condition.id} ${condition.name}: ${statusLabel}`}
       data-testid={`card-${condition.id}`}
     >
       <span className="ccard-bar" aria-hidden="true" />
@@ -100,7 +106,7 @@ export function ConditionCard({ condition, available, live, latest, onCite, diff
       />
       <div className="ccard-statusline">
         <span className="ccard-status mono" data-status={status} aria-live="polite">
-          {STATUS_LABEL[status]}
+          {statusLabel}
           {running && live ? ` · step ${live.steps.length}` : ""}
         </span>
         {result && (
@@ -126,10 +132,24 @@ export function ConditionCard({ condition, available, live, latest, onCite, diff
         </div>
       )}
 
-      {result?.status === "error" && (
-        <pre className="ccard-error mono" role="alert">
-          {result.error}
-        </pre>
+      {result && result.status !== "ok" && (
+        <div className="ccard-failed">
+          <pre className="ccard-error mono" role="alert">
+            {result.error}
+          </pre>
+          {canRetry && (
+            <button
+              type="button"
+              className="btn"
+              data-testid={`retry-${condition.id}`}
+              onClick={() =>
+                void start({ case_ids: [result.case_id], conditions: [condition.id], interview: result.interview, force: false })
+              }
+            >
+              Retry {condition.id}
+            </button>
+          )}
+        </div>
       )}
 
       {a && (

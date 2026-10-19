@@ -11,8 +11,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from app.data.benchmark import DISCLAIMER, benchmark_info
-from app.data.loaders import load_cases
+from app.data.benchmark import DISCLAIMER, benchmark_info, file_benchmark_info
+from app.data.loaders import load_cases, read_cases_file
 from app.scoring.metrics import build_scorecard
 from app.storage.db import Store
 
@@ -86,16 +86,35 @@ def load_snapshot(store: Store, path: Path) -> str | None:
     return run["id"]
 
 
+CACHE_FIELDS = ("status", "answer", "error", "rules_fired", "owner_questions", "trace", "steps", "tokens_in",
+                "tokens_out", "cost_usd", "latency_ms")
+
+
+def seed_cache_from_snapshot(store: Store, path: Path) -> int:
+    """Add the snapshot's answers to the answer cache, so re-running a frozen case with the same model, prompt
+    and settings returns the stored answer without calling the model. Existing entries are kept."""
+    data = read_snapshot(path)
+    run = data["run"]
+    added = 0
+    for r in data["results"]:
+        if r["status"] != "ok" or not r.get("cache_key"):
+            continue
+        meta = {"provider": run["provider"], "model": run["model"], "condition": r["condition"],
+                "case_id": r["case_id"], "prompt_version": run["prompt_version"], "interview": r["interview"]}
+        added += store.cache_seed(r["cache_key"], meta, {k: r.get(k) for k in CACHE_FIELDS})
+    return added
+
+
 def verify_snapshot(path: Path) -> list[str]:
     """Score the snapshot again and list any metric that differs from the numbers stored in it."""
     data = read_snapshot(path)
-    cases = {c.case_id: c for c in load_cases()}
+    cases = {c.case_id: c for c in read_cases_file()}  # the frozen seed data, independent of any database
     results = [{**r, "id": i + 1, "run_id": data["run"]["id"]} for i, r in enumerate(data["results"])]
     got = _metric_summary(build_scorecard(data["run"], results, cases))
     want = data["expected_scorecard"]
     problems = [f"{key}: expected {want.get(key)}, got {got.get(key)}" for key in sorted(set(got) | set(want))
                 if got.get(key) != want.get(key)]
-    b = benchmark_info()
+    b = file_benchmark_info()
     if data["benchmark"]["hash"] != b["hash"]:
         problems.append(f"benchmark hash differs: snapshot {data['benchmark']['hash'][:12]}, data {b['short_hash']}")
     return problems

@@ -2,27 +2,21 @@
 per-run case cap, demo exclusion in production, headers, body limits, SVTG passage gating, redaction."""
 
 import json
-from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app import config, security
 from app.agent import manager as manager_mod
-from app.agent.manager import day_start_iso
 from app.main import app
-from app.storage.db import Store
+from app.storage.db import Store, utc_day
 
 CODE = "correct horse battery staple"
 
 
 @pytest.fixture
-def store(tmp_path: Path):
-    m = manager_mod.manager
-    old = (m._store, m._runs, m._active)
-    m._store, m._runs, m._active = Store(tmp_path / "runs.db"), {}, None
-    yield m._store
-    m._store, m._runs, m._active = old
+def store(_isolated):
+    return _isolated
 
 
 def env(monkeypatch, **values):
@@ -41,12 +35,12 @@ def unlock(c: TestClient, code: str = CODE):
     return c.post("/api/auth/unlock", json={"code": code})
 
 
-def add_run(store: Store, provider: str, tokens: int = 0, cases=("BOV-WD-007",)) -> str:
+def add_run(store: Store, provider: str, tokens: int = 0, cases=("BOV-WD-007",), page: int = 36) -> str:
     rid = store.create_run(provider=provider, model=provider + "-model", prompt_version="v2", conditions=["C0"],
                            case_ids=list(cases), interview=False, temperature=0.0)
     for cid in cases:
         store.add_result(rid, {"case_id": cid, "condition": "C0", "interview": False, "status": "ok",
-                               "answer": {"citations": [{"source": "SVTG", "page": 36}]}, "trace": [],
+                               "answer": {"citations": [{"source": "SVTG", "page": page}]}, "trace": [],
                                "tokens_in": tokens, "tokens_out": 0})
     store.finish_run(rid)
     return rid
@@ -91,7 +85,8 @@ def test_health_reports_mode_and_release_fields(prod):
     assert h["mode"] == "public" and h["access_required"] is True and h["environment"] == "production"
     assert h["version"] == "1.0.0" and h["database"]["ok"] is True
     assert h["benchmark"]["version"] == "1.0.0" and len(h["benchmark"]["hash"]) == 64 and h["benchmark"]["frozen"]
-    assert h["pdf_path"] == ""  # no server paths in production
+    raw = prod.get("/api/health").text
+    assert "sqlite:" not in raw and "postgresql" not in raw.replace('"engine":"postgresql"', "")  # never the URL
     unlock(prod)
     assert prod.get("/api/health").json()["mode"] == "admin"
 
@@ -175,33 +170,53 @@ def test_daily_budget_blocks_new_runs(monkeypatch, store):
 def test_budget_counts_only_live_uncached_tokens_from_today(store):
     add_run(store, "demo", tokens=5000)
     add_run(store, "gemini", tokens=300)
-    assert store.tokens_since(day_start_iso()) == 300
-    assert store.tokens_since("2999-01-01T00:00:00+00:00") == 0
+    rid = store.create_run(provider="gemini", model="m", prompt_version="v2", conditions=["C0"], case_ids=["BOV-001"],
+                           interview=False)
+    store.add_result(rid, {"case_id": "BOV-001", "condition": "C0", "interview": False, "status": "ok",
+                           "answer": None, "trace": [], "tokens_in": 999, "tokens_out": 0, "cached": True})
+    assert store.tokens_on(utc_day()) == 300
+    assert store.tokens_on("2999-01-01") == 0
+
+
+def test_imported_snapshot_does_not_count_against_today(store):
+    from app.snapshot import load_snapshot
+
+    load_snapshot(store, config.Settings(_env_file=None).snapshot_file)
+    assert store.tokens_on(utc_day()) == 0
 
 
 def test_budget_stops_a_running_run(monkeypatch, store):
-    """A run that crosses the cap stops after the result that crossed it, with status budget_exhausted."""
+    """A run that crosses the cap stops after the step that crossed it, with status budget_exhausted."""
     from app.agent import manager as mm
 
-    calls = {"n": 0}
     real = mm.run_one
 
     def spend(**kw):
         r = real(**kw)
-        calls["n"] += 1
         r["tokens_in"], r["cached"] = 600, False
         return r
 
-    monkeypatch.setattr(mm, "run_one", spend)
-    monkeypatch.setattr(mm.Store, "tokens_since", lambda self, since: 600 * calls["n"])
+    from app.llm.demo import DemoProvider
+
+    class LiveLike(DemoProvider):  # demo answers, but counted like a live model
+        name = "gemini"
+
     s = config.Settings(_env_file=None, max_daily_tokens=1000)
-    state = mm.manager.start(s, ["BOV-WD-007"], None, False, True)
-    import time
-    end = time.time() + 30
-    while not state.finished and time.time() < end:
-        time.sleep(0.05)
-    assert state.status == "budget_exhausted" and state.n_done == 2
-    assert any(e["type"] == "run_error" and "budget" in e["data"]["error"] for e in state.events)
+    live = LiveLike()
+    monkeypatch.setattr(mm, "run_one", spend)
+    monkeypatch.setattr(mm.manager, "_provider", lambda settings: live)
+    run = mm.manager.start(s, ["BOV-WD-007"], None, False, True)
+    events: list[tuple[str, dict]] = []
+    emit = lambda t, d: events.append((t, d))  # noqa: E731
+    first = mm.manager.run_step(s, mm.manager.prepare_step(s, run["run_id"], "BOV-WD-007", "C0"), emit)
+    assert first["stop"] is None
+    second = mm.manager.run_step(s, mm.manager.prepare_step(s, run["run_id"], "BOV-WD-007", "C1"), emit)
+    assert second["stop"] == "budget" and second["n_done"] == 2
+    assert store.get_run(run["run_id"])["status"] == "budget_exhausted"
+    assert any(t == "run_error" and "budget" in d["error"] for t, d in events)
+    with pytest.raises(mm.StepError) as e:
+        mm.manager.prepare_step(s, run["run_id"], "BOV-WD-007", "C2")
+    assert e.value.status in (409, 429)
 
 
 def test_max_cases_per_run(monkeypatch, store):
@@ -228,7 +243,7 @@ def test_production_hides_demo_results(prod, store):
     assert prod.get("/api/scorecard/export.csv", params={"run_id": demo}).status_code == 404
     latest = prod.get("/api/results/latest").json()
     assert {v["run_id"] for by_c in latest.values() for v in by_c.values()} == {live}
-    assert store.delete_demo_runs() == 1 and Store(store.path, hide_demo=False).count_runs() == 1
+    assert store.delete_demo_runs() == 1 and Store(store.url, hide_demo=False).count_runs() == 1
 
 
 # ---------- headers, CORS, body limits ----------
@@ -296,8 +311,8 @@ def test_unhandled_errors_hide_the_stack(monkeypatch, store):
 # ---------- SVTG passages ----------
 
 def test_public_gets_only_cited_svtg_pages(prod, store):
-    if not config.get_settings().pdf_path.is_file():
-        pytest.skip("SVTG PDF not present")
+    store.replace_chunks([{"chunk_id": f"p{p}-c1", "page": p, "printed_page": p - 18, "section": "s",
+                           "text": f"Passage on page {p}."} for p in (36, 250)], {"pages": 406})
     add_run(store, "gemini")  # cites page 36
     r = prod.get("/api/svtg/pages/36")
     assert r.status_code == 200 and r.json()["source"]["url"].startswith("https://dahd.gov.in/")
@@ -336,11 +351,8 @@ def test_log_filter_redacts(caplog):
 
 def test_run_records_release_metadata(store):
     s = config.Settings(_env_file=None)
-    state = manager_mod.manager.start(s, ["BOV-WD-007"], ["C0"], False, True)
-    import time
-    while not state.finished:
-        time.sleep(0.02)
-    run = store.get_run(state.id)
+    summary = manager_mod.manager.start(s, ["BOV-WD-007"], ["C0"], False, True)
+    run = store.get_run(summary["run_id"])
     assert run["temperature"] == 0.0 and run["prompt_version"] and run["model"] and run["created_at"]
     assert run["benchmark_version"] == "1.0.0" and len(run["benchmark_hash"]) == 64
 

@@ -4,8 +4,8 @@ Public visitors can read everything a finished study shows. Starting runs, editi
 need the access code (ADMIN_ACCESS_CODE). The code is compared as a salted scrypt hash, and a successful
 unlock sets a signed, httpOnly, SameSite=Strict session cookie.
 
-State (rate-limit buckets, failed attempts) is in memory. That is correct because the app runs as a single
-worker process: the run manager and its SSE event log are in memory too (see docs/DEPLOY.md).
+Rate-limit counters, failed attempts and lockouts are kept in the database, because on Vercel many short-lived
+server instances serve requests side by side and share nothing in memory.
 """
 
 import base64
@@ -13,14 +13,13 @@ import hashlib
 import hmac
 import json
 import logging
+import os
 import re
 import secrets
-import threading
 import time
-from collections import deque
-from dataclasses import dataclass, field
 
 from fastapi import Depends, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse, Response
 
@@ -182,52 +181,45 @@ def clear_session_cookie(response: Response, settings: Settings) -> None:
 # ---------- lockout after repeated wrong codes ----------
 
 GLOBAL_FAILURE_FACTOR = 6  # this many times the per-IP limit, from all IPs together, locks everyone out
+ALL_IPS = "*"
 
 
-@dataclass
-class _Failures:
-    times: deque[float] = field(default_factory=deque)
-    locked_until: float = 0.0
+def _store():
+    from app.storage.db import get_store
+
+    return get_store()
 
 
 class Lockout:
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self._by_ip: dict[str, _Failures] = {}
-        self._global = _Failures()
+    """Failed attempts and lockouts are kept in the database, so every server instance sees them."""
 
     def reset(self) -> None:
-        with self._lock:
-            self._by_ip.clear()
-            self._global = _Failures()
+        _store().reset_limits()
 
     def locked_for(self, ip: str, settings: Settings, now: float | None = None) -> int:
         """Seconds until this IP may try again (0 = not locked)."""
         t = now or time.time()
-        with self._lock:
-            f = self._by_ip.get(ip)
-            until = max(f.locked_until if f else 0.0, self._global.locked_until)
+        until = _store().locked_until([ip, ALL_IPS])
         return max(0, int(until - t + 0.999))
 
     def fail(self, ip: str, settings: Settings, now: float | None = None) -> int:
         """Record a wrong code. Returns attempts left before lockout (0 = now locked)."""
         t = now or time.time()
         window = settings.auth_lockout_minutes * 60
-        with self._lock:
-            f = self._by_ip.setdefault(ip, _Failures())
-            for rec, limit in ((f, settings.auth_max_attempts), (self._global, settings.auth_max_attempts * GLOBAL_FAILURE_FACTOR)):
-                rec.times.append(t)
-                while rec.times and rec.times[0] < t - window:
-                    rec.times.popleft()
-                if len(rec.times) >= limit:
-                    rec.locked_until = t + window
-                    rec.times.clear()
-            left = settings.auth_max_attempts - len(f.times)
-            return 0 if f.locked_until > t else left
+        store = _store()
+        locked = False
+        for key, limit in ((ip, settings.auth_max_attempts), (ALL_IPS, settings.auth_max_attempts * GLOBAL_FAILURE_FACTOR)):
+            store.add_failure(key, t)
+            if store.count_failures(key, t - window) >= limit:
+                store.set_lockout(key, t + window)
+                store.clear_failures(key, keep_lockout=True)
+                locked = locked or key == ip
+        if secrets.randbelow(50) == 0:
+            store.prune_failures(t - window)
+        return 0 if locked else settings.auth_max_attempts - store.count_failures(ip, t - window)
 
     def succeed(self, ip: str) -> None:
-        with self._lock:
-            self._by_ip.pop(ip, None)
+        _store().clear_failures(ip)
 
 
 lockout = Lockout()
@@ -236,38 +228,35 @@ lockout = Lockout()
 # ---------- rate limit ----------
 
 class RateLimiter:
-    """Sliding one-minute window per client IP."""
-
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self._hits: dict[str, deque[float]] = {}
+    """Fixed one-minute window per client IP, counted in the database (shared by all server instances).
+    If the database cannot be reached, requests are let through: writes still need the access code."""
 
     def reset(self) -> None:
-        with self._lock:
-            self._hits.clear()
+        _store().reset_limits()
 
     def hit(self, key: str, limit: int, now: float | None = None) -> int:
         """Record a request; returns seconds to wait (0 = allowed)."""
-        t = now or time.monotonic()
-        with self._lock:
-            q = self._hits.setdefault(key, deque())
-            while q and q[0] <= t - 60:
-                q.popleft()
-            if len(q) >= limit:
-                return max(1, int(q[0] + 60 - t + 0.999))
-            q.append(t)
-            if len(self._hits) > 50_000:  # bound memory under a flood of distinct IPs
-                for k in [k for k, v in self._hits.items() if not v][:10_000]:
-                    del self._hits[k]
+        t = now or time.time()
+        try:
+            hits = _store().rate_hit(key[:64], int(t // 60))
+        except Exception as e:
+            log.warning("Rate limit not applied: database unavailable (%s)", type(e).__name__)
             return 0
+        if hits > limit:
+            return max(1, int(60 - t % 60 + 0.999))
+        return 0
 
 
 rate_limiter = RateLimiter()
 
 
 def client_ip(request: Request) -> str:
-    # Uvicorn/gunicorn resolve X-Forwarded-For only from trusted proxies (FORWARDED_ALLOW_IPS), so this is
-    # the real client behind the platform's load balancer and cannot be spoofed by a direct caller.
+    # On Vercel the platform sets X-Real-IP (and overwrites X-Forwarded-For) to the real client address, so a
+    # caller cannot spoof it. Elsewhere (local uvicorn) the socket peer is the client.
+    if os.environ.get("VERCEL"):
+        ip = request.headers.get("x-real-ip") or request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+        if ip:
+            return ip[:64]
     return request.client.host if request.client else "unknown"
 
 
@@ -291,7 +280,7 @@ class GuardMiddleware(BaseHTTPMiddleware):
         if path.startswith("/api/"):
             # Health is exempt so platform health checks never trip the limit.
             if path != "/api/health":
-                wait = rate_limiter.hit(client_ip(request), settings.rate_limit_per_minute)
+                wait = await run_in_threadpool(rate_limiter.hit, client_ip(request), settings.rate_limit_per_minute)
                 if wait:
                     return self._headers(JSONResponse(
                         status_code=429,

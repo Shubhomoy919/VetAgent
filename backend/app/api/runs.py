@@ -1,18 +1,22 @@
-"""Runs: start, stream (SSE), cancel, history; latest results per case; SVTG page passages."""
+"""Runs: create, run one step at a time (SSE or JSON), finish, cancel, history; latest results per case;
+SVTG page passages."""
 
 import asyncio
 import json
+import queue
+import threading
 import time
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from fastapi.responses import StreamingResponse
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 
-from app.agent.manager import BudgetExceeded, RunConflict, manager, result_payload
+from app.agent.manager import BudgetExceeded, RunConflict, StepCancelled, StepError, manager, result_payload
 from app.config import Settings, get_settings
 from app.data.loaders import DataError, load_cases
 from app.retrieval.service import svtg_index
-from app.security import is_admin, require_admin
+from app.security import is_admin, redact, require_admin
 
 router = APIRouter(prefix="/api")
 
@@ -25,17 +29,26 @@ class StartRun(BaseModel):
     label: str = Field(default="bench", max_length=80)
 
 
+class StepBody(BaseModel):
+    case_id: str = Field(min_length=1, max_length=40)
+    condition: str = Field(min_length=2, max_length=4)
+
+
+class FinishBody(BaseModel):
+    cancelled: bool = False
+
+
 @router.post("/runs", status_code=202, dependencies=[Depends(require_admin)])
 def start_run(body: StartRun, settings: Settings = Depends(get_settings)) -> dict:
+    """Create a run. The client then calls /runs/{id}/step for each case and condition, in order."""
     try:
-        state = manager.start(settings, body.case_ids, body.conditions, body.interview, body.force, body.label)
+        return manager.start(settings, body.case_ids, body.conditions, body.interview, body.force, body.label)
     except RunConflict as e:
         raise HTTPException(status_code=409, detail=str(e)) from e
     except BudgetExceeded as e:
         raise HTTPException(status_code=429, detail=str(e)) from e
     except (ValueError, DataError) as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-    return state.summary()
 
 
 @router.get("/budget")
@@ -45,9 +58,84 @@ def budget(settings: Settings = Depends(get_settings)) -> dict:
 
 
 @router.get("/runs/active")
-def active_run() -> dict | None:
-    a = manager.active()
-    return a.summary() if a else None
+def active_run(settings: Settings = Depends(get_settings)) -> dict | None:
+    """The run still in progress, with the steps already done, so a reloaded page can continue it."""
+    return manager.active(settings)
+
+
+def _sse(event: dict) -> str:
+    return f"id: {event['id']}\nevent: {event['type']}\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n"
+
+
+@router.post("/runs/{run_id}/step", dependencies=[Depends(require_admin)])
+async def run_step(run_id: str, body: StepBody, request: Request, settings: Settings = Depends(get_settings)):
+    """Run one case through one condition and store the result.
+
+    With `Accept: text/event-stream` the agent steps stream as server-sent events (result_started, step…,
+    result_done, and run_error when the run has to stop). Otherwise the response is JSON: the result_done data
+    plus the full event list. Either way the step ends within STEP_DEADLINE_S; a step still working then is
+    stored as "timeout" and can be retried."""
+    try:
+        ctx = await run_in_threadpool(manager.prepare_step, settings, run_id, body.case_id, body.condition)
+    except StepError as e:
+        raise HTTPException(status_code=e.status, detail=e.message) from e
+
+    if "text/event-stream" not in request.headers.get("accept", ""):
+        events: list[dict] = []
+        done = await run_in_threadpool(manager.run_step, settings, ctx,
+                                       lambda t, d: events.append({"id": len(events) + 1, "type": t, "data": d}))
+        return {**done, "events": events}
+
+    q: queue.Queue = queue.Queue()
+    cancel = threading.Event()
+
+    def work() -> None:
+        try:
+            manager.run_step(settings, ctx, lambda t, d: q.put((t, d)), cancel)
+        except StepCancelled:
+            pass
+        except Exception as e:  # reported in the stream; never a traceback
+            q.put(("step_error", {"case_id": body.case_id, "condition": body.condition,
+                                  "error": redact(f"{type(e).__name__}: {e}", settings)}))
+        finally:
+            q.put(None)
+
+    threading.Thread(target=work, daemon=True).start()
+
+    async def stream():
+        n = 0
+        last = time.monotonic()
+        try:
+            while True:
+                try:
+                    item = q.get_nowait()
+                except queue.Empty:
+                    if await request.is_disconnected():
+                        return
+                    if time.monotonic() - last > 15:
+                        yield ": keep-alive\n\n"
+                        last = time.monotonic()
+                    await asyncio.sleep(0.05)
+                    continue
+                if item is None:
+                    return
+                n += 1
+                last = time.monotonic()
+                yield _sse({"id": n, "type": item[0], "data": item[1]})
+        finally:
+            cancel.set()  # client gone: the worker stops at its next agent step
+
+    return StreamingResponse(stream(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@router.post("/runs/{run_id}/finish", dependencies=[Depends(require_admin)])
+def finish_run(run_id: str, body: FinishBody | None = None) -> dict:
+    """Close a run after its last step (or when the user cancels it)."""
+    try:
+        return manager.finish(run_id, "cancelled" if body and body.cancelled else None)
+    except StepError as e:
+        raise HTTPException(status_code=e.status, detail=e.message) from e
 
 
 COMPARE_METRICS = ("dx_top1", "triage_match", "dangerous", "under_triage", "false_safe", "illegal_drug",
@@ -110,41 +198,6 @@ def cancel_run(run_id: str) -> dict:
     if not manager.cancel(run_id):
         raise HTTPException(status_code=404, detail=f"Run {run_id} is not running")
     return {"run_id": run_id, "cancelling": True}
-
-
-def _sse(event: dict) -> str:
-    return f"id: {event['id']}\nevent: {event['type']}\ndata: {json.dumps(event['data'], ensure_ascii=False)}\n\n"
-
-
-@router.get("/runs/{run_id}/events")
-async def run_events(run_id: str, request: Request) -> StreamingResponse:
-    state = manager.get(run_id)
-    if state is None:
-        raise HTTPException(status_code=404, detail=f"No live event stream for run {run_id} (it may have finished before the server restarted)")
-
-    async def stream():
-        sent = 0
-        last_beat = time.monotonic()
-        yield "retry: 2000\n\n"
-        while True:
-            if await request.is_disconnected():
-                return
-            batch = state.events_since(sent)
-            for ev in batch:
-                yield _sse(ev)
-            sent += len(batch)
-            if state.closed and sent >= len(state.events):
-                return
-            if time.monotonic() - last_beat > 15:
-                yield ": keep-alive\n\n"
-                last_beat = time.monotonic()
-            await asyncio.sleep(0.05)
-
-    return StreamingResponse(
-        stream(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no", "Connection": "keep-alive"},
-    )
 
 
 @router.get("/runs")

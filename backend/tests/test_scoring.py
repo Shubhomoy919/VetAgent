@@ -1,17 +1,14 @@
 import csv
 import io
 import math
-from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app.agent import manager as manager_mod
-from app.data.loaders import load_cases
+from app.data.loaders import read_cases_file
 from app.main import app
 from app.scoring.metrics import CSV_HEADER, build_scorecard, scorecard_csv_rows
 from app.scoring.stats import mcnemar_exact, wilson
-from app.storage.db import Store
 
 # ---------- Wilson ----------
 
@@ -72,7 +69,7 @@ def test_mcnemar_no_discordant_pairs():
 
 @pytest.fixture(scope="module")
 def cases():
-    return {c.case_id: c for c in load_cases()}
+    return {c.case_id: c for c in read_cases_file()}
 
 
 def ans(**kw):
@@ -182,11 +179,8 @@ def test_csv_rows(cases):
 
 
 @pytest.fixture
-def client(tmp_path: Path, cases):
-    m = manager_mod.manager
-    old = (m._store, m._runs, m._active)
-    store = Store(tmp_path / "runs.db")
-    m._store, m._runs, m._active = store, {}, None
+def client(_isolated, cases):
+    store = _isolated
     run_id = store.create_run(provider="demo", model="demo", prompt_version="v1", conditions=["C0", "C4"],
                               case_ids=["BOV-010", "BOV-008"], interview=False)
     for r in [
@@ -199,7 +193,6 @@ def client(tmp_path: Path, cases):
                                   "owner_questions": [], "cached": False, "cache_key": "k"})
     store.finish_run(run_id)
     yield TestClient(app), run_id
-    m._store, m._runs, m._active = old
 
 
 def test_scorecard_api_default_run(client):
@@ -232,12 +225,6 @@ def test_scorecard_404s(client):
     assert c.get("/api/scorecard", params={"run_id": "nope"}).status_code == 404
 
 
-def test_scorecard_no_runs(tmp_path: Path):
-    m = manager_mod.manager
-    old = (m._store, m._runs, m._active)
-    m._store, m._runs, m._active = Store(tmp_path / "empty.db"), {}, None
-    try:
-        r = TestClient(app).get("/api/scorecard")
-        assert r.status_code == 404 and "No runs" in r.json()["detail"]
-    finally:
-        m._store, m._runs, m._active = old
+def test_scorecard_no_runs():
+    r = TestClient(app).get("/api/scorecard")
+    assert r.status_code == 404 and "No runs" in r.json()["detail"]
