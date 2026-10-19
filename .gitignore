@@ -35,3 +35,9 @@ data/settings.json
 # Production build and local server artefacts
 frontend/lighthouse/
 data/*.pdf
+
+# Vercel CLI (local project link and build output)
+.vercel/
+# Written by a local `vercel build` from requirements.txt (Vercel generates them in its own build too)
+/pyproject.toml
+/uv.lock
