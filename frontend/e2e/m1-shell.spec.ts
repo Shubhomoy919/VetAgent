@@ -25,7 +25,7 @@ test("/ opens the Bench shell with zero console errors", async ({ page }) => {
   await expect(page.getByTestId("bench")).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Bench" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Bench" })).toHaveClass(/active/);
-  await expect(page.getByText("Research prototype — not for clinical use. Consult a registered veterinarian.")).toBeVisible();
+  await expect(page.getByText("Research prototype, not for clinical use. Consult a registered veterinarian.")).toBeVisible();
 
   const health = await (await page.request.get("/api/health")).json();
   await expect(page.getByTestId("model-id")).toHaveText(health.model);

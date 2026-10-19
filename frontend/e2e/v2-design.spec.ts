@@ -5,8 +5,11 @@ import { expect, test } from "@playwright/test";
 
 test("case dossier shows the full case, gold answer and past results", async ({ page, request }) => {
   // make sure the case has at least one stored result
+  // (a run is one request per step: create it, then run its single step)
   const runId = (await (await request.post("/api/runs", { data: { case_ids: ["BOV-WD-007"], conditions: ["C0"], interview: false, force: false } })).json()).run_id as string;
-  await expect.poll(async () => (await (await request.get(`/api/runs/${runId}`)).json()).status, { timeout: 60_000 }).not.toBe("running");
+  const step = await request.post(`/api/runs/${runId}/step`, { data: { case_id: "BOV-WD-007", condition: "C0" } });
+  expect(step.ok()).toBe(true);
+  expect((await (await request.get(`/api/runs/${runId}`)).json()).status).not.toBe("running");
 
   await page.goto("/?case=BOV-WD-007");
   await page.getByTestId("open-dossier").click();

@@ -49,6 +49,12 @@ Deployment on Vercel. The benchmark is unchanged: still v1.0.0 with content hash
 - `npm run check:secrets` proves the built frontend contains no server-only value, key-shaped string or `VITE_`
   variable.
 
+### Fixes
+- Local development (`npm run dev`): every change made in the browser (runs, edits, Review, Settings) was refused
+  as cross-origin since 1.0.0, because the Vite proxy rewrote the Host header. The proxy now keeps it.
+- Development Playwright suite: waits for the API, runs in demo mode with a higher rate limit, and matches the
+  current labels.
+
 ### Tests and CI
 - pytest runs on a fresh database per test, on SQLite and on Postgres (`TEST_DATABASE_URL`); new tests for the seed
   (idempotent), migrations matching the schema, step runs, timeouts, resume, budget stop and the health warnings.
