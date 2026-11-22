@@ -2,7 +2,7 @@
   "name": "vetagentbench-in",
   "private": true,
   "version": "0.1.0",
-  "description": "VetAgentBench-IN â€” research prototype, not for clinical use.",
+  "description": "VetAgentBench-IN — research prototype, not for clinical use.",
   "scripts": {
     "setup": "python -m venv .venv && .venv\\Scripts\\python.exe -m pip install -r backend/requirements-dev.txt && npm install && npm --prefix frontend install",
     "dev": "concurrently -k -n api,web -c blue,yellow \"npm:dev:api\" \"npm:dev:web\"",
