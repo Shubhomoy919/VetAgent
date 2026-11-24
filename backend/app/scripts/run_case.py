@@ -13,6 +13,7 @@ from app.agent.conditions import CONDITIONS, INTERVIEW_CONDITIONS
 from app.agent.prompts import PROMPT_VERSION
 from app.agent.runner import run_one
 from app.config import get_settings
+from app.data.benchmark import benchmark_info
 from app.data.loaders import DataError, load_cases, load_drugs
 from app.llm.factory import get_provider
 from app.retrieval.service import svtg_index
@@ -56,9 +57,11 @@ def main(argv: list[str] | None = None) -> int:
     provider = get_provider(settings)
     index = svtg_index(settings)
     store = Store()
+    bench = benchmark_info()
     run_id = store.create_run(
         provider=provider.name, model=provider.model, prompt_version=PROMPT_VERSION, conditions=conditions,
-        case_ids=args.case_ids, interview=args.interview, label="cli",
+        case_ids=args.case_ids, interview=args.interview, label="cli", temperature=settings.temperature,
+        benchmark_version=bench["version"], benchmark_hash=bench["hash"], force=args.force,
     )
     mode = "DEMO (sample responses, not live model output)" if provider.name == "demo" else "LIVE"
     print(f"Run {run_id} · provider={provider.name} model={provider.model} · {mode} · prompt {PROMPT_VERSION}")

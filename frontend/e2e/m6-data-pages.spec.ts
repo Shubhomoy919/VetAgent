@@ -72,6 +72,11 @@ test("Case editor: client and server validation, then a valid save", async ({ pa
   await expect(editor).toHaveCount(0);
   const saved = await (await request.get("/api/cases/BOV-WD-007")).json();
   expect(saved.history).toContain("(edited in e2e)");
+
+  // Edits persist in the database, not data/; put the original case back so the benchmark stays frozen.
+  const restored = await request.put("/api/cases/BOV-WD-007", { data: unchanged });
+  expect(restored.ok()).toBe(true);
+  expect((await restored.json()).history).toBe(unchanged.history);
 });
 
 test("Drug table: banned-drug rule blocks a dose; filter by status", async ({ page }) => {
